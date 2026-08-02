@@ -30,7 +30,7 @@ export const ROLE_CONSOLES = {
     title: 'Graduation clearance desk',
     purpose: 'Check that each student has the verified fieldwork hours and records they need before they graduate.',
     defaultTab: 'records',
-    tabOrder: ['records', 'overview', 'analytics'],
+    tabOrder: ['records', 'overview', 'analytics', 'data'],
     tasks: [
       'Look up a student and confirm their approved fieldwork hours.',
       'Export the cohort list for the clearance meeting.',
@@ -101,7 +101,7 @@ export const ROLE_CONSOLES = {
     title: 'University-wide operations',
     purpose: 'Keep the whole employability pipeline moving: approvals, at-risk students and cohort health across every faculty.',
     defaultTab: 'overview',
-    tabOrder: ['overview', 'records', 'students', 'approvals', 'analytics', 'people', 'audit'],
+    tabOrder: ['overview', 'records', 'students', 'approvals', 'analytics', 'people', 'audit', 'data'],
     tasks: [
       'Clear anything sitting in the approvals queues.',
       'Search the full student directory.',
@@ -113,7 +113,7 @@ export const ROLE_CONSOLES = {
     title: 'Platform governance',
     purpose: 'Oversee accounts, roles and the audit trail — and read any student record when an escalation needs it.',
     defaultTab: 'people',
-    tabOrder: ['people', 'audit', 'records', 'overview', 'students', 'approvals', 'analytics'],
+    tabOrder: ['people', 'audit', 'records', 'overview', 'students', 'approvals', 'analytics', 'data'],
     tasks: [
       'Review recent role changes in the audit trail.',
       'Check for accounts still waiting on an invitation.',

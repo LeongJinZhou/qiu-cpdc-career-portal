@@ -44,13 +44,16 @@ try {
   process.exit(1);
 }
 
-// 2. QUALITY GATE & AUTOMATED TEST VERIFICATION
-console.log('\n🧪 [Step 2/5] Running automated software quality gates (166+ unit tests)...');
+// 2. QUALITY GATE & PRODUCTION BUILD VERIFICATION
+console.log('\n🧪 [Step 2/5] Running automated software quality gates (166+ unit tests & production compilation)...');
 try {
+  console.log('   -> Running unit & architectural policy tests...');
   execSync('npm test', { stdio: 'inherit', env: { ...process.env, FORCE_COLOR: 'true' } });
-  console.log('✅ All unit tests and architectural policies passed 100%. Zero regressions.');
+  console.log('   -> Compiling Next.js production bundles (npm run build) to prevent Cloud Build failures...');
+  execSync('npm run build', { stdio: 'inherit', env: { ...process.env, FORCE_COLOR: 'true' } });
+  console.log('✅ All unit tests passed 100% and production bundles compiled cleanly with zero webpack errors.');
 } catch (err) {
-  console.error('❌ [QUALITY GATE FAILED] Automated tests errored or failed. Aborting push & deploy.');
+  console.error('❌ [QUALITY GATE FAILED] Automated tests or Next.js production compilation errored. Aborting push & deploy.');
   process.exit(1);
 }
 
@@ -63,10 +66,10 @@ try {
     const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
     
     // Construct high-fidelity descriptive changelog as required by user governance rules
-    const commitDescription = `feat(enterprise-core): automated module & deployment governance synchronization [${timestamp}]\n\n` +
-      `[Modules Affected]: Full CPDC Career Portal stack (WorkshopHub, CareerPath, Matching Engine, Firebase App Hosting, GitHub CI/CD Governance)\n` +
-      `[Role & Access Impact]: Enforces zero sensitive data upload rules across all canonical student, alumni, employer, HoP, and admin personas.\n` +
-      `[Architectural Rationale]: Automates multi-stage quality gate verification, continuous testing, and Git/Firebase synchronization while restricting pushes exclusively to cpdc-platform folder.`;
+    const commitDescription = `feat(enterprise-core): resolve admin data explorer component & enhance build gate [${timestamp}]\n\n` +
+      `[Modules Affected]: AdminControlCenter, DataExplorer, API Data Entity Routings, CI/CD Deployment Governance\n` +
+      `[Role & Access Impact]: Grants CPDC Admin, Super Admin, and University Registrar deep interactive access to cross-student raw database tables (Assessment Attempts, Job Applications, Workshops, Course Enrolments, Audit Logs).\n` +
+      `[Architectural Rationale]: Implements required frontend component to eliminate Webpack module not found errors during cloud framework build and upgrades pre-push verification to run full npm run build alongside unit test suite.`;
 
     execSync('git -C . add -A', { stdio: 'inherit' });
     execSync(`git -C . commit -m "${commitDescription.replace(/"/g, '\\"')}"`, { stdio: 'inherit' });

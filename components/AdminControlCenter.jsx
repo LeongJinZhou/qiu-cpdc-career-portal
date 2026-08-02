@@ -9,6 +9,7 @@ import {
   BadgeCheck,
   CheckCircle2,
   Clock3,
+  Database,
   FileCheck2,
   Filter,
   FolderSearch,
@@ -28,6 +29,7 @@ import FypApprovalQueue from '@/components/admin/FypApprovalQueue';
 import LogbookReviewQueue from '@/components/admin/LogbookReviewQueue';
 import StudentDirectory from '@/components/admin/StudentDirectory';
 import WorkshopRequestQueue from '@/components/admin/WorkshopRequestQueue';
+import DataExplorer from '@/components/admin/DataExplorer';
 import { DIRECTORY_ROLES, consoleForRole, orderTabsForRole } from '@/components/admin/roleConsole';
 import { FACULTIES } from '@/lib/data/facultyData';
 import { fetchAdminOverview } from '@/lib/api';
@@ -40,6 +42,7 @@ const TABS = [
   { id: 'analytics', label: 'Analytics', icon: Activity },
   { id: 'people', label: 'People & access', icon: BadgeCheck },
   { id: 'audit', label: 'Audit', icon: LockKeyhole },
+  { id: 'data', label: 'Data explorer', icon: Database },
 ];
 
 const FYP_REVIEW_ROLES = new Set(['HEAD_OF_PROGRAMME', 'CPDC_ADMIN', 'SUPER_ADMIN']);
@@ -53,6 +56,9 @@ const LOGBOOK_REVIEW_ROLES = new Set([
 ]);
 const WORKSHOP_REQUEST_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
 const PEOPLE_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
+// University-wide roles that may browse raw cross-student records. Mirrors
+// EXPLORER_ROLES in app/api/admin/data/[entity]/route.js (server is authority).
+const DATA_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN', 'UNIVERSITY_REGISTRAR']);
 
 export default function AdminControlCenter({ activeFaculty, currentRole, student }) {
   const roleConsole = consoleForRole(currentRole);
@@ -70,6 +76,7 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
   const visibleTabs = useMemo(() => orderTabsForRole(currentRole, TABS.filter((item) => (
     (item.id !== 'people' || PEOPLE_ROLES.has(currentRole))
       && (item.id !== 'audit' || PEOPLE_ROLES.has(currentRole))
+      && (item.id !== 'data' || DATA_ROLES.has(currentRole))
       && (item.id !== 'records' || DIRECTORY_ROLES.has(currentRole))
       && (item.id !== 'approvals' || FYP_REVIEW_ROLES.has(currentRole) || LOGBOOK_REVIEW_ROLES.has(currentRole))
       && consoleForRole(currentRole).tabOrder.includes(item.id)
@@ -155,6 +162,8 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
       {tab === 'people' && PEOPLE_ROLES.has(currentRole) && <IdentityManagement activeFaculty={activeFaculty} currentRole={currentRole} />}
 
       {tab === 'audit' && PEOPLE_ROLES.has(currentRole) && <AuditLogPanel currentRole={currentRole} />}
+
+      {tab === 'data' && DATA_ROLES.has(currentRole) && <DataExplorer currentRole={currentRole} />}
 
       {selectedStudent && <IdentityDrawer student={selectedStudent} canOverride={currentRole === 'SUPER_ADMIN'} onClose={() => setSelectedStudent(null)} />}
     </div>
