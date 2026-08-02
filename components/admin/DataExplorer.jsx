@@ -24,6 +24,43 @@ const ENTITIES = [
   { id: 'auditLog', label: 'Security Audit Log', desc: 'Immutable security tracking ledger recording every protected administrative database read/write.' },
 ];
 
+const COLUMN_LABELS = {
+  id: 'Record ID',
+  student: 'Student',
+  matricNo: 'Student ID',
+  assessment: 'Assessment',
+  score: 'Score',
+  passed: 'Result',
+  submittedAt: 'Submitted',
+  posting: 'Job posting',
+  stage: 'Stage',
+  appliedAt: 'Applied',
+  title: 'Title',
+  category: 'Category',
+  startsAt: 'Starts',
+  capacity: 'Capacity',
+  rsvps: 'RSVPs',
+  courseId: 'Course',
+  status: 'Status',
+  enrolledAt: 'Enrolled',
+  action: 'Action',
+  resourceType: 'Record type',
+  resourceId: 'Record ID',
+  actorUserId: 'Actor ID',
+  at: 'Recorded',
+};
+
+const DATE_COLUMNS = new Set(['submittedAt', 'appliedAt', 'startsAt', 'enrolledAt', 'at']);
+
+function displayValue(column, value) {
+  if (value == null || value === '') return '—';
+  if (DATE_COLUMNS.has(column)) {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.toLocaleString();
+  }
+  return String(value);
+}
+
 export default function DataExplorer({ currentRole }) {
   const [activeEntity, setActiveEntity] = useState('assessmentAttempt');
   const [query, setQuery] = useState('');
@@ -203,7 +240,7 @@ export default function DataExplorer({ currentRole }) {
               <tr className="bg-black/[0.03] border-b border-black/10 text-[11px] font-bold uppercase tracking-wider text-muted">
                 {(data?.columns || []).map((col) => (
                   <th key={col} className="px-4 py-3 font-bold">
-                    {col}
+                    {COLUMN_LABELS[col] || col}
                   </th>
                 ))}
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -250,7 +287,7 @@ export default function DataExplorer({ currentRole }) {
                             {String(val)}
                           </span>
                         ) : (
-                          String(val ?? '—')
+                          displayValue(col, val)
                         )}
                       </td>
                     );
@@ -305,7 +342,7 @@ export default function DataExplorer({ currentRole }) {
 
               <div className="mt-6 space-y-3">
                 <p className="text-xs text-muted font-medium mb-2">
-                  Complete attribute evaluation as read directly from PostgreSQL/SQLite Prisma client engine:
+                  Read-only details returned directly from the configured database through Prisma:
                 </p>
                 {Object.entries(selectedRow).map(([k, v]) => (
                   <div

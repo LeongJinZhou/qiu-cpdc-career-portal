@@ -88,7 +88,7 @@ export const ROLE_CONSOLES = {
   ACADEMIC_SUPERVISOR: {
     eyebrow: 'Academic supervision',
     title: 'Your assigned students',
-    purpose: 'Follow the students assigned to you: their fieldwork, their diagnostics and their Final Year Project.',
+    purpose: 'Follow the students assigned to you: their fieldwork records and the diagnostic results relevant to supervision.',
     defaultTab: 'records',
     tabOrder: ['records', 'approvals', 'overview'],
     tasks: [
