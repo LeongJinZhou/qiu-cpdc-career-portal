@@ -348,6 +348,156 @@ export default function ResumeEditor() {
   );
 }
 
+/**
+ * Upload an existing resume document (PDF/Word). This is the whole-file a
+ * student attaches themselves — distinct from the structured sections above and
+ * from the QIU-verified auto-CV. Stored inline via /api/profile/resume.
+ */
+function ResumeFileUpload() {
+  const inputRef = useRef(null);
+  const [resume, setResume] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/profile/resume', { cache: 'no-store', credentials: 'include' })
+      .then(readJson)
+      .then((data) => { if (!cancelled) setResume(data.resume ?? null); })
+      .catch((loadError) => { if (!cancelled) setError(loadError.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleChoose = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setError('');
+    setStatus('');
+    if (!RESUME_MIME.has(file.type)) {
+      setError('Please choose a PDF or Word document (.doc or .docx).');
+      return;
+    }
+    if (file.size > RESUME_MAX_BYTES) {
+      setError('That file is larger than 5 MB. Please upload a smaller resume.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const data = await readJson(await fetch('/api/profile/resume', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fileName: file.name, fileType: file.type, dataUrl }),
+      }));
+      setResume(data.resume ?? null);
+      setStatus(`Uploaded ${file.name}. Employers who view your profile can now download it.`);
+    } catch (uploadError) {
+      setError(uploadError.message || 'We could not upload that file. Please try again.');
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  const handleDownload = async () => {
+    setError('');
+    try {
+      const data = await readJson(await fetch('/api/profile/resume?download=1', { cache: 'no-store', credentials: 'include' }));
+      if (!data.resume?.dataUrl) { setError('There is no uploaded resume to download.'); return; }
+      const link = document.createElement('a');
+      link.href = data.resume.dataUrl;
+      link.download = data.resume.fileName || 'resume';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (downloadError) {
+      setError(downloadError.message || 'We could not open that file.');
+    }
+  };
+
+  const handleRemove = async () => {
+    setError('');
+    setStatus('');
+    setBusy(true);
+    try {
+      await readJson(await fetch('/api/profile/resume', { method: 'DELETE', credentials: 'include' }));
+      setResume(null);
+      setStatus('Your uploaded resume was removed.');
+    } catch (removeError) {
+      setError(removeError.message || 'We could not remove that file.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="surface space-y-4 p-5 sm:p-6">
+      <div className="flex items-start gap-2.5 border-b border-black/10 pb-4">
+        <FileUp className="mt-0.5 h-5 w-5 flex-shrink-0 text-crimson" aria-hidden="true" />
+        <div>
+          <h2 className="font-heading text-lg font-semibold">Upload your resume file</h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            Already have a resume as a PDF or Word file? Attach it here. This is optional — the
+            sections below and your verified QIU record already build a resume for you. PDF or Word,
+            up to 5 MB.
+          </p>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-muted">Checking for an uploaded resume…</p>
+      ) : resume?.hasFile ? (
+        <div className="flex flex-col gap-3 rounded-[18px] border border-black/10 bg-black/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-[#1d1d1f]">{resume.fileName}</p>
+            <p className="text-xs text-muted">Uploaded and saved to your profile.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={handleDownload} className="secondary-btn inline-flex min-h-[44px] items-center gap-2 text-sm">
+              <Download className="h-4 w-4" aria-hidden="true" /> Download
+            </button>
+            <button type="button" onClick={handleRemove} disabled={busy} className="secondary-btn inline-flex min-h-[44px] items-center gap-2 text-sm disabled:opacity-60">
+              <Trash2 className="h-4 w-4" aria-hidden="true" /> Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-muted">No resume file uploaded yet.</p>
+      )}
+
+      <label htmlFor="resume-file-input" className="block rounded-[18px] border-2 border-dashed border-black/15 bg-black/[0.02] p-5 text-sm hover:border-crimson/40">
+        <span className="block font-semibold">{resume?.hasFile ? 'Replace the uploaded file' : 'Choose a file to upload'}</span>
+        <span className="mt-1 block text-xs text-muted">PDF, .doc or .docx · maximum 5 MB</span>
+        <input
+          id="resume-file-input"
+          ref={inputRef}
+          type="file"
+          accept={RESUME_ACCEPT}
+          disabled={busy}
+          onChange={handleChoose}
+          className="mt-4 block w-full text-xs disabled:opacity-60"
+        />
+      </label>
+
+      {busy ? <p className="text-sm text-muted" role="status">Uploading…</p> : null}
+      {error ? (
+        <p className="flex items-start gap-2 text-sm font-medium text-red-700" role="alert">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />{error}
+        </p>
+      ) : null}
+      {status ? (
+        <p className="flex items-start gap-2 text-sm text-[#1d1d1f]" role="status">
+          <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-crimson" aria-hidden="true" />{status}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 function Field({ id, label, hint, value, onChange, placeholder, required = false }) {
   const hintId = `${id}-hint`;
 
