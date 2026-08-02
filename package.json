@@ -1,0 +1,51 @@
+{
+  "name": "cpdc-platform",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test tests/*.mjs tests/**/*.mjs",
+    "test:auth": "node --test tests/auth/session-policy.test.mjs",
+    "test:identity": "node --test tests/identity/student-id.test.mjs tests/audit/audit-shape.test.mjs",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.mjs",
+    "db:bootstrap-admin": "node scripts/bootstrap-super-admin.mjs",
+    "db:studio": "prisma studio",
+    "deploy": "npm run deploy:auto",
+    "deploy:auto": "node scripts/autonomous_deploy_agent.mjs"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "canvas-confetti": "^1.9.4",
+    "firebase": "^12.17.0",
+    "firebase-admin": "^14.2.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
+    "lucide-react": "^0.469.0",
+    "mammoth": "^1.12.0",
+    "next": "^15.1.3",
+    "pdfjs-dist": "^6.2.108",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "word-extractor": "^1.0.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^15.5.22",
+    "prisma": "^6.1.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

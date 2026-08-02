@@ -1,0 +1,823 @@
+// CPDC Platform data model.
+//
+// Mirrors the blueprint's university hierarchy:
+//   Faculty -> Programme -> Student, with academic year tracks 1..4.
+//
+// XP is stored as an append-only ledger (XpEvent) rather than a running total
+// on Student. Totals are derived by summing the ledger, which keeps the award
+// history auditable and makes idempotency enforceable -- see XpEvent.dedupeKey.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  CPDC_ADMIN
+  FACULTY_COORDINATOR
+  // Programme-level lead / lecturer: scoped to a single programme (e.g. "BSc
+  // Computer Science"), below the faculty-wide coordinator. Owns that
+  // programme's Career Path curriculum mapping and its FYP/logbook approvals.
+  HEAD_OF_PROGRAMME
+  // University lecturer supervising specific internship placements. Scoped to
+  // assigned mentees rather than to a whole programme or faculty.
+  ACADEMIC_SUPERVISOR
+  // Industrial training officer: sources placements and manages the host
+  // organisations. Faculty-scoped.
+  PLACEMENT_OFFICER
+  // CPDC counselling staff: CV reviews, mock interviews, diagnostic follow-up.
+  // University-wide, but career data only — no identity override.
+  CAREER_COUNSELOR
+  // Academic affairs: co-curricular graduation clearance and transcripts.
+  UNIVERSITY_REGISTRAR
+  SUPER_ADMIN
+  EMPLOYER
+  ALUMNI
+  // NOTE: there is deliberately no EXTERNAL_SUPERVISOR member. An off-campus
+  // preceptor never holds an account — they act only through a hashed,
+  // single-use, expiring logbook token (lib/magic-link.js). Making it an
+  // assignable account role would grant exactly the standing platform access
+  // the design forbids.
+}
+
+enum AccountStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  DISABLED
+}
+
+enum IdentitySource {
+  MANUAL
+  FIREBASE
+  IMPORT
+  SEEDED
+}
+
+enum ProgrammeLevel {
+  FOUNDATION
+  DIPLOMA
+  BACHELOR
+  PROFESSIONAL
+  POSTGRADUATE
+}
+
+enum LogbookStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum XpSource {
+  PROFILE_SETUP
+  WORKSHOP_ATTENDANCE
+  COURSE_COMPLETION
+  MOCK_INTERVIEW
+  LOGBOOK_ONTIME
+  DIAGNOSTIC_PASSED
+  STREAK_BONUS
+  FYP_SUBMISSION
+  BADGE_AWARD
+  ADMIN_ADJUSTMENT
+  // Career Path (Module 3): completing a roadmap milestone awards a fixed
+  // amount, filed under its own source so the ledger explains the points.
+  CAREER_MILESTONE
+}
+
+// Final Year Project review lifecycle (Module 2). A project is only eligible
+// for the public talent feed once a Head of Programme moves it to APPROVED.
+enum FypStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  NEEDS_CHANGES
+}
+
+enum AssessmentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AssessmentQuestionType {
+  SINGLE_CHOICE
+  TRUE_FALSE
+}
+
+model Faculty {
+  id          String @id
+  name        String
+  code        String @unique
+  color       String
+  icon        String
+  description String
+
+  // Faculty-specific logbook field definitions, kept as JSON because each
+  // faculty defines a different shape (clinical shift vs. teaching practicum
+  // vs. lab safety). Rendering is driven entirely by this.
+  logFields Json
+  features  String[]
+
+  programmes  Programme[]
+  students    Student[]
+  workshops   Workshop[]
+  assessments Assessment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Programme {
+  id    String         @id @default(cuid())
+  name  String
+  level ProgrammeLevel
+
+  facultyId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  students    Student[]
+  assessments Assessment[]
+
+  @@unique([facultyId, name])
+  @@index([facultyId])
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  normalizedEmail String?        @unique
+  name            String
+  role            Role           @default(STUDENT)
+  avatarUrl       String?
+  firebaseUid     String?        @unique
+  loginAllowed    Boolean        @default(false)
+  accountStatus   AccountStatus  @default(INVITED)
+  lastSignInAt    DateTime?
+  identitySource  IdentitySource @default(MANUAL)
+
+  student            Student?
+  roleAssignments    RoleAssignment[]
+  identitySnapshots  IdentitySnapshot[]
+  auditEntries       AuditLog[]
+  updatedSettings    PlatformSetting[]
+  ownedCompanies     Company[]          @relation("CompanyOwner")
+  sentTalentOutreach TalentOutreach[]   @relation("TalentOutreachSender")
+  createdAssessments Assessment[]       @relation("AssessmentCreator")
+  workshopRequests  WorkshopRequest[]   @relation("WorkshopRequestRequester")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([accountStatus])
+  @@index([identitySource])
+}
+
+model Student {
+  id              String @id @default(cuid())
+  // Human-facing matric number, e.g. QIU-202404-007157.
+  matricNo        String @unique
+  intakeYearMonth Int?
+  intakeSequence  Int?
+  academicYear    Int    @default(1)
+
+  // Module 11 privacy control: students are hidden from employer talent search
+  // until they explicitly opt in. Module 6: skill tags earned from completed
+  // courses accumulate here and feed matching + the CV.
+  searchable Boolean  @default(false)
+  skillTags  String[] @default([])
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  facultyId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id])
+
+  programmeId String
+  programme   Programme @relation(fields: [programmeId], references: [id])
+
+  xpEvents               XpEvent[]
+  badges                 Badge[]
+  logbookEntries         LogbookEntry[]
+  attendances            WorkshopAttendance[]
+  milestones             MilestoneCompletion[]
+  rsvps                  WorkshopRsvp[]
+  fypProject             FYPProject?
+  diagnostics            DiagnosticResult[]
+  courseEnrolments       CourseEnrolment[]
+  applications           Application[]
+  automationEvents       AutomationEvent[]
+  receivedTalentOutreach TalentOutreach[]      @relation("TalentOutreachTarget")
+  assessmentAttempts     AssessmentAttempt[]
+
+  // Student-owned profile fields. Academic identity remains QIU-controlled;
+  // these fields are safe self-service content used by matching and CV.
+  phone         String?
+  bio           String?
+  careerTargets String?
+  industries    String?
+  portfolioUrl  String?
+  githubUrl     String?
+  linkedinUrl   String?
+  resumeSummary String?
+  resumeData    Json?
+
+  // An uploaded resume/CV document the student attaches themselves (PDF or Word).
+  // Stored inline as a data URL, mirroring FYPProject.posterData, so no separate
+  // object store is needed. This is the student-asserted document; the verified
+  // auto-CV from /api/cv remains the trusted half.
+  resumeFileData String?
+  resumeFileName String?
+  resumeFileType String?
+
+  // Per-student notification preferences (e.g. email digests). Persisted so a
+  // choice follows the student across devices instead of living in localStorage.
+  notificationPrefs Json?
+
+  // Derived lifecycle state. It is never used to grant employer visibility;
+  // a student must still opt in separately through searchable/publicOptIn.
+  lifecycleStatus       String    @default("ACTIVE_STUDENT")
+  internshipCompletedAt DateTime?
+  alumniEligibleAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([facultyId])
+  @@index([intakeYearMonth])
+  @@index([intakeYearMonth, intakeSequence])
+  @@index([programmeId])
+}
+
+// A student's completion of a single Career Path milestone (Module 3). The
+// milestoneId is derived deterministically from the roadmap registry as
+// "<facultyId>:<year>:<index>" so the same roadmap item always maps to the
+// same row. XP for the milestone is awarded once via an idempotent XpEvent
+// (dedupeKey "career-milestone:<studentId>:<milestoneId>"); un-checking a
+// milestone clears this planning row but never claws back already-earned XP.
+model MilestoneCompletion {
+  id          String @id @default(cuid())
+  milestoneId String
+  facultyId   String
+  year        Int
+  label       String
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  completedAt DateTime @default(now())
+
+  @@unique([studentId, milestoneId])
+  @@index([studentId])
+}
+
+// Final Year Project record (Module 2). Replaces the old session-storage-only
+// submission so a project survives a cleared browser and reaches the Head of
+// Programme approval queue. Only APPROVED + publicOptIn projects surface on the
+// public talent feed.
+model FYPProject {
+  id            String  @id @default(cuid())
+  title         String
+  abstract      String
+  supervisorName String?
+  repositoryUrl String?
+  liveUrl       String?
+  // Poster/demo asset stored inline as a data URL for the prototype; swap for
+  // an object-storage key (S3/GCS/Firebase) when a bucket is provisioned.
+  posterData    String?
+  posterName    String?
+
+  status      FypStatus @default(PENDING_REVIEW)
+  publicOptIn Boolean   @default(false)
+
+  reviewerName String?
+  reviewNote   String?
+  reviewedAt   DateTime?
+
+  studentId String           @unique
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  outreach  TalentOutreach[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// A single skills-diagnostic attempt (Module 7). Stored per attempt (not
+// upserted) so a student's score history builds over time — the Year-1 baseline
+// vs latest overlay is just the first and last rows. The radar survives a
+// refresh because the latest attempt is reloaded from here.
+model DiagnosticResult {
+  id        String   @id @default(cuid())
+  testId    String
+  score     Float // overall ratio 0..1
+  passed    Boolean  @default(false)
+  gapTags   String[] @default([])
+  // Per-category breakdown [{ name, ratio, strong }] kept as JSON so the radar
+  // renders identically to when it was taken, regardless of test shape changes.
+  breakdown Json
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([studentId, createdAt])
+}
+
+// A student's enrolment in / completion of a curated online course (Module 6).
+// Completion is a real, persisted state (survives refresh) and, once verified,
+// pushes the course's skill tag onto the student profile.
+model CourseEnrolment {
+  id                 String    @id @default(cuid())
+  courseId           String
+  title              String
+  provider           String?
+  skillTag           String?
+  status             String    @default("ENROLLED") // ENROLLED | COMPLETED
+  certificateUrl     String?
+  evidenceUrl        String?
+  evidenceName       String?
+  // Small standalone-mode evidence attachment. Move this value to Firebase
+  // Storage/object storage when hosting; the database retains the audit link.
+  evidenceData       String?
+  verificationStatus String    @default("PENDING") // PENDING | VERIFIED | RETURNED
+  verifiedByUserId   String?
+  verifiedAt         DateTime?
+  completedAt        DateTime?
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, courseId])
+  @@index([studentId])
+}
+
+// Staff-created assessment imported from a PDF, Word document, or text file.
+// The original binary is not stored in Postgres; only the source name/type and
+// normalized question contract are retained so the draft can be reviewed and
+// published safely.
+model Assessment {
+  id               String           @id @default(cuid())
+  title            String
+  instructions     String?
+  status           AssessmentStatus @default(DRAFT)
+  passMark         Float            @default(0.6)
+  timeLimitMinutes Int?
+  sourceFileName   String?
+  sourceFileType   String?
+  sourceTextHash   String?
+  publishedAt      DateTime?
+
+  facultyId   String?
+  faculty     Faculty?   @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  programmeId String?
+  programme   Programme? @relation(fields: [programmeId], references: [id], onDelete: SetNull)
+
+  createdByUserId String
+  createdBy       User                 @relation("AssessmentCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  questions       AssessmentQuestion[]
+  attempts        AssessmentAttempt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, facultyId, programmeId])
+  @@index([createdByUserId, createdAt])
+}
+
+model AssessmentQuestion {
+  id                   String                 @id @default(cuid())
+  assessmentId         String
+  assessment           Assessment             @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  order                Int
+  prompt               String
+  type                 AssessmentQuestionType @default(SINGLE_CHOICE)
+  options              String[]               @default([])
+  correctOptionIndexes Int[]                  @default([])
+  category             String?
+  explanation          String?
+  points               Int                    @default(1)
+
+  @@unique([assessmentId, order])
+  @@index([assessmentId])
+}
+
+model AssessmentAttempt {
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  startedAt    DateTime   @default(now())
+  expiresAt    DateTime?
+  answers      Json
+  breakdown    Json?
+  score        Float?
+  passed       Boolean?
+  submittedAt  DateTime?
+
+  @@index([assessmentId, studentId, submittedAt])
+  @@index([studentId, submittedAt])
+}
+
+// Employer marketplace (Module 11): companies publish vacancies students apply
+// to, and applications move through the ATS stages. Persisted so a posted job
+// survives a refresh and an application has a durable status.
+model Company {
+  id          String  @id @default(cuid())
+  name        String
+  industry    String?
+  website     String?
+  about       String?
+  ownerUserId String?
+  owner       User?   @relation("CompanyOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  jobPostings JobPosting[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+model JobPosting {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  location    String?
+  type        String? // Internship | Graduate | Part-time
+  skills      String[]  @default([])
+  status      JobStatus @default(OPEN)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  applications Application[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([companyId])
+  @@index([companyId, status])
+}
+
+enum ApplicationStage {
+  APPLIED
+  SHORTLISTED
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
+model Application {
+  id    String           @id @default(cuid())
+  stage ApplicationStage @default(APPLIED)
+  note  String?
+
+  jobPostingId String
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobPostingId, studentId])
+  @@index([studentId])
+  @@index([jobPostingId])
+}
+
+model RoleAssignment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role
+  scopeType  String   @default("GLOBAL")
+  scopeValue String   @default("GLOBAL")
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, role, scopeType, scopeValue])
+  @@index([role, scopeType, scopeValue])
+  @@index([userId])
+}
+
+model IdentitySnapshot {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source          IdentitySource
+  providerSubject String?
+  email           String?
+  normalizedEmail String?
+  displayName     String?
+  claims          Json?
+  rawPayload      Json?
+  syncedAt        DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+
+  @@unique([source, providerSubject])
+  @@index([userId, syncedAt])
+  @@index([normalizedEmail])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorUserId  String?
+  actorUser    User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  action       String
+  resourceType String
+  resourceId   String
+  before       Json?
+  after        Json?
+  requestId    String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([requestId])
+}
+
+model PlatformSetting {
+  id              String   @id @default(cuid())
+  key             String
+  value           Json
+  description     String?
+  updatedByUserId String?
+  updatedByUser   User?    @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  scopeType       String   @default("PLATFORM")
+  scopeValue      String   @default("GLOBAL")
+  version         Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([key, scopeType, scopeValue], name: "scopeKey")
+  @@index([key])
+  @@index([updatedByUserId])
+}
+
+model OutboxEvent {
+  id            String    @id @default(cuid())
+  topic         String
+  aggregateType String
+  aggregateId   String
+  payload       Json
+  dedupeKey     String?   @unique
+  publishedAt   DateTime?
+  availableAt   DateTime  @default(now())
+  attemptCount  Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now())
+
+  @@index([topic, publishedAt, availableAt])
+  @@index([aggregateType, aggregateId, createdAt])
+}
+
+model XpEvent {
+  id     String   @id @default(cuid())
+  amount Int
+  source XpSource
+  note   String?
+
+  // Guards against double-awarding: a repeated QR scan or a replayed course
+  // sync writes the same key and is rejected by the unique constraint rather
+  // than silently inflating the student's total.
+  dedupeKey String @unique
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([studentId])
+}
+
+model Badge {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  icon      String
+  xp        Int      @default(0)
+  awardedAt DateTime @default(now())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, title])
+  @@index([studentId])
+}
+
+model LogbookEntry {
+  id        String        @id @default(cuid())
+  title     String
+  details   String
+  hours     Float
+  entryDate DateTime
+  status    LogbookStatus @default(DRAFT)
+
+  // Answers to the faculty's logFields, keyed by field id.
+  fieldValues Json
+
+  // GPS check-in captured at submission, when the student grants permission.
+  latitude  Float?
+  longitude Float?
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  approval SupervisorApproval?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+}
+
+// Passwordless supervisor sign-off. External doctors, principals and managers
+// never get an account: they receive a tokenized link and approve from it.
+//
+// Only the SHA-256 hash of the token is stored, so a database leak does not
+// hand an attacker a set of working approval links.
+model SupervisorApproval {
+  id              String  @id @default(cuid())
+  supervisorName  String
+  supervisorEmail String?
+  supervisorPhone String?
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  decision LogbookStatus?
+  comment  String?
+
+  logbookEntryId String       @unique
+  logbookEntry   LogbookEntry @relation(fields: [logbookEntryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model Workshop {
+  id          String    @id @default(cuid())
+  title       String
+  speaker     String
+  description String
+  location    String
+  startsAt    DateTime
+  endsAt      DateTime?
+  xpValue     Int       @default(150)
+
+  // Rich event brief used by the detail view and staff preview. Keeping the
+  // event contract in the database means a refresh never falls back to a
+  // generic speaker, agenda or access link.
+  speakerBio           String?
+  hostOrganization     String?
+  virtualLink          String?
+  roomDetails          String?
+  prerequisites        String?
+  agenda               Json?
+  learningOutcomes     String[]  @default([])
+  registrationDeadline DateTime?
+
+  // Optional event cover image (Module 5 / §17), stored inline as a data URL
+  // for the prototype. Category/tags drive the match explanations in the feed.
+  coverImage String?
+  category   String?
+  tags       String[] @default([])
+
+  // Seat cap for RSVP management; null means uncapped.
+  capacity Int?
+
+  // Null means the workshop is open to every faculty.
+  facultyId String?
+  faculty   Faculty? @relation(fields: [facultyId], references: [id])
+
+  // Random per-workshop secret encoded into the check-in QR code.
+  qrSecret String @unique
+
+  attendances WorkshopAttendance[]
+  rsvps       WorkshopRsvp[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([facultyId])
+  @@index([startsAt])
+}
+
+// Durable, auditable lifecycle hand-offs. OutboxEvent is the delivery queue;
+// this model is the user-facing record that explains what automation did for
+// a student and makes standalone mode useful before a notification provider
+// is configured.
+model AutomationEvent {
+  id        String   @id @default(cuid())
+  type      String
+  status    String   @default("RECORDED")
+  dedupeKey String?  @unique
+  payload   Json
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([studentId, createdAt])
+  @@index([type, createdAt])
+}
+
+// A durable employer/alumni contact request against an approved, opt-in FYP.
+// The old UI only changed local React state and claimed that CPDC had received
+// the message. This record is the standalone inbox/outbox contract that can
+// later be delivered by Firebase Functions or an email provider.
+model TalentOutreach {
+  id        String   @id @default(cuid())
+  kind      String
+  message   String?
+  status    String   @default("SENT")
+  createdAt DateTime @default(now())
+
+  senderUserId String
+  sender       User   @relation("TalentOutreachSender", fields: [senderUserId], references: [id], onDelete: Cascade)
+
+  targetStudentId String
+  targetStudent   Student @relation("TalentOutreachTarget", fields: [targetStudentId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   FYPProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([senderUserId, createdAt])
+  @@index([targetStudentId, createdAt])
+  @@index([projectId, createdAt])
+}
+
+// Employer-proposed workshops are reviewed before publication. Keeping the
+// request separate from Workshop prevents a half-complete event brief from
+// appearing in the student catalogue and gives CPDC a durable review trail.
+model WorkshopRequest {
+  id             String   @id @default(cuid())
+  title          String
+  preferredDate  String?
+  description    String
+  status         String   @default("PENDING") // PENDING | APPROVED | RETURNED | DECLINED
+  reviewNote     String?
+
+  requesterUserId String
+  requester       User     @relation("WorkshopRequestRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([requesterUserId, createdAt])
+  @@index([status, createdAt])
+}
+
+// A student's seat reservation for a workshop (Module 5). Distinct from
+// attendance: RSVP is intent, WorkshopAttendance is a verified QR check-in.
+model WorkshopRsvp {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  workshopId String
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([workshopId, studentId])
+  @@index([studentId])
+}
+
+model WorkshopAttendance {
+  id          String   @id @default(cuid())
+  checkedInAt DateTime @default(now())
+
+  workshopId String
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // One check-in per student per workshop.
+  @@unique([workshopId, studentId])
+  @@index([studentId])
+}

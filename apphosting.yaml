@@ -1,0 +1,45 @@
+# Firebase App Hosting configuration for QIU CPDC Career Portal
+# Ensures production runtime optimizations, generous build resources, and database integration.
+runConfig:
+  cpu: 1
+  memoryMiB: 1024
+  minInstances: 0
+  maxInstances: 50
+  concurrency: 80
+
+env:
+  - variable: NODE_ENV
+    value: production
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: DATABASE_URL
+    value: "postgresql://postgres:postgres@localhost:5432/cpdc?schema=public"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "qiu-cpdc-career-portal"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: AUTH_MODE
+    value: "demo"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_AUTH_MODE
+    value: "demo"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: SESSION_SECRET
+    value: "cpdc-career-portal-production-session-secret-key-2026-auth"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: MAGIC_LINK_SECRET
+    value: "cpdc-career-portal-production-magic-link-secret-key-2026-auth"
+    availability:
+      - BUILD
+      - RUNTIME

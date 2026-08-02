@@ -1,0 +1,283 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+/*
+ * QIU Career Hub — "Apple Elegance" light system.
+ *
+ * The brief asks for a clean, Apple-style portal: a light canvas, white cards,
+ * generous whitespace and a single restrained QIU-crimson accent used only for
+ * primary actions and the active state — never as a glowing dark surface.
+ *
+ * Tailwind v4 reads design tokens from @theme. The semantic names below
+ * (canvas, surface, ink, line, crimson, muted) are what the components paint
+ * with, so a future re-skin is a token edit rather than a component hunt.
+ */
+@theme {
+  /* Surfaces */
+  --color-canvas: #f5f5f7;   /* page background — Apple system gray */
+  --color-surface: #ffffff;  /* cards and panels */
+  --color-surface-2: #fbfbfd;/* subtle inset / secondary fill */
+
+  /* Ink + accents */
+  --color-ink: #1d1d1f;      /* primary text — Apple near-black */
+  --color-muted: #6e6e73;    /* secondary text — Apple gray */
+  --color-crimson: #e50914;  /* QIU red — accent only, used sparingly */
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+
+  /* Apple corners: soft, generous. */
+  --radius-panel: 18px;
+}
+
+:root {
+  --bg-canvas: #f5f5f7;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #fbfbfd;
+  --bg-surface-hover: #f5f5f7;
+
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.14);
+
+  --crimson: #e50914;
+  --crimson-hover: #c20812;
+  --crimson-tint: rgba(229, 9, 20, 0.08);
+  --crimson-tint-strong: rgba(229, 9, 20, 0.14);
+  --crimson-glow: rgba(229, 9, 20, 0.18);
+
+  --ink: #1d1d1f;
+  --ink-soft: #424245;
+  --muted: #6e6e73;
+  --faint: #86868b;
+
+  /* Soft, layered Apple-style elevation — no neon glow. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.10);
+
+  --font-outfit: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html, body {
+  background-color: var(--bg-canvas);
+  color: var(--ink);
+  font-family: var(--font-inter);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-outfit);
+  letter-spacing: -0.02em;
+}
+
+/* Custom scrollbar — light, unobtrusive. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  border: 2px solid var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.30);
+}
+
+/*
+ * Component classes live in @layer components so Tailwind utilities still win
+ * against them — a bare `.surface` outside a layer would beat `rounded-xl` or
+ * `p-8` at the call site and make the components unstyleable from JSX.
+ */
+@layer components {
+  /* The standard content surface: a white card with a hairline and soft lift. */
+  .surface {
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .surface-interactive {
+    cursor: pointer;
+  }
+  .surface-interactive:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--line-strong);
+  }
+
+  /* Frosted panel — used for sticky chrome over the light canvas. */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: saturate(180%) blur(18px);
+    -webkit-backdrop-filter: saturate(180%) blur(18px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+  }
+  .glass-panel-glow {
+    background: var(--bg-surface);
+    border: 1px solid var(--crimson-tint-strong);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-panel);
+  }
+
+  .section-title {
+    font-family: var(--font-outfit);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .section-subtitle {
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  /* Primary action — solid QIU crimson, the only heavy use of the accent. */
+  .crimson-btn {
+    background: var(--crimson);
+    color: #ffffff;
+    font-weight: 600;
+    border: none;
+    border-radius: 980px; /* Apple pill */
+    padding: 0.6rem 1.25rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .crimson-btn:hover {
+    background: var(--crimson-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .crimson-btn:active {
+    transform: translateY(0);
+  }
+
+  .secondary-btn {
+    background: var(--bg-surface);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    font-weight: 500;
+    border-radius: 980px;
+    padding: 0.6rem 1.25rem;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .secondary-btn:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--faint);
+  }
+
+  .badge-pill {
+    padding: 0.25rem 0.7rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .text-input {
+    min-height: 3rem;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 0 1rem;
+    color: var(--ink);
+    font-size: 0.875rem;
+    outline: none;
+  }
+
+  .text-input:focus {
+    border-color: var(--crimson);
+    box-shadow: 0 0 0 3px var(--crimson-tint);
+  }
+}
+
+@layer components {
+  /* Kept for callers that still reference the gradient helpers, retuned so the
+     text reads as solid crimson on a light canvas rather than washing out. */
+  .crimson-gradient-text {
+    color: var(--crimson);
+  }
+  .gold-gradient-text {
+    color: #b45309;
+  }
+  .cyan-gradient-text {
+    color: #0e7490;
+  }
+}
+
+/* Restrained motion — a gentle float only, no pulsing red glow. */
+@keyframes floatAnim {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: floatAnim 4s infinite ease-in-out;
+}
+/* Legacy hook — glow is intentionally a no-op in the light system. */
+.animate-glow {
+  animation: none;
+}
+
+/* Branded loading splash: an indeterminate progress "tab" that sweeps. */
+@keyframes qiuBarSweep {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(360%); }
+}
+.qiu-loading-bar { animation: qiuBarSweep 1.15s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+@keyframes qiuFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.qiu-fade-up { animation: qiuFadeUp 0.55s ease both; }
+
+@keyframes qiuFloatIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.qiu-float-in { animation: qiuFloatIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Aurora drift for the landing hero backdrop. */
+@keyframes qiuAurora {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.55; }
+  50%      { transform: translate(4%, -3%) scale(1.12); opacity: 0.8; }
+}
+.qiu-aurora { animation: qiuAurora 14s ease-in-out infinite; }
+
+/* Keep the interface usable for people who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
