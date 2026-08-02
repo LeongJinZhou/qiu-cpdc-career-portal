@@ -155,6 +155,10 @@ model User {
   name            String
   role            Role           @default(STUDENT)
   avatarUrl       String?
+  // avatarUrl is the optional user-selected photo. Google’s current photo is
+  // kept separately so clearing a custom photo restores the SSO fallback.
+  googleAvatarUrl String?
+  avatarSource    String         @default("GOOGLE") // GOOGLE | CUSTOM
   firebaseUid     String?        @unique
   loginAllowed    Boolean        @default(false)
   accountStatus   AccountStatus  @default(INVITED)
@@ -170,6 +174,8 @@ model User {
   sentTalentOutreach TalentOutreach[]   @relation("TalentOutreachSender")
   createdAssessments Assessment[]       @relation("AssessmentCreator")
   workshopRequests  WorkshopRequest[]   @relation("WorkshopRequestRequester")
+  receivedNotifications Notification[]  @relation("NotificationRecipient")
+  sentNotifications      Notification[] @relation("NotificationActor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -590,6 +596,32 @@ model OutboxEvent {
 
   @@index([topic, publishedAt, availableAt])
   @@index([aggregateType, aggregateId, createdAt])
+}
+
+// A durable in-app notification. Email is intentionally represented as an
+// outbox event as well, so standalone mode works now and Firebase Functions or
+// another provider can deliver the queued email later without changing the
+// product flow. The notification itself is the source of truth for the portal.
+model Notification {
+  id              String    @id @default(cuid())
+  recipientUserId String
+  recipient       User      @relation("NotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade)
+  actorUserId     String?
+  actor           User?     @relation("NotificationActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  type            String
+  title           String
+  body            String
+  href            String?
+  resourceType    String?
+  resourceId      String?
+  emailStatus     String    @default("QUEUED") // QUEUED | SENT | FAILED | NOT_CONFIGURED
+  readAt          DateTime?
+  dedupeKey       String?   @unique
+  createdAt       DateTime  @default(now())
+
+  @@index([recipientUserId, readAt, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([emailStatus, createdAt])
 }
 
 model XpEvent {

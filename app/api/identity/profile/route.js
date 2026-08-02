@@ -57,7 +57,9 @@ export async function GET(request) {
         name: actor.user.name,
         email: actor.user.email,
         role: actor.role,
-        avatarUrl: actor.user.avatarUrl ?? null,
+        avatarUrl: actor.identity?.user?.avatarUrl ?? actor.user.avatarUrl ?? null,
+        customAvatarUrl: actor.identity?.user?.customAvatarUrl ?? null,
+        googleAvatarUrl: actor.identity?.user?.googleAvatarUrl ?? null,
       },
       student: actor.student
         ? {
@@ -127,6 +129,8 @@ export async function PATCH(request) {
         email: actor.user.email,
         role: actor.role,
         avatarUrl: identity?.user?.avatarUrl ?? actor.user.avatarUrl ?? null,
+        customAvatarUrl: identity?.user?.customAvatarUrl ?? null,
+        googleAvatarUrl: identity?.user?.googleAvatarUrl ?? null,
       },
       profile,
       identity,

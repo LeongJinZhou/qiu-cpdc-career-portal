@@ -7,6 +7,7 @@ import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
 import { toIdentityRouteError, parseJsonBody, getRequestId } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
 import { seatsLeft } from '@/lib/workshop-policy';
+import { createNotification, createNotifications, userIdsForRoles } from '@/lib/notifications';
 
 const rsvpSchema = z.object({
   workshopId: z.string().trim().min(1, 'workshopId is required'),
@@ -28,7 +29,7 @@ export async function POST(request) {
     const outcome = await prisma.$transaction(async (tx) => {
       const workshop = await tx.workshop.findUnique({
         where: { id: workshopId },
-        select: { id: true, capacity: true },
+        select: { id: true, title: true, startsAt: true, capacity: true },
       });
       if (!workshop) {
         return { error: { status: 404, message: 'Workshop not found.' } };
@@ -64,6 +65,42 @@ export async function POST(request) {
         after: { workshopId, studentId, rsvped: going, rsvpCount },
         requestId: getRequestId(request),
       });
+
+      const staffRecipients = (await userIdsForRoles(tx)).filter((userId) => userId !== actor.user.id);
+      const dateLabel = workshop.startsAt.toLocaleString('en-GB', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Kuala_Lumpur',
+      });
+      const actionLabel = going ? 'registered for' : 'cancelled their registration for';
+
+      await createNotification(tx, {
+        recipientUserId: actor.user.id,
+        actorUserId: actor.user.id,
+        type: going ? 'WORKSHOP_REGISTRATION_CONFIRMED' : 'WORKSHOP_REGISTRATION_CANCELLED',
+        title: going ? 'Workshop registration confirmed' : 'Workshop registration cancelled',
+        body: going
+          ? `Your place for “${workshop.title}” is reserved for ${dateLabel}. Check in on the day to record attendance.`
+          : `Your registration for “${workshop.title}” on ${dateLabel} has been cancelled.`,
+        href: '/workshops',
+        resourceType: 'Workshop',
+        resourceId: workshopId,
+        dedupeKey: `workshop.rsvp.student:${workshopId}:${studentId}:${going ? 'confirmed' : 'cancelled'}`,
+      });
+
+      if (staffRecipients.length) {
+        await createNotifications(tx, {
+          recipientUserIds: staffRecipients,
+          actorUserId: actor.user.id,
+          type: going ? 'WORKSHOP_REGISTRATION_RECEIVED' : 'WORKSHOP_REGISTRATION_CANCELLED',
+          title: going ? 'New workshop registration' : 'Workshop registration cancelled',
+          body: `${actor.user.name} ${actionLabel} “${workshop.title}” (${dateLabel}). ${rsvpCount} place${rsvpCount === 1 ? '' : 's'} currently reserved.`,
+          href: '/workshops',
+          resourceType: 'Workshop',
+          resourceId: workshopId,
+          dedupeKey: `workshop.rsvp.staff:${workshopId}:${studentId}:${going ? 'confirmed' : 'cancelled'}`,
+        });
+      }
 
       return { rsvped: going, rsvpCount, seatsLeft: remaining };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });

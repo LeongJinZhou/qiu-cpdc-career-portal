@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Check, Lock, Save } from 'lucide-react';
+import { AlertCircle, Check, ImagePlus, Lock, RotateCcw, Save } from 'lucide-react';
 import { fetchVisibility, setVisibility } from '@/lib/api';
+import Avatar from '@/components/ui/Avatar';
 
 const EMPTY_FORM = {
   name: '',
@@ -41,7 +42,8 @@ async function savePersonalDetails(patch) {
 
 function looksLikeLink(value) {
   if (!value) return true;
-  return /^https?:\/\/\S+\.\S+/i.test(value.trim());
+  return /^https?:\/\/\S+\.\S+/i.test(value.trim())
+    || /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(value.trim());
 }
 
 /**
@@ -66,6 +68,7 @@ export default function PersonalDetailsForm() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [savedAt, setSavedAt] = useState(null);
+  const [photoError, setPhotoError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -78,7 +81,9 @@ export default function PersonalDetailsForm() {
         setRecord(data);
         setForm({
           name: data.user?.name ?? '',
-          avatarUrl: data.user?.avatarUrl ?? '',
+          // Only the custom photo belongs in the editable field. If it is
+          // empty, the displayed preview uses the Google SSO fallback below.
+          avatarUrl: data.user?.customAvatarUrl ?? '',
           phone: data.profile?.phone ?? data.student?.phone ?? '',
           bio: data.profile?.bio ?? data.student?.bio ?? '',
           careerTargets: data.profile?.careerTargets ?? '',
@@ -123,6 +128,31 @@ export default function PersonalDetailsForm() {
     setSavedAt(null);
   };
 
+  const handlePhotoFile = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPhotoError('');
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      setPhotoError('Choose a PNG, JPEG, or WebP image.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 1_000_000) {
+      setPhotoError('Choose an image under 1 MB so it loads quickly for everyone.');
+      event.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      setForm((previous) => ({ ...previous, avatarUrl: reader.result }));
+      setFieldErrors((previous) => ({ ...previous, avatarUrl: '' }));
+      setSavedAt(null);
+    };
+    reader.onerror = () => setPhotoError('We could not read that image. Try another file.');
+    reader.readAsDataURL(file);
+  };
+
   const skillList = useMemo(
     () => form.skills.split(',').map((skill) => skill.trim()).filter(Boolean).slice(0, 20),
     [form.skills],
@@ -142,7 +172,9 @@ export default function PersonalDetailsForm() {
       ['avatarUrl', 'Photo link'],
     ]) {
       if (!looksLikeLink(form[field])) {
-        errors[field] = `Your ${label} needs to be a full address starting with https:// — or leave it empty.`;
+        errors[field] = field === 'avatarUrl'
+          ? 'Choose an image file or enter a full https:// image address — or use your Google photo.'
+          : `Your ${label} needs to be a full address starting with https:// — or leave it empty.`;
       }
     }
 
@@ -251,16 +283,41 @@ export default function PersonalDetailsForm() {
           required
         />
 
-        <TextField
-          id="profile-avatar"
-          label="Photo link (optional)"
-          hint="A link to a photo of you. Seen by staff and by employers if you join the Talent Feed."
-          placeholder="https://…"
-          type="url"
-          value={form.avatarUrl}
-          onChange={update('avatarUrl')}
-          error={fieldErrors.avatarUrl}
-        />
+        <div>
+          <div className="flex flex-col gap-4 rounded-[18px] border border-black/10 bg-black/[0.025] p-4 sm:flex-row sm:items-center">
+            <Avatar name={form.name || record?.user?.name || 'QIU user'} src={form.avatarUrl || record?.user?.avatarUrl} size={72} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">Profile photo</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">
+                Used consistently in your profile, event registrations, messages and employer-facing views.
+                Leave your custom photo empty to use the original Google account photo automatically.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <label htmlFor="profile-avatar-file" className="secondary-btn min-h-[40px] cursor-pointer justify-center text-xs">
+                  <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                  Choose photo
+                </label>
+                <input id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoFile} className="sr-only" />
+                {form.avatarUrl ? (
+                  <button type="button" onClick={() => { setForm((previous) => ({ ...previous, avatarUrl: '' })); setSavedAt(null); }} className="secondary-btn min-h-[40px] justify-center text-xs">
+                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                    Use Google photo
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          <TextField
+            id="profile-avatar"
+            label="Photo link (optional)"
+            hint="Use this if your photo is hosted elsewhere. A file you choose above is stored securely in standalone mode and can move to Firebase Storage later."
+            placeholder="https://…"
+            type="text"
+            value={form.avatarUrl.startsWith('data:') ? '' : form.avatarUrl}
+            onChange={update('avatarUrl')}
+            error={fieldErrors.avatarUrl || photoError}
+          />
+        </div>
 
         <TextField
           id="profile-phone"

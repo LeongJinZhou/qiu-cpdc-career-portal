@@ -93,6 +93,16 @@ export async function GET(request) {
         githubUrl: profile.githubUrl || actor.student.githubUrl || '',
         linkedinUrl: profile.linkedinUrl || actor.student.linkedinUrl || '',
       },
+      // Keep a student-uploaded document visibly connected to the generated CV
+      // without copying its binary into the CV response. The source file remains
+      // downloadable through the protected resume endpoint.
+      uploadedResume: actor.student.resumeFileName
+        ? {
+          fileName: actor.student.resumeFileName,
+          fileType: actor.student.resumeFileType ?? null,
+          downloadPath: '/api/profile/resume?download=1',
+        }
+        : null,
       manualSections,
       fyp: fyp && fyp.status === 'APPROVED'
         ? { title: fyp.title, abstract: fyp.abstract, supervisorName: fyp.supervisorName, status: fyp.status }

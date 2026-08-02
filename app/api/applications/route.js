@@ -3,7 +3,9 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
 import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
-import { toIdentityRouteError, parseJsonBody } from '@/lib/auth/identity';
+import { getRequestId, toIdentityRouteError, parseJsonBody } from '@/lib/auth/identity';
+import { createNotification } from '@/lib/notifications';
+import { createAuditEntry } from '@/lib/audit';
 
 function routeError(error) {
   const e = toIdentityRouteError(error);
@@ -88,15 +90,54 @@ export async function POST(request) {
     const body = await parseJsonBody(request);
     const { jobPostingId } = applySchema.parse(body);
 
-    const job = await prisma.jobPosting.findUnique({ where: { id: jobPostingId }, select: { id: true, status: true } });
+    const job = await prisma.jobPosting.findUnique({
+      where: { id: jobPostingId },
+      select: { id: true, title: true, status: true, company: { select: { name: true, ownerUserId: true } } },
+    });
     if (!job || job.status !== 'OPEN') {
       return NextResponse.json({ error: 'This vacancy is not open.' }, { status: 404 });
     }
 
-    const application = await prisma.application.upsert({
-      where: { jobPostingId_studentId: { jobPostingId, studentId: actor.student.id } },
-      update: {},
-      create: { jobPostingId, studentId: actor.student.id },
+    const application = await prisma.$transaction(async (tx) => {
+      const saved = await tx.application.upsert({
+        where: { jobPostingId_studentId: { jobPostingId, studentId: actor.student.id } },
+        update: {},
+        create: { jobPostingId, studentId: actor.student.id },
+      });
+      await createAuditEntry({
+        tx,
+        actorUserId: actor.user.id,
+        action: 'JOB_APPLICATION_CREATED',
+        resourceType: 'Application',
+        resourceId: saved.id,
+        after: { jobPostingId, studentId: actor.student.id, stage: saved.stage },
+        requestId: getRequestId(request),
+      });
+      await createNotification(tx, {
+        recipientUserId: actor.user.id,
+        actorUserId: actor.user.id,
+        type: 'JOB_APPLICATION_RECEIVED',
+        title: 'Application submitted',
+        body: `Your application for “${job.title}” at ${job.company.name} is recorded.`,
+        href: '/employers',
+        resourceType: 'Application',
+        resourceId: saved.id,
+        dedupeKey: `job.application.student:${saved.id}`,
+      });
+      if (job.company.ownerUserId && job.company.ownerUserId !== actor.user.id) {
+        await createNotification(tx, {
+          recipientUserId: job.company.ownerUserId,
+          actorUserId: actor.user.id,
+          type: 'JOB_APPLICATION_RECEIVED',
+          title: 'New job application',
+          body: `${actor.user.name} applied for “${job.title}”. Open the employer workspace to review the candidate.`,
+          href: '/employers',
+          resourceType: 'Application',
+          resourceId: saved.id,
+          dedupeKey: `job.application.employer:${saved.id}`,
+        });
+      }
+      return saved;
     });
 
     return NextResponse.json({ application: { id: application.id, stage: application.stage } }, { status: 201 });
@@ -127,9 +168,33 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'You cannot change another company\'s application.', code: 'JOB_SCOPE_FORBIDDEN' }, { status: 403 });
     }
 
-    const updated = await prisma.application.update({
-      where: { id: applicationId },
-      data: { stage },
+    const updated = await prisma.$transaction(async (tx) => {
+      const saved = await tx.application.update({
+        where: { id: applicationId },
+        data: { stage },
+      });
+      await createAuditEntry({
+        tx,
+        actorUserId: actor.user.id,
+        action: 'JOB_APPLICATION_STAGE_UPDATED',
+        resourceType: 'Application',
+        resourceId: applicationId,
+        before: { stage: existing.stage },
+        after: { stage: saved.stage },
+        requestId: getRequestId(request),
+      });
+      await createNotification(tx, {
+        recipientUserId: existing.student.userId,
+        actorUserId: actor.user.id,
+        type: 'JOB_APPLICATION_STAGE_UPDATED',
+        title: 'Application status updated',
+        body: `Your application for “${existing.jobPosting.title}” moved to ${stage.toLowerCase().replaceAll('_', ' ')}.`,
+        href: '/employers',
+        resourceType: 'Application',
+        resourceId: applicationId,
+        dedupeKey: `job.application.stage:${applicationId}:${stage}:${saved.updatedAt.toISOString()}`,
+      });
+      return saved;
     });
 
     return NextResponse.json({ application: { id: updated.id, stage: updated.stage } });

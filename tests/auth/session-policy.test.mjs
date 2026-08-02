@@ -193,6 +193,8 @@ test('authorizeSessionUser matches by normalized email and commits update plus a
     name: 'Student User',
     role: 'STUDENT',
     avatarUrl: 'https://example.com/avatar.png',
+    customAvatarUrl: null,
+    googleAvatarUrl: 'https://example.com/avatar.png',
     student: {
       id: 'student-1',
       facultyId: 'computing_engineering',
@@ -355,6 +357,8 @@ test('readSessionCookie revalidates against the current database user and refres
     name: 'Student User',
     role: 'CPDC_ADMIN',
     avatarUrl: 'https://example.com/new-avatar.png',
+    customAvatarUrl: null,
+    googleAvatarUrl: 'https://example.com/new-avatar.png',
     student: {
       id: 'student-1',
       facultyId: 'business',

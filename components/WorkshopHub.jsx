@@ -25,6 +25,7 @@ import {
   checkInWorkshop,
 } from '@/lib/api';
 import { emitXpUpdated } from '@/lib/xp-events';
+import DismissibleDialog from '@/components/ui/DismissibleDialog';
 
 // The workshops API returns DB rows; the card + matcher expect the registry's
 // display shape. This adapts one to the other so published events, RSVPs and
@@ -157,6 +158,18 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
       setActiveSubTab('workshops');
     }
   }, [activeSubTab, canPublish]);
+
+  useEffect(() => {
+    if (!selectedWorkshop && !selectedCourse && !qrModal) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      setQrModal(null);
+      setSelectedWorkshop(null);
+      setSelectedCourse(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [qrModal, selectedCourse, selectedWorkshop]);
 
   // Admin New Workshop State
   const [newTitle, setNewTitle] = useState('');
@@ -786,8 +799,8 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
       {/* QR SCANNER MODAL */}
       {isStudent && qrModal && !qrModal.isDemo && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation">
-          <div className="surface rounded-3xl p-7 max-w-sm w-full space-y-6 text-center relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="qr-checkin-heading">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setQrModal(null); }}>
+          <div className="surface rounded-3xl p-7 max-w-sm w-full space-y-6 text-center relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="qr-checkin-heading" onMouseDown={(event) => event.stopPropagation()}>
             <button
               type="button"
               onClick={() => setQrModal(null)}
@@ -851,8 +864,11 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
       {/* DEEP WORKSHOP DETAILS MODAL */}
       {selectedWorkshop && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto" role="presentation">
-          <div className="surface rounded-3xl p-7 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-6 text-left relative shadow-2xl border border-black/10 my-8" role="dialog" aria-modal="true">
+        <DismissibleDialog
+          onClose={() => setSelectedWorkshop(null)}
+          labelledBy={`workshop-detail-title-${selectedWorkshop.id}`}
+          className="surface my-8 max-h-[90vh] w-full max-w-2xl space-y-6 overflow-y-auto rounded-3xl border border-black/10 p-7 text-left relative shadow-2xl"
+        >
             <button
               type="button"
               onClick={() => setSelectedWorkshop(null)}
@@ -872,7 +888,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                   <Award className="w-3.5 h-3.5" /> +{selectedWorkshop.xpReward || 200} Professionalism XP
                 </span>
               </div>
-              <h3 className="text-2xl font-heading font-bold text-[#1d1d1f]">{selectedWorkshop.title}</h3>
+              <h3 id={`workshop-detail-title-${selectedWorkshop.id}`} className="text-2xl font-heading font-bold text-[#1d1d1f]">{selectedWorkshop.title}</h3>
               <p className="text-sm text-muted">Hosted by <span className="text-[#1d1d1f] font-bold">{selectedWorkshop.speaker}</span></p>
               {selectedWorkshop.hostOrganization && <p className="text-xs text-muted">Organised by {selectedWorkshop.hostOrganization}</p>}
             </div>
@@ -1005,14 +1021,16 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 <p className="w-full text-right text-xs text-muted">{selectedWorkshop.isDemo ? 'Demo catalogue item — live registration and attendance are unavailable.' : 'Read-only details view. Student registration and attendance check-in are available from the student view only.'}</p>
               )}
             </div>
-          </div>
-        </div>
+        </DismissibleDialog>
       )}
 
       {/* DEEP COURSE SYLLABUS & ACCREDITATION MODAL */}
       {selectedCourse && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto" role="presentation">
-          <div className="surface rounded-3xl p-7 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-6 text-left relative shadow-2xl border border-black/10 my-8" role="dialog" aria-modal="true">
+        <DismissibleDialog
+          onClose={() => setSelectedCourse(null)}
+          labelledBy={`course-detail-title-${selectedCourse.id}`}
+          className="surface my-8 max-h-[90vh] w-full max-w-2xl space-y-6 overflow-y-auto rounded-3xl border border-black/10 p-7 text-left relative shadow-2xl"
+        >
             <button
               type="button"
               onClick={() => setSelectedCourse(null)}
@@ -1031,7 +1049,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                   <Award className="w-3.5 h-3.5" /> +{selectedCourse.xp} Credential XP & Skill Badge
                 </span>
               </div>
-              <h3 className="text-2xl font-heading font-bold text-[#1d1d1f]">{selectedCourse.title}</h3>
+              <h3 id={`course-detail-title-${selectedCourse.id}`} className="text-2xl font-heading font-bold text-[#1d1d1f]">{selectedCourse.title}</h3>
               <p className="text-sm text-muted">Offered by <span className="text-[#1d1d1f] font-bold">{selectedCourse.provider}</span></p>
             </div>
 
@@ -1114,8 +1132,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 <span className="rounded-xl border border-black/10 bg-black/[0.03] px-4 py-2.5 text-xs text-muted">Student verification actions are hidden for this role.</span>
               )}
             </div>
-          </div>
-        </div>
+        </DismissibleDialog>
       )}
 
     </div>

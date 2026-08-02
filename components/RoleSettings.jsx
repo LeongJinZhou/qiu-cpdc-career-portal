@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Bell, Check, LockKeyhole, Save, Settings2 } from 'lucide-react';
+import AccountProfileForm from '@/components/settings/AccountProfileForm';
 
 const PREFS_KEY = 'qiu.portal.preferences';
 
@@ -35,6 +36,8 @@ export default function RoleSettings({ currentRole, activeFaculty }) {
         </div>
         <span className="badge-pill w-fit border border-black/10 bg-white text-muted">{currentRole.replace('_', ' ')} · {activeFaculty.code}</span>
       </div>
+
+      <AccountProfileForm />
 
       <form onSubmit={save} className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="surface space-y-5 p-6">

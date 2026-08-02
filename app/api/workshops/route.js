@@ -8,6 +8,7 @@ import { resolveActor, actorCanReview, actorCanPublishWorkshops } from '@/lib/au
 import { toIdentityRouteError, parseJsonBody, getRequestId } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
 import { parseWorkshopStart, seatsLeft } from '@/lib/workshop-policy';
+import { createNotifications } from '@/lib/notifications';
 
 function routeError(error) {
   const e = toIdentityRouteError(error);
@@ -226,6 +227,23 @@ export async function POST(request) {
           hostOrganization: created.hostOrganization,
         },
         requestId: getRequestId(request),
+      });
+
+      const interestedStudents = await tx.student.findMany({
+        where: facultyId ? { facultyId } : {},
+        select: { userId: true },
+        take: 5000,
+      });
+      await createNotifications(tx, {
+        recipientUserIds: interestedStudents.map((student) => student.userId).filter((userId) => userId !== actor.user.id),
+        actorUserId: actor.user.id,
+        type: 'WORKSHOP_PUBLISHED',
+        title: 'New workshop available',
+        body: `“${created.title}” is now open for registration. See the speaker, schedule and learning outcomes before booking.`,
+        href: '/workshops',
+        resourceType: 'Workshop',
+        resourceId: created.id,
+        dedupeKey: `workshop.published:${created.id}`,
       });
 
       return created;

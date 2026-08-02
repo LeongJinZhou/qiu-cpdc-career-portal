@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { resolveActor } from '@/lib/auth/actor';
 import { toIdentityRouteError, parseJsonBody, getRequestId } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
+import { createNotification, createNotifications, userIdsForRoles } from '@/lib/notifications';
 
 const STAFF_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
 const schema = z.object({
@@ -85,6 +86,17 @@ export async function POST(request) {
         after: { title: created.title, preferredDate: created.preferredDate, status: created.status },
         requestId: getRequestId(request),
       });
+      await createNotifications(tx, {
+        recipientUserIds: (await userIdsForRoles(tx)).filter((userId) => userId !== actor.user.id),
+        actorUserId: actor.user.id,
+        type: 'WORKSHOP_HOST_REQUEST_RECEIVED',
+        title: 'Workshop host request received',
+        body: `${actor.user.name} proposed “${created.title}”. Review the event brief and preferred date before scheduling it.`,
+        href: '/workshops',
+        resourceType: 'WorkshopRequest',
+        resourceId: created.id,
+        dedupeKey: `workshop.request.created:${created.id}`,
+      });
       return created;
     });
     return NextResponse.json({ request: serialize(saved), delivery: { status: 'RECORDED', provider: 'standalone-outbox' } }, { status: 201 });
@@ -124,6 +136,17 @@ export async function PATCH(request) {
         after: { status: updated.status, reviewNote: updated.reviewNote },
         requestId: getRequestId(request),
       });
+      await createNotification(tx, {
+        recipientUserId: updated.requesterUserId,
+        actorUserId: actor.user.id,
+        type: 'WORKSHOP_HOST_REQUEST_REVIEWED',
+        title: `Workshop request ${updated.status.toLowerCase()}`,
+        body: `Your proposal “${updated.title}” was ${updated.status.toLowerCase()} by ${actor.user.name}.${updated.reviewNote ? ` Note: ${updated.reviewNote}` : ''}`,
+        href: '/workshops',
+        resourceType: 'WorkshopRequest',
+        resourceId: requestId,
+        dedupeKey: `workshop.request.reviewed:${requestId}:${updated.status}:${updated.updatedAt.toISOString()}`,
+      });
       return updated;
     });
     return NextResponse.json({ request: serialize(saved) });
@@ -134,4 +157,3 @@ export async function PATCH(request) {
     return routeError(error);
   }
 }
-

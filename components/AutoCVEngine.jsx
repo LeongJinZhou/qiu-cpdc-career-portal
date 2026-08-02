@@ -43,6 +43,7 @@ export default function AutoCVEngine({ student, activeFaculty }) {
   const loggedHours = live?.hours ?? logbookEntries.reduce((total, entry) => total + Number(entry?.hours || 0), 0);
   const certifications = live?.certifications ?? [];
   const manualSections = live?.manualSections ?? { experience: [], volunteering: [], achievements: [] };
+  const uploadedResume = live?.uploadedResume ?? null;
   const manualEntries = Object.entries(manualSections).flatMap(([section, entries]) => (
     (entries ?? []).map((entry) => ({ ...entry, section }))
   ));
@@ -293,6 +294,22 @@ export default function AutoCVEngine({ student, activeFaculty }) {
                 </span>
               </div>
               <p className="text-xs text-muted">{student?.programme ?? 'Programme not linked yet'} • Year {student?.year ?? '—'}</p>
+            </div>
+
+            <div className="p-4 rounded-[18px] bg-black/[0.03] border border-black/[0.06] space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#424245]">
+                <span className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted" />
+                  Attached resume file
+                </span>
+                <span className={`text-[10px] flex items-center gap-1 font-semibold ${uploadedResume ? 'text-emerald-600' : 'text-muted'}`}>
+                  {uploadedResume ? <CheckCircle2 className="w-3 h-3" /> : null}
+                  {uploadedResume ? 'Linked to profile' : 'Optional'}
+                </span>
+              </div>
+              <p className="text-xs text-muted">
+                {uploadedResume ? uploadedResume.fileName : 'Upload a PDF or Word file from Profile & settings.'}
+              </p>
             </div>
 
             {/* Source Item 2 */}

@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { PROVIDERS, courseCredit, courseLink } from '@/lib/data/courses';
+import DismissibleDialog from '@/components/ui/DismissibleDialog';
 
 /**
  * Full course detail.
@@ -50,13 +51,11 @@ export default function CourseDetail({ course, score, why, recommended, xpValue,
   const xp = xpValue ?? course.xp;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="course-detail-title"
-        className="surface max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-b-none rounded-t-[24px] sm:rounded-[24px]"
-      >
+    <DismissibleDialog
+      onClose={onClose}
+      labelledBy="course-detail-title"
+      className="surface max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-b-none rounded-t-[24px] sm:rounded-[24px]"
+    >
         <div className="flex items-start justify-between gap-4 border-b border-black/[0.06] p-5 sm:p-6">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -167,8 +166,7 @@ export default function CourseDetail({ course, score, why, recommended, xpValue,
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </DismissibleDialog>
   );
 }
 

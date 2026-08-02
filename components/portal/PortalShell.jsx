@@ -14,6 +14,8 @@ import QiuLogo from './QiuLogo';
 import OnboardingTour from '@/components/OnboardingTour';
 import { useSettings } from '@/lib/settings';
 import { signOutGoogle } from '@/lib/auth/firebase-client';
+import Avatar from '@/components/ui/Avatar';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 /**
  * Portal chrome: sidebar on desktop, bottom tab bar on mobile.
@@ -366,6 +368,20 @@ export default function PortalShell({ children }) {
                 </div>
               )}
             </div>
+
+            <NotificationBell role={currentRole} />
+            <Link
+              href="/settings"
+              aria-label="Open profile and settings"
+              title="Profile and settings"
+              className="rounded-full focus:outline-none focus:ring-2 focus:ring-crimson focus:ring-offset-2"
+            >
+              <Avatar
+                name={identity?.user?.name ?? student.name ?? roleLabel}
+                src={identity?.user?.avatarUrl ?? student.avatarUrl ?? null}
+                size={36}
+              />
+            </Link>
           </div>
         </div>
       </header>
