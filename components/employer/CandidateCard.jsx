@@ -104,7 +104,8 @@ export default function CandidateCard({
       <p className="flex items-start gap-1.5 text-xs text-muted">
         <GraduationCap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-crimson" aria-hidden="true" />
         <span>
-          {candidate.programme} · {candidate.faculty}
+          {candidate.courseCode ? <span className="font-semibold text-[#1d1d1f]">{candidate.courseCode}</span> : null}
+          {candidate.courseCode ? ' · ' : ''}{candidate.programme} · {candidate.faculty}
         </span>
       </p>
 

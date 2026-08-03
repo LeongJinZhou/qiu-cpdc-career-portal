@@ -40,6 +40,7 @@ export async function GET() {
         facultyId: p.student.faculty?.id ?? null,
         faculty: p.student.faculty?.name ?? null,
         programme: p.student.programme?.name ?? null,
+        courseCode: p.student.courseCode ?? null,
         skills: p.student.skillTags ?? [],
       })),
     });

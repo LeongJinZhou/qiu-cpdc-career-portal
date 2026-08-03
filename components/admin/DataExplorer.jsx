@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const ENTITIES = [
+  { id: 'student', label: 'Students', desc: 'Every student record with the Employee ID, course code and email read from the QIU Google directory at login.' },
   { id: 'assessmentAttempt', label: 'Assessment Attempts', desc: 'Raw diagnostic attempts, readiness scores, and completion metrics across faculties.' },
   { id: 'application', label: 'Job Applications', desc: 'Active student talent recruitment submissions, interview progression, and hiring stages.' },
   { id: 'workshop', label: 'Workshop Catalogue', desc: 'Global events schedule, speaker assignments, time-gated QR check-ins, and RSVP ledgers.' },
@@ -26,6 +27,12 @@ const ENTITIES = [
 
 const COLUMN_LABELS = {
   id: 'Record ID',
+  name: 'Name',
+  employeeId: 'Employee ID',
+  courseCode: 'Course',
+  email: 'Email',
+  faculty: 'Faculty',
+  directorySyncedAt: 'Directory synced',
   student: 'Student',
   matricNo: 'Student ID',
   assessment: 'Assessment',
@@ -50,7 +57,7 @@ const COLUMN_LABELS = {
   at: 'Recorded',
 };
 
-const DATE_COLUMNS = new Set(['submittedAt', 'appliedAt', 'startsAt', 'enrolledAt', 'at']);
+const DATE_COLUMNS = new Set(['submittedAt', 'appliedAt', 'startsAt', 'enrolledAt', 'at', 'directorySyncedAt']);
 
 function displayValue(column, value) {
   if (value == null || value === '') return '—';

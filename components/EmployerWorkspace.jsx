@@ -48,6 +48,7 @@ export default function EmployerWorkspace({ student, currentRole }) {
           fypTitle: project.title,
           fypAbstract: project.abstract,
           programme: project.programme,
+          courseCode: project.courseCode,
           faculty: project.faculty,
           facultyId: project.facultyId,
           avatarUrl: project.studentAvatar,

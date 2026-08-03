@@ -27,6 +27,31 @@ const MAX_PAGE_SIZE = 100;
 // Each entity declares its columns, how to load a page, and how to flatten a row
 // to a flat object of strings/numbers. Nothing outside this registry is reachable.
 const ENTITIES = {
+  student: {
+    label: 'Students',
+    columns: ['id', 'name', 'matricNo', 'employeeId', 'courseCode', 'email', 'faculty', 'directorySyncedAt'],
+    orderBy: { createdAt: 'desc' },
+    include: { user: { select: { name: true, email: true } }, faculty: { select: { code: true } } },
+    search: (q) => ({
+      OR: [
+        { matricNo: { contains: q, mode: 'insensitive' } },
+        { employeeId: { contains: q, mode: 'insensitive' } },
+        { courseCode: { contains: q, mode: 'insensitive' } },
+        { user: { name: { contains: q, mode: 'insensitive' } } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+      ],
+    }),
+    toRow: (r) => ({
+      id: r.id,
+      name: r.user?.name ?? '—',
+      matricNo: r.matricNo ?? '—',
+      employeeId: r.employeeId ?? '—',
+      courseCode: r.courseCode ?? '—',
+      email: r.user?.email ?? '—',
+      faculty: r.faculty?.code ?? '—',
+      directorySyncedAt: r.directorySyncedAt?.toISOString?.() ?? 'Never',
+    }),
+  },
   assessmentAttempt: {
     label: 'Assessment attempts',
     columns: ['id', 'student', 'matricNo', 'assessment', 'score', 'passed', 'submittedAt'],
