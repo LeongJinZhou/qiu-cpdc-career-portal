@@ -1,5 +1,5 @@
 # Repository Structure Map
-Last Updated: Mon Aug  3 12:47:57 +08 2026
+Last Updated: Mon Aug  3 14:58:11 +08 2026
 
 ## File Tree
 ```
@@ -275,6 +275,7 @@ Last Updated: Mon Aug  3 12:47:57 +08 2026
 │   ├── autonomous_deploy_agent.mjs
 │   ├── bootstrap-super-admin.mjs
 │   ├── build-brand-assets.mjs
+│   ├── dev-mint-session.mjs
 │   ├── seed-demo-students.mjs
 │   └── sync-catalog.mjs
 └── tests
@@ -320,24 +321,21 @@ Last Updated: Mon Aug  3 12:47:57 +08 2026
     └── tooling
         └── skill-router.test.mjs
 
-95 directories, 221 files
+95 directories, 222 files
 ```
 
 ## Recent Git Status
 ```
  M .ai/memory/repo-map.md
- M components/AICareerSuite.jsx
- M components/AdminControlCenter.jsx
- M components/AlumniNetwork.jsx
- M components/CareerPath.jsx
- M components/EmployerWorkspace.jsx
- M components/ModularLogbook.jsx
- M components/StudentDashboard.jsx
- M components/TalentFeed.jsx
- M components/WorkshopHub.jsx
- M components/admin/DataExplorer.jsx
- M components/learning/CertificateSubmitModal.jsx
- M components/notifications/NotificationBell.jsx
- M components/portal/PortalShell.jsx
- M components/ui/DismissibleDialog.jsx
+ M .gitignore
+ M .next-demo/app-build-manifest.json
+ M .next-demo/build-manifest.json
+ M .next-demo/cache/webpack/client-development/index.pack.gz
+ M .next-demo/react-loadable-manifest.json
+ M .next-demo/server/app-paths-manifest.json
+ M .next-demo/server/middleware-build-manifest.js
+ M .next-demo/server/middleware-react-loadable-manifest.js
+ M .next-demo/server/next-font-manifest.js
+ M .next-demo/server/next-font-manifest.json
+ M .next-demo/trace
 ```
