@@ -36,7 +36,7 @@ export default function LoadingScreen({
           </div>
 
           {/* The loading tab. */}
-          <div className="w-full" role="progressbar" aria-valuetext={label} aria-busy="true">
+          <div className="w-full" role="progressbar" aria-label={label} aria-valuetext={label} aria-busy="true">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.07]">
               <div className="qiu-loading-bar h-full w-1/3 rounded-full bg-crimson" />
             </div>

@@ -11,6 +11,7 @@ import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
 import { requireCapability } from '@/lib/auth/permissions';
 import { createMagicToken } from '@/lib/magic-link';
 import { sendSupervisorApprovalEmail } from '@/lib/email';
+import { createNotifications, userIdsForScopedStaff } from '@/lib/notifications';
 
 /**
  * Submit a logbook entry and mint the supervisor's approval link.
@@ -127,6 +128,25 @@ export async function POST(request) {
       metadata: {
         supervisorName: supervisor.name.trim(),
       },
+    });
+
+    const reviewerIds = (await userIdsForScopedStaff(tx, {
+      globalRoles: ['CPDC_ADMIN', 'SUPER_ADMIN'],
+      scopedRoles: ['HEAD_OF_PROGRAMME', 'FACULTY_COORDINATOR', 'PLACEMENT_OFFICER', 'ACADEMIC_SUPERVISOR'],
+      facultyId: student.facultyId,
+      programmeId: student.programmeId,
+      studentId,
+    })).filter((userId) => userId !== actor.user.id);
+    await createNotifications(tx, {
+      recipientUserIds: reviewerIds,
+      actorUserId: actor.user.id,
+      type: 'LOGBOOK_SUBMITTED',
+      title: 'Logbook entry needs review',
+      body: `${actor.user.name} submitted “${createdEntry.title}” (${createdEntry.hours} hours) for supervisor review.`,
+      href: '/logbook',
+      resourceType: 'LogbookEntry',
+      resourceId: createdEntry.id,
+      dedupeKey: `logbook.submitted:${createdEntry.id}`,
     });
 
     return createdEntry;

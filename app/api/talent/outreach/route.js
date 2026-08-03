@@ -73,10 +73,10 @@ export async function POST(request) {
         status: true,
         publicOptIn: true,
         studentId: true,
-        student: { select: { userId: true, matricNo: true, user: { select: { name: true } } } },
+        student: { select: { userId: true, matricNo: true, searchable: true, user: { select: { name: true } } } },
       },
     });
-    if (!project || project.status !== 'APPROVED' || !project.publicOptIn) {
+    if (!project || project.status !== 'APPROVED' || !project.publicOptIn || !project.student?.searchable) {
       return NextResponse.json({ error: 'That project is no longer available for outreach.', code: 'TALENT_NOT_AVAILABLE' }, { status: 404 });
     }
 

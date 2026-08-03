@@ -33,6 +33,8 @@ import DataExplorer from '@/components/admin/DataExplorer';
 import { DIRECTORY_ROLES, consoleForRole, orderTabsForRole } from '@/components/admin/roleConsole';
 import { FACULTIES } from '@/lib/data/facultyData';
 import { fetchAdminOverview } from '@/lib/api';
+import { useAccessibleTabs } from '@/components/ui/useAccessibleTabs';
+import DismissibleDialog from '@/components/ui/DismissibleDialog';
 
 const TABS = [
   { id: 'records', label: 'Student records', icon: FolderSearch },
@@ -56,9 +58,9 @@ const LOGBOOK_REVIEW_ROLES = new Set([
 ]);
 const WORKSHOP_REQUEST_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
 const PEOPLE_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
-// University-wide roles that may browse raw cross-student records. Mirrors
+// Platform administrators that may browse raw cross-student records. Mirrors
 // EXPLORER_ROLES in app/api/admin/data/[entity]/route.js (server is authority).
-const DATA_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN', 'UNIVERSITY_REGISTRAR']);
+const DATA_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
 
 export default function AdminControlCenter({ activeFaculty, currentRole, student }) {
   const roleConsole = consoleForRole(currentRole);
@@ -81,6 +83,7 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
       && (item.id !== 'approvals' || FYP_REVIEW_ROLES.has(currentRole) || LOGBOOK_REVIEW_ROLES.has(currentRole))
       && consoleForRole(currentRole).tabOrder.includes(item.id)
   ))), [currentRole]);
+  const { getTabProps } = useAccessibleTabs(visibleTabs.map((item) => item.id), tab, setTab);
 
   const loadOverview = useCallback(async () => {
     setOverviewLoading(true);
@@ -127,7 +130,7 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
       {overviewError && <div className="flex items-center justify-between gap-3 rounded-[14px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="alert"><span>{overviewError}</span><button type="button" onClick={loadOverview} className="secondary-btn px-3 py-2 text-xs">Retry</button></div>}
 
       <div className="flex gap-2 overflow-x-auto border-b border-black/10 pb-2" role="tablist" aria-label="Admin views">
-        {visibleTabs.map(({ id, label, icon: Icon }) => <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === id ? 'bg-crimson text-white' : 'text-muted hover:bg-black/[0.04] hover:text-[#1d1d1f]'}`}><Icon className="h-4 w-4" />{label}{id === 'approvals' && pendingApprovalCount > 0 && <span className={`rounded-full px-1.5 text-[10px] ${tab === id ? 'bg-white/20' : 'bg-crimson/10 text-crimson'}`}>{pendingApprovalCount}</span>}</button>)}
+        {visibleTabs.map(({ id, label, icon: Icon }) => <button key={id} {...getTabProps(id)} type="button" role="tab" id={`admin-tab-${id}`} aria-selected={tab === id} aria-controls={`admin-panel-${id}`} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === id ? 'bg-crimson text-white' : 'text-muted hover:bg-black/[0.04] hover:text-[#1d1d1f]'}`}><Icon className="h-4 w-4" />{label}{id === 'approvals' && pendingApprovalCount > 0 && <span className={`rounded-full px-1.5 text-[10px] ${tab === id ? 'bg-white/20' : 'bg-crimson/10 text-crimson'}`}>{pendingApprovalCount}</span>}</button>)}
       </div>
 
       <section className="surface p-5" aria-labelledby="role-tasks-title">
@@ -142,6 +145,7 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
         </ul>
       </section>
 
+      <div id={`admin-panel-${tab}`} role="tabpanel" aria-labelledby={`admin-tab-${tab}`} tabIndex={0}>
       {tab === 'records' && DIRECTORY_ROLES.has(currentRole) && <StudentDirectory currentRole={currentRole} />}
 
       {tab === 'overview' && <AdminSuperDashboard overview={overview} />}
@@ -164,6 +168,7 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
       {tab === 'audit' && PEOPLE_ROLES.has(currentRole) && <AuditLogPanel currentRole={currentRole} />}
 
       {tab === 'data' && DATA_ROLES.has(currentRole) && <DataExplorer currentRole={currentRole} />}
+      </div>
 
       {selectedStudent && <IdentityDrawer student={selectedStudent} canOverride={currentRole === 'SUPER_ADMIN'} onClose={() => setSelectedStudent(null)} />}
     </div>
@@ -196,7 +201,7 @@ function ApprovalSummary({ items }) {
 }
 
 function IdentityDrawer({ student, canOverride, onClose }) {
-  return <div className="fixed inset-0 z-[90] flex justify-end bg-black/30" role="presentation" onClick={onClose}><aside className="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="identity-drawer-title" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5"><div><p className="text-xs font-bold uppercase tracking-wide text-crimson">Identity matrix</p><h2 id="identity-drawer-title" className="mt-1 font-heading text-xl font-semibold">{student.name}</h2><p className="mt-1 text-sm text-muted">{student.id} · {student.programme}</p></div><button type="button" onClick={onClose} aria-label="Close identity review" className="rounded-xl p-2 text-muted hover:bg-black/[0.04]"><X className="h-5 w-5" /></button></div><div className="mt-6 space-y-4"><ReadOnlyRow label="Faculty" value={FACULTIES.find((faculty) => faculty.id === student.facultyId)?.name ?? student.facultyId} /><ReadOnlyRow label="Academic year" value={`Year ${student.year}`} /><ReadOnlyRow label="Career readiness" value={`${student.readiness}%`} /><ReadOnlyRow label="At-risk signal" value={`${student.risk} · ${student.missing}`} /></div>{canOverride ? <div className="mt-7 rounded-[18px] border border-crimson/20 bg-crimson/[0.04] p-4"><div className="flex items-start gap-3"><LockKeyhole className="mt-0.5 h-4 w-4 text-crimson" /><div><p className="text-sm font-semibold">Superadmin override enabled</p><p className="mt-1 text-xs leading-relaxed text-muted">Verified identity changes are available from the People &amp; access tab and always create an audit entry. This drawer is intentionally read-only.</p></div></div><button type="button" className="secondary-btn mt-4 w-full justify-center text-xs" onClick={onClose}>Close read-only review <ArrowRight className="h-3.5 w-3.5" /></button></div> : <p className="mt-7 text-xs text-muted">Identity fields are read-only for this role. Ask a Superadmin to make a verified reassignment.</p>}</aside></div>;
+  return <DismissibleDialog onClose={onClose} labelledBy="identity-drawer-title" overlayClassName="items-stretch justify-end bg-black/30 p-0" className="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5"><div><p className="text-xs font-bold uppercase tracking-wide text-crimson">Identity matrix</p><h2 id="identity-drawer-title" className="mt-1 font-heading text-xl font-semibold">{student.name}</h2><p className="mt-1 text-sm text-muted">{student.id} · {student.programme}</p></div><button type="button" onClick={onClose} aria-label="Close identity review" className="rounded-xl p-2 text-muted hover:bg-black/[0.04]"><X className="h-5 w-5" /></button></div><div className="mt-6 space-y-4"><ReadOnlyRow label="Faculty" value={FACULTIES.find((faculty) => faculty.id === student.facultyId)?.name ?? student.facultyId} /><ReadOnlyRow label="Academic year" value={`Year ${student.year}`} /><ReadOnlyRow label="Career readiness" value={`${student.readiness}%`} /><ReadOnlyRow label="At-risk signal" value={`${student.risk} · ${student.missing}`} /></div>{canOverride ? <div className="mt-7 rounded-[18px] border border-crimson/20 bg-crimson/[0.04] p-4"><div className="flex items-start gap-3"><LockKeyhole className="mt-0.5 h-4 w-4 text-crimson" /><div><p className="text-sm font-semibold">Superadmin override enabled</p><p className="mt-1 text-xs leading-relaxed text-muted">Verified identity changes are available from the People &amp; access tab and always create an audit entry. This drawer is intentionally read-only.</p></div></div><button type="button" className="secondary-btn mt-4 w-full justify-center text-xs" onClick={onClose}>Close read-only review <ArrowRight className="h-3.5 w-3.5" /></button></div> : <p className="mt-7 text-xs text-muted">Identity fields are read-only for this role. Ask a Superadmin to make a verified reassignment.</p>}</DismissibleDialog>;
 }
 
 function ReadOnlyRow({ label, value }) { return <div className="flex items-start justify-between gap-4 rounded-[16px] border border-black/10 bg-black/[0.03] p-4"><span className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</span><span className="max-w-[60%] text-right text-sm font-medium">{value}</span></div>; }

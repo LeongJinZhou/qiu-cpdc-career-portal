@@ -6,8 +6,8 @@ import { prisma } from '@/lib/prisma';
 import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
 import { toIdentityRouteError, parseJsonBody, getRequestId } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
-import { seatsLeft } from '@/lib/workshop-policy';
-import { createNotification, createNotifications, userIdsForRoles } from '@/lib/notifications';
+import { isRegistrationOpen, seatsLeft } from '@/lib/workshop-policy';
+import { createNotification, createNotifications, userIdsForWorkshopStaff } from '@/lib/notifications';
 
 const rsvpSchema = z.object({
   workshopId: z.string().trim().min(1, 'workshopId is required'),
@@ -29,7 +29,7 @@ export async function POST(request) {
     const outcome = await prisma.$transaction(async (tx) => {
       const workshop = await tx.workshop.findUnique({
         where: { id: workshopId },
-        select: { id: true, title: true, startsAt: true, capacity: true },
+        select: { id: true, title: true, startsAt: true, registrationDeadline: true, capacity: true, facultyId: true },
       });
       if (!workshop) {
         return { error: { status: 404, message: 'Workshop not found.' } };
@@ -38,6 +38,9 @@ export async function POST(request) {
       if (!going) {
         await tx.workshopRsvp.deleteMany({ where: { workshopId, studentId } });
       } else {
+        if (!isRegistrationOpen({ registrationDeadline: workshop.registrationDeadline, startsAt: workshop.startsAt })) {
+          return { error: { status: 409, message: 'Registration for this workshop is closed.' } };
+        }
         const already = await tx.workshopRsvp.findUnique({
           where: { workshopId_studentId: { workshopId, studentId } },
           select: { id: true },
@@ -66,7 +69,11 @@ export async function POST(request) {
         requestId: getRequestId(request),
       });
 
-      const staffRecipients = (await userIdsForRoles(tx)).filter((userId) => userId !== actor.user.id);
+      const staffRecipients = (await userIdsForWorkshopStaff(tx, {
+        facultyId: workshop.facultyId,
+        programmeId: actor.student.programmeId,
+        studentId,
+      })).filter((userId) => userId !== actor.user.id);
       const dateLabel = workshop.startsAt.toLocaleString('en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',

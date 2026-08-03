@@ -7,6 +7,7 @@ import { getRequestId, parseJsonBody, toIdentityRouteError } from '@/lib/auth/id
 import { createAuditEntry } from '@/lib/audit';
 import { evaluateStudentLifecycle } from '@/lib/automation';
 import { reviewerWhere } from '@/lib/fyp-review';
+import { createNotification } from '@/lib/notifications';
 
 const decisionSchema = z.object({
   entryId: z.string().trim().min(1),
@@ -93,6 +94,7 @@ function includeForReview() {
     student: {
       select: {
         id: true,
+        userId: true,
         matricNo: true,
         facultyId: true,
         user: { select: { name: true } },
@@ -176,6 +178,20 @@ export async function PATCH(request) {
           trigger: 'INTERNAL_LOGBOOK_APPROVAL',
         });
       }
+
+      await createNotification(tx, {
+        recipientUserId: existing.student.userId,
+        actorUserId: actor.user.id,
+        type: body.status === 'APPROVED' ? 'LOGBOOK_APPROVED' : 'LOGBOOK_REJECTED',
+        title: body.status === 'APPROVED' ? 'Logbook entry approved' : 'Logbook entry returned',
+        body: body.status === 'APPROVED'
+          ? `Your logbook entry “${existing.title}” was approved.`
+          : `Your logbook entry “${existing.title}” was returned.${body.comment ? ` Note: ${body.comment}` : ''}`,
+        href: '/logbook',
+        resourceType: 'LogbookEntry',
+        resourceId: existing.id,
+        dedupeKey: `logbook.review:${existing.id}:${body.status}:${existing.updatedAt.toISOString()}`,
+      });
 
       return updated;
     });

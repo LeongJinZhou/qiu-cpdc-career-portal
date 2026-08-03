@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 
 /*
@@ -20,11 +19,11 @@
 
   /* Ink + accents */
   --color-ink: #1d1d1f;      /* primary text — Apple near-black */
-  --color-muted: #6e6e73;    /* secondary text — Apple gray */
-  --color-crimson: #e50914;  /* QIU red — accent only, used sparingly */
+  --color-muted: #5c5d66;    /* secondary text — WCAG AA on the light canvas */
+  --color-crimson: #b00013;  /* accessible QIU crimson for text and actions */
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  --font-heading: var(--font-outfit), 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
 
   /* Apple corners: soft, generous. */
   --radius-panel: 18px;
@@ -39,16 +38,16 @@
   --line: rgba(0, 0, 0, 0.08);
   --line-strong: rgba(0, 0, 0, 0.14);
 
-  --crimson: #e50914;
-  --crimson-hover: #c20812;
-  --crimson-tint: rgba(229, 9, 20, 0.08);
-  --crimson-tint-strong: rgba(229, 9, 20, 0.14);
-  --crimson-glow: rgba(229, 9, 20, 0.18);
+  --crimson: #b00013;
+  --crimson-hover: #8f0010;
+  --crimson-tint: rgba(176, 0, 19, 0.08);
+  --crimson-tint-strong: rgba(176, 0, 19, 0.14);
+  --crimson-glow: rgba(176, 0, 19, 0.18);
 
   --ink: #1d1d1f;
   --ink-soft: #424245;
-  --muted: #6e6e73;
-  --faint: #86868b;
+  --muted: #5c5d66;
+  --faint: #6e6e73;
 
   /* Soft, layered Apple-style elevation — no neon glow. */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);

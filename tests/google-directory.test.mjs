@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mapPeopleProfile } from '../lib/integrations/google-directory.js';
+import { directoryIdentityMatches, mapPeopleProfile } from '../lib/integrations/google-directory.js';
 
 // A People API `person` resource shaped like the QIU directory card for
 // "Yau Ming Soo" (QIU Student • BCS, Employee ID QIU-202310-006958).
@@ -55,4 +55,10 @@ test('reads course code from cost centre when department is absent', () => {
     organizations: [{ title: 'QIU Student', costCenter: 'BCS', metadata: { primary: true } }],
   });
   assert.equal(mapped.courseCode, 'BCS');
+});
+
+test('directory enrichment only accepts the signed-in Google identity', () => {
+  assert.equal(directoryIdentityMatches('Student@qiu.edu.my', 'student@qiu.edu.my'), true);
+  assert.equal(directoryIdentityMatches('student@qiu.edu.my', 'other@qiu.edu.my'), false);
+  assert.equal(directoryIdentityMatches('student@qiu.edu.my', null), false);
 });

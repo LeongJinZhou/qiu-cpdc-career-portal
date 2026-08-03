@@ -6,10 +6,9 @@ import { recordLogout } from '@/lib/auth/logout';
 /**
  * Sign out.
  *
- * The one thing that actually ends a session is clearing the httpOnly cookie
- * server-side, which is what this does — browser storage cleanup is cosmetic
- * and cannot be trusted, because the cookie is not readable from JavaScript in
- * the first place. Exposed as its own POST endpoint (as well as
+ * Logout revokes the server-side session timestamp and clears the httpOnly
+ * cookie — browser storage cleanup is cosmetic and cannot be trusted, because
+ * the cookie is not readable from JavaScript in the first place. Exposed as its own POST endpoint (as well as
  * DELETE /api/auth/session) so /logout, and any plain HTML form fallback, has a
  * single obvious target.
  *

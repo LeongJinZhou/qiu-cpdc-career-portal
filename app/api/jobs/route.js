@@ -82,23 +82,22 @@ export async function POST(request) {
     const body = await parseJsonBody(request);
     const data = postSchema.parse(body);
 
-    const company =
-      (await prisma.company.findFirst({ where: { name: data.company.name } })) ??
-      (await prisma.company.create({
-        data: {
-          name: data.company.name,
-          industry: data.company.industry ?? null,
-          website: data.company.website || null,
-          ownerUserId: actor.role === 'EMPLOYER' ? actor.user.id : null,
-        },
-      }));
-
-    if (actor.role === 'EMPLOYER' && company.ownerUserId && company.ownerUserId !== actor.user.id) {
+    const existingCompany = await prisma.company.findFirst({ where: { name: data.company.name } });
+    if (actor.role === 'EMPLOYER' && existingCompany && existingCompany.ownerUserId !== actor.user.id) {
       return NextResponse.json(
-        { error: 'That company profile belongs to another employer account.', code: 'COMPANY_SCOPE_FORBIDDEN' },
+        { error: 'That company profile is already managed by another employer account. Ask CPDC to link it to you.', code: 'COMPANY_SCOPE_FORBIDDEN' },
         { status: 403 },
       );
     }
+
+    const company = existingCompany ?? await prisma.company.create({
+      data: {
+        name: data.company.name,
+        industry: data.company.industry ?? null,
+        website: data.company.website || null,
+        ownerUserId: actor.role === 'EMPLOYER' ? actor.user.id : null,
+      },
+    });
 
     const job = await prisma.jobPosting.create({
       data: {

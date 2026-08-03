@@ -22,6 +22,8 @@ import {
   Quote
 } from 'lucide-react';
 import { ALUMNI_DIRECTORY, FEED_POSTS, FACULTIES } from '@/lib/data/facultyData';
+import { useAccessibleTabs } from '@/components/ui/useAccessibleTabs';
+import DismissibleDialog from '@/components/ui/DismissibleDialog';
 
 // --- Small helpers -----------------------------------------------------------
 
@@ -112,6 +114,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
   const canInteract = currentRole === 'STUDENT' || isAlumni;
   const canBookMentor = currentRole === 'STUDENT';
   const [activeTab, setActiveTab] = useState('alumni'); // 'alumni' | 'stories' | 'feed'
+  const { getTabProps } = useAccessibleTabs(['alumni', 'stories', 'feed'], activeTab, setActiveTab);
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -283,6 +286,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
           ].map((tab) => (
             <button
               key={tab.id}
+              {...getTabProps(tab.id)}
               type="button"
               role="tab"
               id={`network-tab-${tab.id}`}
@@ -593,8 +597,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* CONNECTION REQUEST MODAL (mandatory reaching-out note) */}
       {connectModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConnectModal(null); }}>
-          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="connect-heading" onMouseDown={(event) => event.stopPropagation()}>
+        <DismissibleDialog onClose={() => setConnectModal(null)} labelledBy="connect-heading" className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg">
             <button
               type="button"
               onClick={() => setConnectModal(null)}
@@ -653,14 +656,12 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                 </button>
               </form>
             )}
-          </div>
-        </div>
+        </DismissibleDialog>
       )}
 
       {/* MENTORSHIP SLOT BOOKING MODAL */}
       {bookingModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setBookingModal(null); }}>
-          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="booking-heading" onMouseDown={(event) => event.stopPropagation()}>
+        <DismissibleDialog onClose={() => setBookingModal(null)} labelledBy="booking-heading" className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg">
             <button
               type="button"
               onClick={() => setBookingModal(null)}
@@ -736,14 +737,12 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                 </button>
               </form>
             )}
-          </div>
-        </div>
+        </DismissibleDialog>
       )}
 
       {/* NEW POST MODAL */}
       {showNewPostModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowNewPostModal(false); }}>
-          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-lg w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="new-post-heading" onMouseDown={(event) => event.stopPropagation()}>
+        <DismissibleDialog onClose={() => setShowNewPostModal(false)} labelledBy="new-post-heading" className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-lg w-full space-y-5 relative shadow-lg">
             <button
               type="button"
               onClick={() => setShowNewPostModal(false)}
@@ -787,8 +786,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                 <span>Post to University Discussion Board</span>
               </button>
             </form>
-          </div>
-        </div>
+        </DismissibleDialog>
       )}
 
     </div>

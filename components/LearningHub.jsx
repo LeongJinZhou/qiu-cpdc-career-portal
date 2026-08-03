@@ -12,7 +12,6 @@ import {
   Sparkles,
   Trophy,
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useSettings } from '@/lib/settings';
 import { XP_VALUES } from '@/lib/xp';
 import {
@@ -35,6 +34,7 @@ import PathCard from '@/components/learning/PathCard';
 import CertificateSubmitModal from '@/components/learning/CertificateSubmitModal';
 import CourseDetail from '@/components/learning/CourseDetail';
 import VerificationQueue from '@/components/learning/VerificationQueue';
+import { useAccessibleTabs } from '@/components/ui/useAccessibleTabs';
 
 const STAFF_ROLES = [
   'HEAD_OF_PROGRAMME',
@@ -265,7 +265,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
       setQueue((previous) => previous.map((entry) => (
         entry.id === submissionId ? saved : entry
       )));
-      if (decision === 'VERIFIED') confetti({ particleCount: 50, spread: 55 });
+      if (decision === 'VERIFIED') { import('canvas-confetti').then(({ default: confetti }) => confetti({ particleCount: 50, spread: 55 })); }
       const course = item ? courseById(item.courseId) : null;
       setNotice(decision === 'VERIFIED'
         ? `Verified: ${course?.title ?? 'certificate'} for ${item?.studentName ?? 'the student'}. The database awarded XP, a badge, and the CV skill line.`
@@ -297,6 +297,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
         { id: 'discover', label: 'Discover courses' },
         { id: 'paths', label: 'Learning paths' },
       ];
+  const { getTabProps } = useAccessibleTabs(tabs.map((item) => item.id), activeTab, setActiveTab);
 
   return (
     <div className="animate-fadeIn space-y-6">
@@ -324,9 +325,12 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              {...getTabProps(tab.id)}
               type="button"
               role="tab"
+              id={`learning-tab-${tab.id}`}
               aria-selected={activeTab === tab.id}
+              aria-controls={`learning-panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={`min-h-[44px] whitespace-nowrap rounded-lg px-3.5 text-xs font-semibold transition ${
                 activeTab === tab.id ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
@@ -344,6 +348,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
         </div>
       )}
 
+      <div id={`learning-panel-${activeTab}`} role="tabpanel" aria-labelledby={`learning-tab-${activeTab}`} tabIndex={0}>
       {/* DISCOVERY / CATALOGUE */}
       {(activeTab === 'discover' || activeTab === 'catalogue') && (
         <div className="space-y-6">
@@ -551,6 +556,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
           </span>
         </div>
       )}
+      </div>
 
       {detailTarget && (
         <CourseDetail

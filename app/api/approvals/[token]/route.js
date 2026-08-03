@@ -7,6 +7,7 @@ import { awardXpOnce } from '@/lib/xp-ledger';
 import { createAuditEntry } from '@/lib/audit';
 import { getRequestId } from '@/lib/auth/identity';
 import { evaluateStudentLifecycle } from '@/lib/automation';
+import { createNotification } from '@/lib/notifications';
 
 const decisionSchema = z.object({
   decision: z.enum(['APPROVED', 'REJECTED']),
@@ -148,6 +149,20 @@ export async function POST(request, { params }) {
         after: { status: decision, decision, comment: comment ?? null },
         requestId: getRequestId(request),
         metadata: { supervisorApprovalId: approval.id },
+      });
+
+      await createNotification(tx, {
+        recipientUserId: approval.logbookEntry.student.user.id,
+        actorUserId: null,
+        type: decision === 'APPROVED' ? 'LOGBOOK_APPROVED' : 'LOGBOOK_REJECTED',
+        title: decision === 'APPROVED' ? 'Supervisor approved your logbook' : 'Supervisor returned your logbook',
+        body: decision === 'APPROVED'
+          ? `Your supervisor approved “${approval.logbookEntry.title}”. The hours now count toward your verified internship record.`
+          : `Your supervisor returned “${approval.logbookEntry.title}”.${comment ? ` Note: ${comment}` : ''}`,
+        href: '/logbook',
+        resourceType: 'LogbookEntry',
+        resourceId: approval.logbookEntryId,
+        dedupeKey: `logbook.supervisor:${approval.logbookEntryId}:${decision}`,
       });
     });
   } catch (error) {

@@ -1,5 +1,5 @@
 # Repository Structure Map
-Last Updated: Sun Aug  2 23:54:45 +08 2026
+Last Updated: Mon Aug  3 10:26:16 +08 2026
 
 ## File Tree
 ```
@@ -169,11 +169,12 @@ Last Updated: Sun Aug  2 23:54:45 +08 2026
 │       └── eventCatalogue.jsx
 ├── docs
 │   ├── GO-LIVE-AND-ROLE-GUIDE.md
+│   ├── SKILL-ROUTING.md
+│   ├── SKILLS-INVENTORY.md
 │   ├── USER-GUIDE.md
 │   └── superpowers
 │       ├── plans
 │       └── specs
-├── firebase-debug.log
 ├── firebase.json
 ├── jsconfig.json
 ├── lib
@@ -196,6 +197,7 @@ Last Updated: Sun Aug  2 23:54:45 +08 2026
 │   │   ├── session.js
 │   │   └── student-profile-visibility.js
 │   ├── automation.js
+│   ├── csv.js
 │   ├── cv.js
 │   ├── data
 │   │   ├── audit.js
@@ -215,7 +217,8 @@ Last Updated: Sun Aug  2 23:54:45 +08 2026
 │   │   ├── provider.js
 │   │   └── student-id.js
 │   ├── integrations
-│   │   └── acms-sis.js
+│   │   ├── acms-sis.js
+│   │   └── google-directory.js
 │   ├── magic-link.js
 │   ├── matching.js
 │   ├── modules.js
@@ -249,6 +252,7 @@ Last Updated: Sun Aug  2 23:54:45 +08 2026
 │       ├── qiu-mark-dark.png
 │       └── qiu-mark-light.png
 ├── scripts
+│   ├── auto-skill-router.mjs
 │   ├── autonomous_deploy_agent.mjs
 │   ├── bootstrap-super-admin.mjs
 │   ├── build-brand-assets.mjs
@@ -272,6 +276,7 @@ Last Updated: Sun Aug  2 23:54:45 +08 2026
     │   └── lifecycle-decision.test.mjs
     ├── client
     │   └── canonical-session-contract.test.mjs
+    ├── google-directory.test.mjs
     ├── identity
     │   └── student-id.test.mjs
     ├── matching-engine.test.mjs
@@ -281,39 +286,38 @@ Last Updated: Sun Aug  2 23:54:45 +08 2026
     ├── modules-2-3-status.test.mjs
     ├── modules-4-email.test.mjs
     ├── modules-5-policy.test.mjs
-    └── settings
-        └── settings-policy.test.mjs
+    ├── security
+    │   └── csv-export.test.mjs
+    ├── settings
+    │   └── settings-policy.test.mjs
+    └── tooling
+        └── skill-router.test.mjs
 
-87 directories, 193 files
+89 directories, 200 files
 ```
 
 ## Recent Git Status
 ```
  M .ai/memory/repo-map.md
- M app/(portal)/ai-suite/page.jsx
- M app/api/applications/route.js
- M app/api/learning/enrolments/route.js
- M app/api/notifications/route.js
- M app/api/students/profile-view.js
+ M CODEX.md
+ M app/api/admin/data/[entity]/route.js
+ M app/api/identity/directory-sync/route.js
  M app/api/talent/outreach/route.js
- M app/api/talent/route.js
- M components/AlumniNetwork.jsx
- M components/EmployerWorkspace.jsx
- M components/ProfileSettings.jsx
- M components/RoleSettings.jsx
- M components/TalentFeed.jsx
- M components/WorkshopHub.jsx
- M components/employer/CandidateCard.jsx
- M components/employer/VacanciesBoard.jsx
- M components/learning/CourseDetail.jsx
- M components/portal/PortalShell.jsx
- M lib/auth/identity.js
- M lib/auth/student-profile-visibility.js
-?? app/(portal)/learning/[id]/
-?? app/(portal)/network/[id]/
-?? app/(portal)/workshops/[id]/
-?? app/api/workshops/[id]/
-?? components/learning/CourseStandalonePage.jsx
-?? components/network/
-?? components/workshops/WorkshopDetailPage.jsx
+ M app/api/workshops/rsvp/route.js
+ M app/globals.css
+ M components/AdminControlCenter.jsx
+ M components/LoadingScreen.jsx
+ M components/admin/DataExplorer.jsx
+ M components/ui/DismissibleDialog.jsx
+ M lib/integrations/google-directory.js
+ M lib/workshop-policy.js
+ M package.json
+ M tests/google-directory.test.mjs
+ M tests/modules-5-policy.test.mjs
+?? docs/SKILL-ROUTING.md
+?? docs/SKILLS-INVENTORY.md
+?? lib/csv.js
+?? scripts/auto-skill-router.mjs
+?? tests/security/
+?? tests/tooling/
 ```

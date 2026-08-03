@@ -11,15 +11,17 @@ import { getRequestId, toIdentityRouteError } from '@/lib/auth/identity';
  *
  * The per-student record (/api/students/[id]/profile) answers "tell me about
  * this student"; this endpoint answers "show me every attempt / application /
- * audit line across the platform". It is deliberately global-admin only and
+ * audit line across the platform". It is deliberately CPDC/Super-Admin only and
  * exposes only an allowlisted set of entities and columns — a browser can never
  * name an arbitrary Prisma model here. Every page view is audited.
  */
 
-// Only university-wide roles may browse raw cross-student data. Faculty-scoped
-// staff use the scoped roster instead. Demo mode (dev-only) honours the
-// x-demo-role header, so a demo SUPER_ADMIN can exercise this in development.
-const EXPLORER_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN', 'UNIVERSITY_REGISTRAR']);
+// Only platform administrators may browse raw cross-student data. Faculty and
+// Registrar staff use the curated/scoped student views instead; raw exports
+// contain identity and audit fields that exceed those roles' normal duties.
+// Demo mode (dev-only) honours the x-demo-role header, so a demo SUPER_ADMIN
+// can exercise this in development.
+const EXPLORER_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
 
 const DEFAULT_PAGE_SIZE = 25;
 const MAX_PAGE_SIZE = 100;
@@ -160,7 +162,7 @@ const ENTITIES = {
 };
 
 function forbidden() {
-  const error = new Error('The data explorer is restricted to CPDC, Registrar and Super-Admin accounts.');
+  const error = new Error('The data explorer is restricted to CPDC Admin and Super Admin accounts.');
   error.status = 403;
   error.code = 'FORBIDDEN';
   return error;

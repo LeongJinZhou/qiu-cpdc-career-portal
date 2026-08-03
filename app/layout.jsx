@@ -1,4 +1,8 @@
+import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' });
 
 export const metadata = {
   // A template keeps every route's tab ending in the institution name without
@@ -24,7 +28,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <body className="bg-canvas text-[#1d1d1f] font-sans antialiased selection:bg-crimson selection:text-white">
         {children}
       </body>

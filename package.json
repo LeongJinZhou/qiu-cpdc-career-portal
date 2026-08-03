@@ -19,6 +19,7 @@
     "db:seed": "node prisma/seed.mjs",
     "db:bootstrap-admin": "node scripts/bootstrap-super-admin.mjs",
     "db:studio": "prisma studio",
+    "skills:route": "node scripts/auto-skill-router.mjs",
     "deploy": "npm run deploy:auto",
     "deploy:auto": "node scripts/autonomous_deploy_agent.mjs"
   },

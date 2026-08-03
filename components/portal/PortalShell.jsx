@@ -47,6 +47,13 @@ export default function PortalShell({ children }) {
   const primary = primaryModulesFor(currentRole, activeFaculty.id, settings);
   const isStudent = currentRole === 'STUDENT';
   const roleLabel = ROLES.find((role) => role.id === currentRole)?.label ?? currentRole;
+  const accessLabel = currentRole === 'EMPLOYER'
+    ? 'Verified employer account'
+    : currentRole === 'ALUMNI'
+      ? 'Verified alumni access'
+      : isStudent
+        ? 'Verified student access'
+        : `${roleLabel} operations access`;
 
   // The sidebar XP tile reads the real ledger total (and reacts to live awards)
   // so it can't drift from the dashboard's headline figure. Falls back to the
@@ -237,7 +244,7 @@ export default function PortalShell({ children }) {
           <div className="m-3 surface hidden p-4 lg:block">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Workspace</p>
             <p className="mt-1 font-heading text-base font-semibold">{roleLabel}</p>
-            <p className="mt-1 text-[11px] text-muted">{currentRole === 'FACULTY_COORDINATOR' ? `${activeFaculty.code} faculty scope` : 'Verified QIU CPDC access'}</p>
+            <p className="mt-1 text-[11px] text-muted">{currentRole === 'FACULTY_COORDINATOR' ? `${activeFaculty.code} faculty scope` : accessLabel}</p>
           </div>
         )}
       </aside>

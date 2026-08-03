@@ -8,6 +8,7 @@ import InviteDialog from '@/components/employer/InviteDialog';
 import VacanciesBoard from '@/components/employer/VacanciesBoard';
 import { fetchTalentFeed, fetchWorkshopRequests, sendTalentOutreach, submitWorkshopRequest } from '@/lib/api';
 import { ROLES } from '@/lib/modules';
+import { useAccessibleTabs } from '@/components/ui/useAccessibleTabs';
 
 export default function EmployerWorkspace({ student, currentRole }) {
   const roleLabel = ROLES.find((role) => role.id === currentRole)?.label ?? currentRole;
@@ -20,6 +21,7 @@ export default function EmployerWorkspace({ student, currentRole }) {
     ...(canHostEvent ? [{ id: 'host', label: 'Host an event', icon: BriefcaseBusiness }] : []),
   ], [canHostEvent, canManageMarketplace]);
   const [tab, setTab] = useState('talent');
+  const { getTabProps } = useAccessibleTabs(tabs.map((item) => item.id), tab, setTab);
   const [shortlistIds, setShortlistIds] = useState(() => new Set());
   const [invitedByCandidate, setInvitedByCandidate] = useState({});
   const [request, setRequest] = useState({ title: '', date: '', description: '' });
@@ -145,11 +147,11 @@ export default function EmployerWorkspace({ student, currentRole }) {
     <div className="space-y-8 animate-fadeIn">
       <div className="flex flex-col gap-4 border-b border-black/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-crimson">{canManageMarketplace ? 'Verified partner portal' : 'Career opportunities'}</p><h1 className="section-title mt-1 flex items-center gap-2.5"><BriefcaseBusiness className="h-6 w-6 text-crimson" /> {canManageMarketplace ? 'Employer marketplace' : 'Opportunities marketplace'}</h1><p className="section-subtitle mt-1.5 max-w-2xl">{canManageMarketplace ? 'Search opt-in talent, review coordinator-approved projects and send structured outreach without exposing private student data.' : 'Browse live vacancies and coordinator-approved projects matched to the QIU community. Apply from the opportunity card and follow the persisted ATS stage.'}</p></div>
-        <span className="badge-pill flex w-fit items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> {canManageMarketplace ? 'Verified corporate partner' : `${roleLabel} view`}</span>
+        <span className="badge-pill flex w-fit items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> {currentRole === 'EMPLOYER' ? 'Verified employer account' : canManageMarketplace ? `${roleLabel} operations view` : `${roleLabel} view`}</span>
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-black/10 pb-2" role="tablist" aria-label="Employer portal views">
-        {tabs.map(({ id, label, icon: Icon }) => <button key={id} type="button" role="tab" id={`employer-tab-${id}`} aria-selected={tab === id} aria-controls={`employer-panel-${id}`} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold ${tab === id ? 'bg-crimson text-white' : 'text-muted hover:bg-black/[0.04] hover:text-[#1d1d1f]'}`}><Icon className="h-4 w-4" />{label}</button>)}
+        {tabs.map(({ id, label, icon: Icon }) => <button key={id} {...getTabProps(id)} type="button" role="tab" id={`employer-tab-${id}`} aria-selected={tab === id} aria-controls={`employer-panel-${id}`} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold ${tab === id ? 'bg-crimson text-white' : 'text-muted hover:bg-black/[0.04] hover:text-[#1d1d1f]'}`}><Icon className="h-4 w-4" />{label}</button>)}
       </div>
 
       {talentError && <p className="rounded-[14px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900" role="alert">{talentError}</p>}
@@ -168,4 +170,4 @@ export default function EmployerWorkspace({ student, currentRole }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder }) { return <div><label className="mb-1.5 block text-xs font-semibold text-muted">{label}</label><input required value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="h-12 w-full rounded-[16px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" /></div>; }
+function Field({ label, value, onChange, placeholder }) { const id = `event-request-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`; return <div><label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-muted">{label}</label><input id={id} required value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="h-12 w-full rounded-[16px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" /></div>; }

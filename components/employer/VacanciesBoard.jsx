@@ -33,7 +33,7 @@ export default function VacanciesBoard({ currentRole }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { jobs: list } = await fetchJobs();
+      const { jobs: list } = await fetchJobs(currentRole);
       setJobs(Array.isArray(list) ? list : []);
       setError('');
     } catch (e) {
@@ -41,7 +41,7 @@ export default function VacanciesBoard({ currentRole }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentRole]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -118,16 +118,16 @@ export default function VacanciesBoard({ currentRole }) {
             <h2 className="font-heading text-lg font-semibold">Post a vacancy</h2>
           </div>
           <form onSubmit={post} className="space-y-3">
-            <input required value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Role title — e.g. Software Engineering Intern" className="h-11 w-full rounded-[14px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" />
-            <input required value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} placeholder="Company name" className="h-11 w-full rounded-[14px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" />
+            <label htmlFor="vacancy-title" className="block"><span className="field-label">Role title</span><input id="vacancy-title" required value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Software Engineering Intern" className="text-input" /></label>
+            <label htmlFor="vacancy-company" className="block"><span className="field-label">Company name</span><input id="vacancy-company" required value={form.company} onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))} placeholder="The employer or organisation" className="text-input" /></label>
             <div className="grid grid-cols-2 gap-3">
-              <input value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} placeholder="Location" className="h-11 w-full rounded-[14px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" />
-              <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="h-11 w-full rounded-[14px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20">
+              <label htmlFor="vacancy-location" className="block"><span className="field-label">Location</span><input id="vacancy-location" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} placeholder="Ipoh, remote or hybrid" className="text-input" /></label>
+              <label htmlFor="vacancy-type" className="block"><span className="field-label">Opportunity type</span><select id="vacancy-type" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} className="text-input">
                 <option>Internship</option><option>Graduate</option><option>Part-time</option>
-              </select>
+              </select></label>
             </div>
-            <input value={form.skills} onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))} placeholder="Skills (comma separated)" className="h-11 w-full rounded-[14px] border border-black/10 bg-black/[0.03] px-4 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" />
-            <textarea required rows={4} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Role description and requirements" className="w-full rounded-[14px] border border-black/10 bg-black/[0.03] px-4 py-3 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" />
+            <label htmlFor="vacancy-skills" className="block"><span className="field-label">Skills</span><input id="vacancy-skills" value={form.skills} onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))} placeholder="Python, SQL, communication" className="text-input" /><span className="mt-1 block text-xs text-muted">Separate skills with commas.</span></label>
+            <label htmlFor="vacancy-description" className="block"><span className="field-label">Role description and requirements</span><textarea id="vacancy-description" required rows={4} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="What will the student do, and what should they bring?" className="text-input h-auto py-3" /></label>
             <button type="submit" disabled={posting} className="crimson-btn w-full justify-center disabled:opacity-60">
               {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
               {posting ? 'Publishing…' : 'Publish vacancy'}

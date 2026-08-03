@@ -23,7 +23,6 @@ import { tierFor, tierProgress } from '@/lib/xp';
 import { fetchLeaderboard, fetchXpSummary } from '@/lib/api';
 import { onXpUpdated } from '@/lib/xp-events';
 import { nextBestAction } from '@/lib/next-best-action';
-import confetti from 'canvas-confetti';
 
 export default function StudentDashboard({
   student,
@@ -103,7 +102,7 @@ export default function StudentDashboard({
   // A little celebration when a real award lands (fired by the live XP event).
   useEffect(() => {
     const unsubscribe = onXpUpdated(() => {
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      import('canvas-confetti').then(({ default: confetti }) => confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } }));
     });
     return unsubscribe;
   }, []);

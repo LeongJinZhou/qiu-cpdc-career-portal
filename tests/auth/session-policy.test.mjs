@@ -268,6 +268,27 @@ test('authorizeSessionUser denies unknown emails', async () => {
   );
 });
 
+test('authorizeSessionUser strictly rejects non-QIU domain emails (e.g. gmail or external domains)', async () => {
+  const { prisma } = createPrismaStub(null);
+
+  await assert.rejects(
+    authorizeSessionUser({
+      prisma,
+      verifiedIdentity: {
+        firebaseUid: 'firebase-external',
+        email: 'student@gmail.com',
+        name: 'External Hacker',
+        avatarUrl: null,
+      },
+    }),
+    (error) => {
+      assert.equal(error.status, 403);
+      assert.match(error.message, /strictly restricted to valid QIU Google Workspace accounts/i);
+      return true;
+    },
+  );
+});
+
 test('authorizeSessionUser denies suspended accounts', async () => {
   const { prisma } = createPrismaStub({
     id: 'user-2',

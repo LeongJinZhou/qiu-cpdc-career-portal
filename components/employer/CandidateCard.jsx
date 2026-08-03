@@ -12,6 +12,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import Link from 'next/link';
 
 // Card language is deliberately shared with components/TalentFeed.jsx: initials
 // avatar with a soft deterministic tint, name + class-of line, project title,
@@ -173,6 +174,9 @@ export default function CandidateCard({
 
       {/* Actions — invites are the only channel to a student. */}
       <div className="mt-auto flex flex-wrap gap-2 border-t border-black/[0.06] pt-4">
+        <Link href={`/talent/${candidate.id}`} className="secondary-btn min-h-[44px] w-full justify-center text-xs">
+          View full profile
+        </Link>
         <button
           type="button"
           onClick={() => onInvite?.(candidate, 'interview')}

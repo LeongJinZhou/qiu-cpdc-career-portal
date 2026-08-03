@@ -20,6 +20,7 @@ import {
 import { FACULTIES } from '@/lib/data/facultyData';
 import { fetchTalentFeed, fetchTalentOutreach, sendTalentOutreach } from '@/lib/api';
 import Avatar from '@/components/ui/Avatar';
+import Link from 'next/link';
 
 // Roles allowed to reach out to a showcased student. Students browsing their
 // peers just see the gallery; recruiters and alumni get the outreach controls.
@@ -285,6 +286,9 @@ export default function TalentFeed({ currentRole = 'STUDENT' }) {
 
                 {/* Abstract */}
                 <p className="text-sm text-[#424245] leading-relaxed line-clamp-4">{entry.abstract}</p>
+                <Link href={`/talent/${entry.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-crimson hover:underline">
+                  Open full showcase <ExternalLink className="h-3.5 w-3.5" />
+                </Link>
 
                 {/* Tech tags */}
                 {entry.tech?.length > 0 && (

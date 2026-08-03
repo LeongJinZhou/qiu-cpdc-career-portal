@@ -16,7 +16,6 @@ import {
   X
 } from 'lucide-react';
 import { WORKSHOPS, ONLINE_COURSES } from '@/lib/data/facultyData';
-import confetti from 'canvas-confetti';
 import { useSettings } from '@/lib/settings';
 import { workshopMatch } from '@/lib/matching';
 import {
@@ -27,6 +26,7 @@ import {
 } from '@/lib/api';
 import { emitXpUpdated } from '@/lib/xp-events';
 import DismissibleDialog from '@/components/ui/DismissibleDialog';
+import { useAccessibleTabs } from '@/components/ui/useAccessibleTabs';
 
 // The workshops API returns DB rows; the card + matcher expect the registry's
 // display shape. This adapts one to the other so published events, RSVPs and
@@ -107,7 +107,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
   const reloadWorkshops = React.useCallback(async () => {
     setWorkshopsLoading(true);
     try {
-      const { workshops } = await fetchWorkshops();
+      const { workshops } = await fetchWorkshops(currentRole);
       if (Array.isArray(workshops)) {
         setWorkshopsList(workshops.map(mapDbWorkshop));
         setLoadError('');
@@ -117,7 +117,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
     } finally {
       setWorkshopsLoading(false);
     }
-  }, []);
+  }, [currentRole]);
 
   useEffect(() => {
     reloadWorkshops();
@@ -129,6 +129,10 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
     completed: isStudent && (student?.courses ?? []).some((saved) => saved.courseId === course.id),
   })));
   const [activeSubTab, setActiveSubTab] = useState(initialSubTab); // 'workshops' | 'coursera' | 'admin_publish'
+  const [settings] = useSettings();
+  const canPublish = ['HEAD_OF_PROGRAMME', 'FACULTY_COORDINATOR', 'PLACEMENT_OFFICER', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole);
+  const tabIds = canPublish ? ['workshops', 'coursera', 'admin_publish'] : ['workshops', 'coursera'];
+  const { getTabProps } = useAccessibleTabs(tabIds, activeSubTab, setActiveSubTab);
   const [qrModal, setQrModal] = useState(null); // workshop object when scanning
   const [selectedWorkshop, setSelectedWorkshop] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -138,8 +142,6 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
   const [publishMessage, setPublishMessage] = useState('');
   const [publishMessageTone, setPublishMessageTone] = useState('info');
-  const [settings] = useSettings();
-  const canPublish = ['HEAD_OF_PROGRAMME', 'FACULTY_COORDINATOR', 'PLACEMENT_OFFICER', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole);
 
   const showPublishMessage = (message, tone = 'info', duration = 4000) => {
     setPublishMessage(message);
@@ -250,7 +252,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
       const awardedXp = Number(res.xpAwarded) || 0;
       setCheckInXp(awardedXp);
       setAlreadyCheckedIn(Boolean(res.alreadyCheckedIn) || awardedXp === 0);
-      if (awardedXp > 0) confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 } });
+      if (awardedXp > 0) { import('canvas-confetti').then(({ default: confetti }) => confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 } })); }
 
       setWorkshopsList((prev) => prev.map((item) => (
         item.id === workshop.id ? { ...item, attended: true } : item
@@ -362,6 +364,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
         <div className="flex max-w-full items-center gap-1 overflow-x-auto bg-black/[0.03] p-1 rounded-xl border border-black/10" role="tablist" aria-label="Workshop hub views">
           <button
             type="button"
+            {...getTabProps('workshops')}
             role="tab"
             id="workshop-tab-workshops"
             aria-selected={activeSubTab === 'workshops'}
@@ -376,6 +379,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
           <button
             type="button"
+            {...getTabProps('coursera')}
             role="tab"
             id="workshop-tab-coursera"
             aria-selected={activeSubTab === 'coursera'}
@@ -391,6 +395,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
           {canPublish && (
             <button
               type="button"
+              {...getTabProps('admin_publish')}
               role="tab"
               id="workshop-tab-admin-publish"
               aria-selected={activeSubTab === 'admin_publish'}

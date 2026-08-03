@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
 import { toIdentityRouteError, parseJsonBody, getRequestId } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
+import { createNotifications, userIdsForScopedStaff } from '@/lib/notifications';
 import { awardXpOnce, sumStudentXp } from '@/lib/xp-ledger';
 import { XP_VALUES } from '@/lib/xp';
 import { normalizeFypSaveStatus } from '@/lib/fyp-status-policy';
@@ -132,6 +133,26 @@ export async function POST(request) {
         },
         requestId: getRequestId(request),
       });
+
+      if (status !== 'DRAFT') {
+        const reviewerIds = (await userIdsForScopedStaff(tx, {
+          globalRoles: ['CPDC_ADMIN', 'SUPER_ADMIN'],
+          scopedRoles: ['HEAD_OF_PROGRAMME'],
+          facultyId: actor.student.facultyId,
+          programmeId: actor.student.programmeId,
+        })).filter((userId) => userId !== actor.user.id);
+        await createNotifications(tx, {
+          recipientUserIds: reviewerIds,
+          actorUserId: actor.user.id,
+          type: 'FYP_SUBMITTED',
+          title: 'FYP project needs review',
+          body: `${actor.user.name} submitted “${saved.title}” for programme review.`,
+          href: '/admin',
+          resourceType: 'FYPProject',
+          resourceId: saved.id,
+          dedupeKey: `fyp.submitted:${saved.id}:${saved.updatedAt.toISOString()}`,
+        });
+      }
 
       return saved;
     });

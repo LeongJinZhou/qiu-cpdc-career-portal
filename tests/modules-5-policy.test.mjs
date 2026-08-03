@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   checkInAward,
+  isRegistrationOpen,
   isQrCheckInOpen,
   parseWorkshopStart,
   seatsLeft,
@@ -18,6 +19,13 @@ test('workshop capacity exposes null for uncapped events and never negative seat
   assert.equal(seatsLeft(null, 100), null);
   assert.equal(seatsLeft(20, 4), 16);
   assert.equal(seatsLeft(20, 24), 0);
+});
+
+test('workshop registration closes at its deadline and at the start time', () => {
+  const startsAt = new Date('2026-08-15T06:00:00.000Z');
+  assert.equal(isRegistrationOpen({ startsAt, now: new Date('2026-08-15T05:59:59.000Z') }), true);
+  assert.equal(isRegistrationOpen({ startsAt, registrationDeadline: '2026-08-15T05:00:00.000Z', now: new Date('2026-08-15T05:30:00.000Z') }), false);
+  assert.equal(isRegistrationOpen({ startsAt, now: startsAt }), false);
 });
 
 test('QR check-in is open shortly before and after the workshop, not indefinitely', () => {

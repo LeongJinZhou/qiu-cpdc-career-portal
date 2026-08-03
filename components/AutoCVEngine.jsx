@@ -14,7 +14,6 @@ import {
   History,
   ScanSearch,
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 import { fetchCvData } from '@/lib/api';
 
 export default function AutoCVEngine({ student, activeFaculty }) {
@@ -82,6 +81,7 @@ export default function AutoCVEngine({ student, activeFaculty }) {
   const handleDownloadPDF = async () => {
     setIsExporting(true);
     try {
+      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();

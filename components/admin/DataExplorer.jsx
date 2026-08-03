@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   AlertCircle,
@@ -16,6 +16,7 @@ import {
   Table,
   X,
 } from 'lucide-react';
+import { buildCsv } from '@/lib/csv';
 
 const ENTITIES = [
   { id: 'student', label: 'Students', desc: 'Every student record with the Employee ID, course code and email read from the QIU Google directory at login.' },
@@ -69,19 +70,8 @@ function displayValue(column, value) {
   return String(value);
 }
 
-function csvCell(value) {
-  const text = value == null ? '' : String(value);
-  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
-function buildCsv(columns, rows) {
-  const header = columns.map((c) => csvCell(COLUMN_LABELS[c] ?? c)).join(',');
-  const body = rows.map((row) => columns.map((c) => csvCell(row[c])).join(',')).join('\n');
-  return `${header}\n${body}`;
-}
-
 export default function DataExplorer({ currentRole }) {
-  const [activeEntity, setActiveEntity] = useState('assessmentAttempt');
+  const [activeEntity, setActiveEntity] = useState('student');
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -92,6 +82,41 @@ export default function DataExplorer({ currentRole }) {
   const [error, setError] = useState('');
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const tabRefs = useRef([]);
+  const closeInspectorRef = useRef(null);
+
+  const selectEntity = useCallback((entityId) => {
+    setActiveEntity(entityId);
+    setPage(1);
+    setQuery('');
+    setSelectedRow(null);
+  }, []);
+
+  const handleEntityKeyDown = useCallback((event, index) => {
+    let nextIndex = index;
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % ENTITIES.length;
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + ENTITIES.length) % ENTITIES.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = ENTITIES.length - 1;
+    if (nextIndex === index) return;
+    event.preventDefault();
+    selectEntity(ENTITIES[nextIndex].id);
+    tabRefs.current[nextIndex]?.focus();
+  }, [selectEntity]);
+
+  useEffect(() => {
+    if (!selectedRow) return undefined;
+    const previousFocus = document.activeElement;
+    const handleInspectorKeyDown = (event) => {
+      if (event.key === 'Escape') setSelectedRow(null);
+    };
+    document.addEventListener('keydown', handleInspectorKeyDown);
+    closeInspectorRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', handleInspectorKeyDown);
+      previousFocus?.focus?.();
+    };
+  }, [selectedRow]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -146,7 +171,7 @@ export default function DataExplorer({ currentRole }) {
         if (p >= (json.pageCount ?? 1)) break;
       }
       if (!allRows.length) { setError('There are no records to export.'); return; }
-      const blob = new Blob([buildCsv(columns, allRows)], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([buildCsv(columns, allRows, COLUMN_LABELS)], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -187,7 +212,7 @@ export default function DataExplorer({ currentRole }) {
               onClick={handleExport}
               disabled={exporting || loading}
               className="secondary-btn px-3.5 py-2 text-xs flex items-center gap-2 bg-white disabled:opacity-50"
-              title="Download every matching record as a CSV file"
+              aria-label="Export every matching record as CSV"
             >
               <Download className={`h-4 w-4 ${exporting ? 'animate-pulse text-crimson' : 'text-muted'}`} />
               <span>{exporting ? 'Preparing…' : 'Export CSV'}</span>
@@ -197,7 +222,7 @@ export default function DataExplorer({ currentRole }) {
               onClick={loadRecords}
               disabled={loading}
               className="secondary-btn px-3.5 py-2 text-xs flex items-center gap-2 bg-white"
-              title="Refresh database view"
+              aria-label="Refresh database view"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-crimson' : 'text-muted'}`} />
               <span>Refresh Table</span>
@@ -207,19 +232,21 @@ export default function DataExplorer({ currentRole }) {
       </div>
 
       {/* Entity Selector Navigation Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 border-b border-black/10">
+      <div className="flex gap-2 overflow-x-auto pb-2 border-b border-black/10" role="tablist" aria-label="University data sets">
         {ENTITIES.map((ent) => {
           const isSelected = activeEntity === ent.id;
           return (
             <button
               key={ent.id}
               type="button"
-              onClick={() => {
-                setActiveEntity(ent.id);
-                setPage(1);
-                setQuery('');
-                setSelectedRow(null);
-              }}
+              id={ent.id}
+              ref={(node) => { tabRefs.current[ENTITIES.indexOf(ent)] = node; }}
+              role="tab"
+              aria-selected={isSelected}
+              aria-controls="admin-data-table-panel"
+              tabIndex={isSelected ? 0 : -1}
+              onClick={() => selectEntity(ent.id)}
+              onKeyDown={(event) => handleEntityKeyDown(event, ENTITIES.indexOf(ent))}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition shrink-0 ${
                 isSelected
                   ? 'bg-[#1d1d1f] text-white shadow-sm'
@@ -237,7 +264,11 @@ export default function DataExplorer({ currentRole }) {
       <div className="surface p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+          <label htmlFor="admin-data-search" className="sr-only">
+            Search {activeMeta.label}
+          </label>
           <input
+            id="admin-data-search"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -249,6 +280,7 @@ export default function DataExplorer({ currentRole }) {
               type="button"
               onClick={() => setQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-black"
+              aria-label={`Clear ${activeMeta.label} search`}
             >
               <X className="h-4 w-4" />
             </button>
@@ -266,7 +298,7 @@ export default function DataExplorer({ currentRole }) {
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="p-1.5 rounded-lg border border-black/10 hover:bg-black/[0.04] disabled:opacity-40 disabled:pointer-events-none transition"
-                title="Previous Page"
+                aria-label="Previous page"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
@@ -278,7 +310,7 @@ export default function DataExplorer({ currentRole }) {
                 disabled={!data.pageCount || page >= data.pageCount || loading}
                 onClick={() => setPage((p) => p + 1)}
                 className="p-1.5 rounded-lg border border-black/10 hover:bg-black/[0.04] disabled:opacity-40 disabled:pointer-events-none transition"
-                title="Next Page"
+                aria-label="Next page"
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -301,7 +333,7 @@ export default function DataExplorer({ currentRole }) {
       )}
 
       {/* Records Table Display */}
-      <div className="surface overflow-hidden border border-black/10">
+      <div id="admin-data-table-panel" role="tabpanel" aria-labelledby={activeEntity} className="surface overflow-hidden border border-black/10">
         <div className="overflow-x-auto min-h-[360px]">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
@@ -334,8 +366,7 @@ export default function DataExplorer({ currentRole }) {
               {(data?.rows || []).map((row, idx) => (
                 <tr
                   key={row.id || idx}
-                  className="hover:bg-crimson/[0.02] transition cursor-pointer"
-                  onClick={() => setSelectedRow(row)}
+                  className="hover:bg-crimson/[0.02] transition"
                 >
                   {(data?.columns || []).map((col) => {
                     const val = row[col];
@@ -365,6 +396,7 @@ export default function DataExplorer({ currentRole }) {
                       type="button"
                       onClick={() => setSelectedRow(row)}
                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-black/10 bg-white text-xs font-semibold hover:border-crimson hover:text-crimson transition shadow-2xs"
+                      aria-label={`Inspect ${activeMeta.label} record ${row.id || idx + 1}`}
                     >
                       <Eye className="h-3.5 w-3.5" />
                       <span>Inspect</span>
@@ -383,6 +415,7 @@ export default function DataExplorer({ currentRole }) {
           className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-[2px] animate-fadeIn"
           role="dialog"
           aria-modal="true"
+          aria-labelledby="admin-inspector-title"
           onClick={() => setSelectedRow(null)}
         >
           <div
@@ -395,14 +428,16 @@ export default function DataExplorer({ currentRole }) {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-crimson">
                     {activeMeta.label} · Record Inspection
                   </span>
-                  <h3 className="font-heading font-bold text-lg text-[#1d1d1f] mt-0.5">
+                  <h3 id="admin-inspector-title" className="font-heading font-bold text-lg text-[#1d1d1f] mt-0.5">
                     Record ID: {selectedRow.id || 'N/A'}
                   </h3>
                 </div>
                 <button
                   type="button"
+                  ref={closeInspectorRef}
                   onClick={() => setSelectedRow(null)}
                   className="p-2 rounded-xl text-muted hover:bg-black/[0.05] transition"
+                  aria-label="Close record inspector"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -417,9 +452,9 @@ export default function DataExplorer({ currentRole }) {
                     key={k}
                     className="p-3.5 rounded-2xl bg-black/[0.025] border border-black/[0.06] flex items-center justify-between gap-4 text-xs"
                   >
-                    <span className="font-bold uppercase tracking-wider text-muted font-mono">{k}</span>
+                    <span className="font-bold text-muted">{COLUMN_LABELS[k] || k}</span>
                     <span className="font-medium text-right text-[#1d1d1f] select-all max-w-[65%] break-words">
-                      {String(v ?? '—')}
+                      {displayValue(k, v)}
                     </span>
                   </div>
                 ))}

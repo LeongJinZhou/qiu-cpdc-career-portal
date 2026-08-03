@@ -98,6 +98,25 @@ function canReview(actor, record) {
   return false;
 }
 
+function reviewerWhere(actor) {
+  const pending = { verificationStatus: 'PENDING' };
+  if (actor.demo || actor.role === 'SUPER_ADMIN' || actor.role === 'CPDC_ADMIN' || actor.role === 'CAREER_COUNSELOR') {
+    return pending;
+  }
+
+  const assignments = (actor.identity?.assignments ?? []).filter((assignment) => assignment.role === actor.role);
+  const scoped = assignments.flatMap((assignment) => {
+    if (assignment.scopeType === 'FACULTY') return [{ student: { facultyId: assignment.scopeValue } }];
+    if (assignment.scopeType === 'PROGRAMME') return [{ student: { programmeId: assignment.scopeValue } }];
+    if (assignment.scopeType === 'STUDENT') return [{ studentId: assignment.scopeValue }];
+    if (assignment.scopeType === 'GLOBAL' && assignment.scopeValue === 'GLOBAL') return [pending];
+    return [];
+  });
+
+  // An empty scope must return an empty queue, never the university-wide queue.
+  return scoped.length ? { ...pending, OR: scoped } : { ...pending, id: '__no_course_review_scope__' };
+}
+
 export async function GET(request) {
   try {
     const actor = await resolveActor(request, { allowNonStudent: true });
@@ -105,8 +124,8 @@ export async function GET(request) {
     if (!staff && actor.role !== 'STUDENT') {
       return NextResponse.json({ error: 'Only students and authorised reviewers can access course records.', code: 'FORBIDDEN' }, { status: 403 });
     }
-    const where = staff && !actor.demo
-      ? { verificationStatus: 'PENDING' }
+    const where = staff
+      ? reviewerWhere(actor)
       : { studentId: actor.student.id };
     const records = await prisma.courseEnrolment.findMany({
       where,

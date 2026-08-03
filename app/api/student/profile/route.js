@@ -31,8 +31,7 @@ const profileSchema = z.object({
   linkedinUrl: optionalUrl,
   resumeSummary: optionalText(3000),
   resumeData: resumeDataSchema,
-  skills: z.array(z.string().trim().min(1).max(80)).max(30).optional(),
-});
+}).strict();
 
 function errorResponse(error) {
   const routeError = toIdentityRouteError(error);
@@ -95,7 +94,6 @@ export async function PATCH(request) {
       linkedinUrl: input.linkedinUrl === '' ? null : input.linkedinUrl,
       resumeSummary: input.resumeSummary,
       resumeData: input.resumeData,
-      skillTags: input.skills,
     }).filter(([, value]) => typeof value !== 'undefined'));
 
     const updated = await prisma.$transaction(async (tx) => {
