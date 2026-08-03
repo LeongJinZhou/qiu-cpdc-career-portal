@@ -160,7 +160,7 @@ export async function GET(request) {
       audit: audit.map((entry) => ({ ...entry, actor: entry.actorUser, actorUser: undefined })),
       pendingApprovals: [
         { id: 'fyp-pending', type: 'FYP showcase', count: pendingFyp, href: '/admin' },
-        { id: 'logbook-pending', type: 'Logbook review', count: pendingLogbook, href: '/logbook' },
+        { id: 'logbook-pending', type: 'Logbook review', count: pendingLogbook, href: '/admin?tab=approvals' },
         { id: 'course-pending', type: 'Course completion', count: pendingCourses, href: '/learning' },
       ].filter((item) => item.count > 0),
     });

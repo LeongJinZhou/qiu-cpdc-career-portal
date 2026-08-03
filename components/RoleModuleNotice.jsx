@@ -20,8 +20,8 @@ export default function RoleModuleNotice({ currentRole, title, description, acti
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {actions.map((action) => (
-          <Link key={action.href} href={action.href} className="surface surface-interactive flex items-center justify-between gap-4 p-5">
+        {actions.map((action, index) => (
+          <Link key={`${action.href}-${action.label}-${index}`} href={action.href} className="surface surface-interactive flex items-center justify-between gap-4 p-5">
             <div>
               <p className="font-heading font-semibold text-[#1d1d1f]">{action.label}</p>
               <p className="mt-1 text-xs leading-relaxed text-muted">{action.description}</p>

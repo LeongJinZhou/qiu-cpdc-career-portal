@@ -288,9 +288,9 @@ The link works once and then expires. It gives you no ongoing access to QIU syst
 ### 4.2 Work out what to do next (students)
 
 1. Open **Dashboard**.
-2. Read the card at the top labelled **Next best action**.
-3. Press the button on that card to go straight to the task.
-4. Finish it, then return — a new recommendation appears.
+2. Read the **Your career pathway** section at the top.
+3. Select the highlighted next step to open its dedicated module page.
+4. Finish it, then return to Dashboard to see your progress update.
 
 Completing tasks also adds XP (points you earn for career activities), which appear on your profile.
 

@@ -49,24 +49,31 @@ export default function RoleGuard({ children }) {
 
   if (!allowed) {
     const mod = moduleForPath(pathname);
+    const approvalQueueRoute = (
+      (pathname === '/fyp' && ['HEAD_OF_PROGRAMME', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole))
+      || (pathname === '/logbook' && ['HEAD_OF_PROGRAMME', 'FACULTY_COORDINATOR', 'ACADEMIC_SUPERVISOR', 'PLACEMENT_OFFICER', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole))
+    )
+      ? '/admin?tab=approvals'
+      : null;
     return (
       <div className="flex min-h-[50vh] items-center justify-center px-4">
         <div className="surface max-w-md p-8 text-center">
           <ShieldAlert className="mx-auto h-8 w-8 text-crimson" aria-hidden="true" />
           <h1 className="section-title mt-4">Access limited for this identity</h1>
           <p className="section-subtitle mt-2">
-            {mod?.longLabel ?? 'This area'} is hidden for your current QIU role. Client route guards help with navigation,
-            but privileged data still depends on the server capabilities attached to your session.
+            {approvalQueueRoute
+              ? `${mod?.longLabel ?? 'This review queue'} is managed from one place: Admin → Approvals.`
+              : `${mod?.longLabel ?? 'This area'} is hidden for your current QIU role. Client route guards help with navigation, but privileged data still depends on the server capabilities attached to your session.`}
           </p>
           {/* Resolve the role's real home. This was hardcoded to /dashboard,
               which only STUDENT and SUPER_ADMIN can open — so for the other
               nine roles the escape hatch bounced straight back into this same
               screen. homeFor() validates the destination against real access. */}
           <Link
-            href={homeFor(currentRole, activeFaculty.id, settings)}
+            href={approvalQueueRoute ?? homeFor(currentRole, activeFaculty.id, settings)}
             className="secondary-btn mt-4 inline-flex"
           >
-            Go to your home page
+            {approvalQueueRoute ? 'Open the approval queue' : 'Go to your home page'}
           </Link>
         </div>
       </div>

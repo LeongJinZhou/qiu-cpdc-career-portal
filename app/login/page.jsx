@@ -257,7 +257,12 @@ export default function LoginPage() {
       await syncDirectoryProfile(accessToken);
       goHome(user.role);
     } catch (signInError) {
-      setError(signInError.message || 'Unable to sign in with Google.');
+      if (signInError?.code === 'auth/unauthorized-domain' || signInError?.message?.includes('unauthorized-domain')) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+        setError(`Domain Authorization Required: ${domain} must be whitelisted under Firebase Console -> Authentication -> Settings -> Authorized domains.`);
+      } else {
+        setError(signInError?.message || 'Unable to sign in with Google.');
+      }
       setSubmitting(false);
     }
   };

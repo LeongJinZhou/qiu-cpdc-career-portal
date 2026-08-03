@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ArrowRight, Building2, Handshake, ShieldCheck, Users } from 'lucide-react';
+import { Building2, Handshake, ShieldCheck, Users } from 'lucide-react';
 import RevealSection from '@/components/marketing/RevealSection';
 
 /**
@@ -75,7 +74,7 @@ export default function EmployersSection() {
           })}
         </div>
 
-        <RevealSection className="surface mt-6 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <RevealSection className="surface mt-6 p-6 sm:p-8">
           <div className="flex items-start gap-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[12px] bg-black/[0.04] text-[#1d1d1f]">
               <ShieldCheck size={22} aria-hidden="true" />
@@ -90,13 +89,6 @@ export default function EmployersSection() {
               </p>
             </div>
           </div>
-          <Link
-            href="/login"
-            className="secondary-btn min-h-[44px] w-full justify-center sm:w-auto sm:flex-shrink-0"
-          >
-            Sign in
-            <ArrowRight size={16} aria-hidden="true" />
-          </Link>
         </RevealSection>
       </div>
     </section>

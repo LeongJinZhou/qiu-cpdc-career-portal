@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Activity,
   AlertTriangle,
@@ -64,7 +65,9 @@ const DATA_ROLES = new Set(['CPDC_ADMIN', 'SUPER_ADMIN']);
 
 export default function AdminControlCenter({ activeFaculty, currentRole, student }) {
   const roleConsole = consoleForRole(currentRole);
-  const [tab, setTab] = useState(roleConsole.defaultTab);
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const [tab, setTab] = useState(requestedTab ?? roleConsole.defaultTab);
   const [facultyFilter, setFacultyFilter] = useState(currentRole === 'FACULTY_COORDINATOR' ? activeFaculty.id : 'all');
   const [query, setQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -98,6 +101,10 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
   }, [currentRole]);
 
   useEffect(() => { loadOverview(); }, [loadOverview]);
+
+  useEffect(() => {
+    setTab(requestedTab ?? roleConsole.defaultTab);
+  }, [currentRole, requestedTab, roleConsole.defaultTab]);
 
   // Land on the tab this role's job starts at, and never strand them on a tab
   // their role does not have.
@@ -136,12 +143,19 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
       <section className="surface p-5" aria-labelledby="role-tasks-title">
         <h2 id="role-tasks-title" className="text-xs font-bold uppercase tracking-wide text-muted">What to do here</h2>
         <ul className="mt-3 grid gap-2 sm:grid-cols-3">
-          {roleConsole.tasks.map((task) => (
-            <li key={task} className="flex items-start gap-2 rounded-[14px] border border-black/10 bg-black/[0.02] p-3 text-sm text-[#1d1d1f]">
+          {roleConsole.tasks.map((task) => {
+            const label = typeof task === 'string' ? task : task.label;
+            const href = typeof task === 'string' ? '/admin?tab=records' : task.href;
+            return (
+            <li key={`${href}-${label}`} className="rounded-[14px] border border-black/10 bg-black/[0.02] text-sm text-[#1d1d1f]">
+              <Link href={href} className="flex min-h-14 items-start gap-2 p-3 transition hover:bg-white/70">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-crimson" aria-hidden="true" />
-              <span>{task}</span>
+              <span className="flex-1">{label}</span>
+              <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-crimson" aria-hidden="true" />
+              </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </section>
 

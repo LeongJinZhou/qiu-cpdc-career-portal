@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import StudentDashboard from '@/components/StudentDashboard';
-import AdminControlCenter from '@/components/AdminControlCenter';
 import StudentPathway from '@/components/portal/StudentPathway';
+import LoadingScreen from '@/components/LoadingScreen';
 import { usePortal } from '@/components/portal/PortalProvider';
 
 /**
@@ -28,7 +29,13 @@ const TAB_ROUTES = {
 
 export default function Page() {
   const router = useRouter();
-  const { student, setStudent, activeFaculty, currentRole } = usePortal();
+  const { student, activeFaculty, currentRole } = usePortal();
+
+  useEffect(() => {
+    if (currentRole === 'SUPER_ADMIN') {
+      router.replace('/admin');
+    }
+  }, [currentRole, router]);
 
   const navigate = (tabId) => {
     const href = TAB_ROUTES[tabId];
@@ -36,7 +43,7 @@ export default function Page() {
   };
 
   if (currentRole === 'SUPER_ADMIN') {
-    return <AdminControlCenter activeFaculty={activeFaculty} currentRole={currentRole} student={student} setStudent={setStudent} />;
+    return <LoadingScreen label="Opening your admin console" />;
   }
 
   return (

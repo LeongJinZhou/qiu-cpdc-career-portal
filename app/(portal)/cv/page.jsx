@@ -12,7 +12,7 @@ export default function Page() {
         currentRole={currentRole}
         title="Review a student CV"
         description="Staff accounts do not edit a student’s personal CV from the student self-service screen. Open a role-permitted student record from the Admin console instead."
-        actions={[{ href: '/admin', label: 'Open student records', description: 'Search by student ID, name or email, then review the fields your role is allowed to see.' }]}
+        actions={[{ href: '/admin?tab=records', label: 'Open student records', description: 'Search by student ID, name or email, then review the fields your role is allowed to see.' }]}
       />
     );
   }

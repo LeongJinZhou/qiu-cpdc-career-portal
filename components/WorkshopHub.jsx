@@ -15,7 +15,7 @@ import {
   Camera,
   X
 } from 'lucide-react';
-import { WORKSHOPS, ONLINE_COURSES } from '@/lib/data/facultyData';
+import { WORKSHOPS } from '@/lib/data/facultyData';
 import { useSettings } from '@/lib/settings';
 import { workshopMatch } from '@/lib/matching';
 import {
@@ -122,20 +122,13 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
   useEffect(() => {
     reloadWorkshops();
   }, [reloadWorkshops]);
-  const [coursesList] = useState(() => ONLINE_COURSES.map((course) => ({
-    ...course,
-    // A catalogue fixture is not evidence. Only a persisted student course
-    // record may render a completed state here.
-    completed: isStudent && (student?.courses ?? []).some((saved) => saved.courseId === course.id),
-  })));
-  const [activeSubTab, setActiveSubTab] = useState(initialSubTab); // 'workshops' | 'coursera' | 'admin_publish'
+  const [activeSubTab, setActiveSubTab] = useState(initialSubTab); // 'workshops' | 'admin_publish'
   const [settings] = useSettings();
   const canPublish = ['HEAD_OF_PROGRAMME', 'FACULTY_COORDINATOR', 'PLACEMENT_OFFICER', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole);
-  const tabIds = canPublish ? ['workshops', 'coursera', 'admin_publish'] : ['workshops', 'coursera'];
+  const tabIds = canPublish ? ['workshops', 'admin_publish'] : ['workshops'];
   const { getTabProps } = useAccessibleTabs(tabIds, activeSubTab, setActiveSubTab);
   const [qrModal, setQrModal] = useState(null); // workshop object when scanning
   const [selectedWorkshop, setSelectedWorkshop] = useState(null);
-  const [selectedCourse, setSelectedCourse] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scannedSuccess, setScannedSuccess] = useState(false);
   const [checkInXp, setCheckInXp] = useState(0);
@@ -170,16 +163,15 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
   }, [activeSubTab, canPublish]);
 
   useEffect(() => {
-    if (!selectedWorkshop && !selectedCourse && !qrModal) return undefined;
+    if (!selectedWorkshop && !qrModal) return undefined;
     const onKeyDown = (event) => {
       if (event.key !== 'Escape') return;
       setQrModal(null);
       setSelectedWorkshop(null);
-      setSelectedCourse(null);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [qrModal, selectedCourse, selectedWorkshop]);
+  }, [qrModal, selectedWorkshop]);
 
   // Admin New Workshop State
   const [newTitle, setNewTitle] = useState('');
@@ -353,10 +345,10 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
         <div>
           <h2 className="section-title flex items-center gap-2.5">
             <Calendar className="w-6 h-6 text-crimson" />
-            <span>Smart Workshop Hub & Coursera Integration</span>
+            <span>Smart Workshop Hub</span>
           </h2>
           <p className="section-subtitle mt-1.5 max-w-lg">
-            Rules-based workshop matching, fast QR code attendance check-in, and online learning API sync.
+            Rules-based workshop matching, detailed event information, and fast QR attendance check-in.
           </p>
         </div>
 
@@ -375,21 +367,6 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             }`}
           >
             Live Workshops
-          </button>
-
-          <button
-            type="button"
-            {...getTabProps('coursera')}
-            role="tab"
-            id="workshop-tab-coursera"
-            aria-selected={activeSubTab === 'coursera'}
-            aria-controls="workshop-panel-coursera"
-            onClick={() => setActiveSubTab('coursera')}
-            className={`flex min-h-11 items-center px-3.5 rounded-lg text-xs font-semibold transition ${
-              activeSubTab === 'coursera' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
-            }`}
-          >
-            Coursera / edX Sync
           </button>
 
           {canPublish && (
@@ -554,105 +531,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
         </div>
       )}
 
-      {/* SUB-TAB 2: COURSERA / EDX INTEGRATION */}
-      {activeSubTab === 'coursera' && (
-        <div id="workshop-panel-coursera" role="tabpanel" aria-labelledby="workshop-tab-coursera" className="space-y-6">
-          <div className="p-5 rounded-[18px] surface flex items-center justify-between gap-4">
-            <div>
-              <h3 className="font-heading font-semibold text-base text-[#1d1d1f]">Coursera & edX course catalogue</h3>
-              <p className="text-sm text-muted mt-0.5">Open the exact external course and submit real evidence in Learning Hub for staff verification.</p>
-            </div>
-            <span className="badge-pill bg-emerald-500/15 text-emerald-700 border border-emerald-500/30 whitespace-nowrap">
-              Provider links ready
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-[14px] border border-crimson/15 bg-crimson/[0.03] px-4 py-3 text-xs text-muted">
-            <BookOpen className="h-4 w-4 shrink-0 text-crimson" />
-            <span>Learning paths are grouped by faculty focus; sync a verified certificate to unlock the related badge.</span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {coursesList.map(c => (
-              <div key={c.id} className="surface p-6 space-y-4 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <div className={`flex h-28 items-end rounded-[18px] p-4 text-white ${c.id === 'c1' ? 'bg-gradient-to-br from-crimson to-rose-900' : c.id === 'c2' ? 'bg-gradient-to-br from-slate-700 to-slate-950' : 'bg-gradient-to-br from-emerald-600 to-teal-950'}`}>
-                    <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/65">Learning path</p><p className="mt-1 font-heading text-lg font-bold">{c.skillBadge}</p></div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="badge-pill bg-black/[0.03] text-muted border border-black/10">
-                      {c.platform}
-                    </span>
-                    <span className="text-xs font-semibold text-muted">+{c.xp} XP</span>
-                  </div>
-
-                  <h3 className="font-heading font-semibold text-lg text-[#1d1d1f] leading-snug">{c.title}</h3>
-                  <p className="text-xs text-muted">Issued by <span className="text-[#6e6e73] font-medium">{c.provider}</span></p>
-                </div>
-
-                <div className="pt-4 border-t border-black/10 space-y-3">
-                  <div className="flex items-center justify-between text-xs text-muted">
-                    <span>Skill Badge</span>
-                    <span className="text-[#6e6e73] font-semibold">{c.skillBadge}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCourse(c)}
-                    className="secondary-btn w-full text-xs"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-crimson" />
-                    <span>View Syllabus & Accreditation</span>
-                  </button>
-
-                  {c.externalUrl && (
-                    <a
-                      href={c.externalUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="secondary-btn w-full text-[11px]"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 text-blue-600" /> Open Course on {String(c.platform).split(' ')[0]}
-                    </a>
-                  )}
-
-                  {c.completed ? (
-                    <div className="space-y-2">
-                      <div className="p-2.5 rounded-xl bg-emerald-50/40 border border-emerald-500/30 text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Certificate Synced & Badge Granted</span>
-                      </div>
-                      {c.certUrl && (
-                        <a
-                          href={c.certUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] text-muted hover:text-[#1d1d1f] transition flex items-center justify-center gap-1 font-medium"
-                        >
-                          <ExternalLink className="w-3 h-3" /> View Verified Credential
-                        </a>
-                      )}
-                    </div>
-                  ) : (
-                    isStudent ? (
-                    <Link href="/learning" className="w-full crimson-btn justify-center text-xs py-2.5">
-                      <Award className="w-4 h-4" />
-                      <span>Submit evidence in Learning Hub</span>
-                    </Link>
-                    ) : (
-                      <p className="rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2.5 text-center text-[11px] leading-relaxed text-muted">
-                        Student evidence submissions and verification decisions are managed in Learning Hub.
-                      </p>
-                    )
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SUB-TAB 3: CPDC ADMIN PUBLISHER */}
+      {/* SUB-TAB 2: CPDC ADMIN PUBLISHER */}
       {canPublish && activeSubTab === 'admin_publish' && (
         <div id="workshop-panel-admin-publish" role="tabpanel" aria-labelledby="workshop-tab-admin-publish" className="surface p-8 max-w-2xl mx-auto space-y-6">
           <div className="border-b border-black/10 pb-4">
@@ -1040,117 +919,6 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 </>
               ) : (
                 <p className="w-full text-right text-xs text-muted">{selectedWorkshop.isDemo ? 'Demo catalogue item — live registration and attendance are unavailable.' : 'Read-only details view. Student registration and attendance check-in are available from the student view only.'}</p>
-              )}
-            </div>
-        </DismissibleDialog>
-      )}
-
-      {/* DEEP COURSE SYLLABUS & ACCREDITATION MODAL */}
-      {selectedCourse && (
-        <DismissibleDialog
-          onClose={() => setSelectedCourse(null)}
-          labelledBy={`course-detail-title-${selectedCourse.id}`}
-          className="surface my-8 max-h-[90vh] w-full max-w-2xl space-y-6 overflow-y-auto rounded-3xl border border-black/10 p-7 text-left relative shadow-2xl"
-        >
-            <button
-              type="button"
-              onClick={() => setSelectedCourse(null)}
-              aria-label="Close modal"
-              className="icon-btn absolute right-5 top-5"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="space-y-2 border-b border-black/10 pb-4 pr-8">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/[0.06] text-[#1d1d1f] border border-black/10">
-                  {selectedCourse.platform}
-                </span>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5" /> +{selectedCourse.xp} Credential XP & Skill Badge
-                </span>
-              </div>
-              <h3 id={`course-detail-title-${selectedCourse.id}`} className="text-2xl font-heading font-bold text-[#1d1d1f]">{selectedCourse.title}</h3>
-              <p className="text-sm text-muted">Offered by <span className="text-[#1d1d1f] font-bold">{selectedCourse.provider}</span></p>
-            </div>
-
-            {/* Instructor & Bio */}
-            <div className="bg-black/[0.03] p-5 rounded-[20px] border border-black/[0.06] space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-crimson" /> Lead Instructor & Faculty Profile
-              </h4>
-              <p className="text-sm font-bold text-[#1d1d1f]">
-                {selectedCourse.instructor || "Distinguished University Professorship & Enterprise Specialists"}
-              </p>
-              <p className="text-xs text-muted leading-relaxed font-medium">
-                {selectedCourse.instructorBio || "Academic leadership with deep research authority and applied enterprise teaching experience."}
-              </p>
-            </div>
-
-            {/* Credit Equivalency & Competencies */}
-            <div className="space-y-3">
-              <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-blue-900 space-y-1">
-                <h4 className="text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-blue-600" /> QIU Senate Academic Credit Recognition
-                </h4>
-                <p className="text-sm font-bold">
-                  {selectedCourse.creditTransferEquivalency || "Recognized under QIU SCL Co-Curricular Transcript Elective Framework."}
-                </p>
-              </div>
-
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted pt-1">Verified CV Skills Earned Upon Completion</h4>
-              <div className="flex flex-wrap gap-2">
-                {(selectedCourse.skillsEarned || ["Analytical Reasoning", "Applied Practice", "Domain Expertise", "Digital Literacy"]).map((skill, idx) => (
-                  <span key={idx} className="px-3 py-1.5 rounded-lg bg-black/[0.04] border border-black/10 text-xs font-bold text-[#1d1d1f]">
-                    ★ {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Week-by-Week Syllabus Breakdown */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-sm font-bold text-[#1d1d1f] flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-crimson" /> Week-by-Week Course Curriculum Syllabus ({selectedCourse.duration})
-              </h4>
-              <div className="space-y-3 border-l-2 border-blue-500/40 ml-2 pl-4">
-                {(selectedCourse.syllabus || [
-                  { week: "Module 1", topic: "Core Principles, Vocabulary & Structural Theory", hours: "5 hours self-paced study" },
-                  { week: "Module 2", topic: "Analytical Techniques & Problem-Solving Methodologies", hours: "6 hours interactive simulations" },
-                  { week: "Module 3", topic: "Practical Application & Industry Case Demonstrations", hours: "6 hours applied practice" },
-                  { week: "Module 4", topic: "Final Capstone Assessment & Credential Verification", hours: "5 hours assessment evaluation" }
-                ]).map((mod, index) => (
-                  <div key={index} className="space-y-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">{mod.week}</span>
-                      <span className="text-[11px] font-semibold text-muted">{mod.hours}</span>
-                    </div>
-                    <p className="text-sm font-bold text-[#1d1d1f]">{mod.topic}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-black/10">
-              {selectedCourse.externalUrl && (
-                <a
-                  href={selectedCourse.externalUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm"
-                >
-                  <ExternalLink className="w-4 h-4" /> Launch Course on {String(selectedCourse.platform).split(' ')[0]}
-                </a>
-              )}
-
-              {isStudent ? (
-                <Link href="/learning" className="py-2.5 px-6 rounded-xl crimson-btn text-xs font-bold">
-                  <Award className="w-4 h-4" />
-                  <span>Submit evidence in Learning Hub</span>
-                </Link>
-              ) : (
-                <span className="rounded-xl border border-black/10 bg-black/[0.03] px-4 py-2.5 text-xs text-muted">Student verification actions are hidden for this role.</span>
               )}
             </div>
         </DismissibleDialog>

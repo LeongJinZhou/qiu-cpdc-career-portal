@@ -14,7 +14,6 @@ import QiuLogo from './QiuLogo';
 import OnboardingTour from '@/components/OnboardingTour';
 import DismissibleDialog from '@/components/ui/DismissibleDialog';
 import { useSettings } from '@/lib/settings';
-import { signOutGoogle } from '@/lib/auth/firebase-client';
 import Avatar from '@/components/ui/Avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
@@ -46,6 +45,7 @@ export default function PortalShell({ children }) {
 
   const modules = modulesFor(currentRole, activeFaculty.id, settings);
   const primary = primaryModulesFor(currentRole, activeFaculty.id, settings);
+  const roleHome = homeFor(currentRole, activeFaculty.id, settings);
   const isStudent = currentRole === 'STUDENT';
   const roleLabel = ROLES.find((role) => role.id === currentRole)?.label ?? currentRole;
   const accessLabel = currentRole === 'EMPLOYER'
@@ -102,32 +102,6 @@ export default function PortalShell({ children }) {
 
   const isActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
 
-  const handleSignOut = async () => {
-    // Clear the server session first. Removing browser storage alone leaves a
-    // real Firebase-backed session cookie valid on the next request.
-    try {
-      await fetch('/api/auth/signout', { method: 'POST', credentials: 'include' });
-    } catch {
-      // The local cleanup below still prevents stale demo/profile state from
-      // appearing while the landing page is shown.
-    }
-    try {
-      await signOutGoogle();
-    } catch {
-      // Firebase is not configured in local demo mode, and a failed browser
-      // cleanup must not prevent the server cookie from being cleared.
-    }
-    try {
-      window.sessionStorage.removeItem('qiu.portal.session');
-      window.sessionStorage.removeItem('qiu.portal.profile');
-    } catch {
-      // Storage may be unavailable; navigation still returns to the landing page.
-    }
-    setMenuOpen(false);
-    setSwitcherOpen(false);
-    router.replace('/login');
-  };
-
   if (!identityLoading && !showAuthenticatedChrome) {
     return (
       <div className="min-h-screen bg-canvas text-[#1d1d1f]">
@@ -180,7 +154,7 @@ export default function PortalShell({ children }) {
       */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[72px] flex-col border-r border-black/10 bg-surface md:flex lg:w-64">
         <div className="flex justify-center px-3 py-6 lg:justify-start lg:px-6">
-          <Link href="/dashboard" className="flex items-center gap-3" aria-label="QIU Career Hub home">
+          <Link href={roleHome} className="flex items-center gap-3" aria-label="QIU Career Hub home">
             {/* The 6.3:1 lockup cannot fit a 72px rail — the rail shows the mark. */}
             <QiuLogo variant="mark" priority className="h-7 w-auto lg:hidden" />
             <QiuLogo priority className="hidden h-8 w-auto lg:block" />
@@ -261,6 +235,16 @@ export default function PortalShell({ children }) {
             <p className="mt-1 text-[11px] text-muted">{currentRole === 'FACULTY_COORDINATOR' ? `${activeFaculty.code} faculty scope` : accessLabel}</p>
           </div>
         )}
+
+        <div className="px-3 pb-4">
+          <Link
+            href="/logout"
+            className="flex min-h-11 items-center justify-center gap-3 rounded-[14px] px-3 text-sm text-muted hover:bg-black/[0.03] hover:text-[#1d1d1f] lg:justify-start"
+          >
+            <LogOut className="h-[18px] w-[18px] flex-shrink-0" aria-hidden="true" />
+            <span className="hidden lg:inline">Sign out</span>
+          </Link>
+        </div>
       </aside>
 
       {/* ---------------- Top bar ---------------- */}
@@ -461,14 +445,14 @@ export default function PortalShell({ children }) {
               })}
             </div>
 
-            <button
-              type="button"
-              onClick={handleSignOut}
+            <Link
+              href="/logout"
+              onClick={() => setMenuOpen(false)}
               className="flex min-h-12 items-center gap-3 rounded-[14px] px-3 text-sm text-muted hover:bg-black/[0.03]"
             >
               <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
               Sign out
-            </button>
+            </Link>
           </nav>
         </DismissibleDialog>
       )}

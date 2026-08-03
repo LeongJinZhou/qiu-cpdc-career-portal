@@ -1,23 +1,23 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BriefcaseBusiness, CheckCircle2, FileText, Send, Sparkles, Users } from 'lucide-react';
+import Link from 'next/link';
+import { BriefcaseBusiness, CheckCircle2, FileText, Send, Users } from 'lucide-react';
 import EmployerMarketplace from '@/components/EmployerMarketplace';
-import TalentFeed from '@/components/TalentFeed';
 import InviteDialog from '@/components/employer/InviteDialog';
 import VacanciesBoard from '@/components/employer/VacanciesBoard';
 import { fetchTalentFeed, fetchWorkshopRequests, sendTalentOutreach, submitWorkshopRequest } from '@/lib/api';
 import { ROLES } from '@/lib/modules';
 import { useAccessibleTabs } from '@/components/ui/useAccessibleTabs';
 
-export default function EmployerWorkspace({ student, currentRole }) {
+export default function EmployerWorkspace({ currentRole }) {
   const roleLabel = ROLES.find((role) => role.id === currentRole)?.label ?? currentRole;
   const canManageMarketplace = ['EMPLOYER', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole);
   const canHostEvent = currentRole === 'EMPLOYER';
+  const canViewTalent = ['STUDENT', 'ALUMNI', 'EMPLOYER', 'HEAD_OF_PROGRAMME', 'FACULTY_COORDINATOR', 'CPDC_ADMIN', 'SUPER_ADMIN'].includes(currentRole);
   const tabs = useMemo(() => [
     ...(canManageMarketplace ? [{ id: 'talent', label: 'Talent search', icon: Users }] : []),
     { id: 'vacancies', label: canManageMarketplace ? 'Vacancies' : 'Find opportunities', icon: BriefcaseBusiness },
-    { id: 'projects', label: 'Public projects', icon: Sparkles },
     ...(canHostEvent ? [{ id: 'host', label: 'Host an event', icon: BriefcaseBusiness }] : []),
   ], [canHostEvent, canManageMarketplace]);
   const [tab, setTab] = useState('talent');
@@ -146,8 +146,11 @@ export default function EmployerWorkspace({ student, currentRole }) {
   return (
     <div className="space-y-8 animate-fadeIn">
       <div className="flex flex-col gap-4 border-b border-black/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
-        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-crimson">{canManageMarketplace ? 'Verified partner portal' : 'Career opportunities'}</p><h1 className="section-title mt-1 flex items-center gap-2.5"><BriefcaseBusiness className="h-6 w-6 text-crimson" /> {canManageMarketplace ? 'Employer marketplace' : 'Opportunities marketplace'}</h1><p className="section-subtitle mt-1.5 max-w-2xl">{canManageMarketplace ? 'Search opt-in talent, review coordinator-approved projects and send structured outreach without exposing private student data.' : 'Browse live vacancies and coordinator-approved projects matched to the QIU community. Apply from the opportunity card and follow the persisted ATS stage.'}</p></div>
-        <span className="badge-pill flex w-fit items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> {currentRole === 'EMPLOYER' ? 'Verified employer account' : canManageMarketplace ? `${roleLabel} operations view` : `${roleLabel} view`}</span>
+        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-crimson">{canManageMarketplace ? 'Verified partner portal' : 'Career opportunities'}</p><h1 className="section-title mt-1 flex items-center gap-2.5"><BriefcaseBusiness className="h-6 w-6 text-crimson" /> {canManageMarketplace ? 'Employer marketplace' : 'Opportunities marketplace'}</h1><p className="section-subtitle mt-1.5 max-w-2xl">{canManageMarketplace ? 'Search opt-in talent and send structured outreach without exposing private student data. Approved projects have one dedicated home in Talent.' : 'Browse live vacancies matched to the QIU community. Apply from the opportunity card and follow the persisted ATS stage. Approved student projects have one dedicated home in Talent.'}</p></div>
+        <div className="flex flex-wrap items-center gap-2">
+          {canViewTalent ? <Link href="/talent" className="secondary-btn text-xs">View approved projects</Link> : null}
+          <span className="badge-pill flex w-fit items-center gap-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> {currentRole === 'EMPLOYER' ? 'Verified employer account' : canManageMarketplace ? `${roleLabel} operations view` : `${roleLabel} view`}</span>
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-black/10 pb-2" role="tablist" aria-label="Employer portal views">
@@ -161,8 +164,6 @@ export default function EmployerWorkspace({ student, currentRole }) {
       {tab === 'talent' && canManageMarketplace && <div id="employer-panel-talent" role="tabpanel" aria-labelledby="employer-tab-talent">{talentLoading ? <div className="surface p-10 text-center text-sm text-muted" role="status">Loading coordinator-approved, opt-in talent…</div> : <EmployerMarketplace candidates={candidates} shortlistIds={shortlistIds} invitedByCandidate={invitedByCandidate} onShortlist={handleShortlist} onInvite={handleInvite} />}</div>}
 
       {tab === 'vacancies' && <div id="employer-panel-vacancies" role="tabpanel" aria-labelledby="employer-tab-vacancies"><VacanciesBoard currentRole={currentRole} /></div>}
-
-      {tab === 'projects' && <div id="employer-panel-projects" role="tabpanel" aria-labelledby="employer-tab-projects"><TalentFeed currentRole={currentRole} student={student} /></div>}
 
       {tab === 'host' && canHostEvent && <section id="employer-panel-host" role="tabpanel" aria-labelledby="employer-tab-host" className="mx-auto max-w-3xl"><div className="surface space-y-5 p-6"><div className="border-b border-black/10 pb-4"><div className="flex items-center gap-2"><FileText className="h-5 w-5 text-crimson" /><h2 className="font-heading text-lg font-semibold">Request to host a QIU workshop</h2></div><p className="mt-1 text-sm text-muted">Your request is saved to the CPDC review queue. Nothing appears in the student feed until a CPDC officer publishes the complete event brief.</p></div>{hostRequestError && <p className="rounded-[14px] border border-crimson/25 bg-crimson/[0.05] px-3 py-2 text-sm font-semibold text-crimson" role="alert">{hostRequestError}</p>}{requestSent ? <div className="rounded-[16px] border border-emerald-200 bg-emerald-50 p-5 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" /><h3 className="mt-3 font-semibold text-emerald-900">Request recorded for CPDC review</h3><p className="mt-1 text-sm text-emerald-800">The title, proposed timing and learning brief are stored for the CPDC team. Delivery notifications depend on the configured provider.</p><button type="button" onClick={() => { setRequestSent(false); setRequest({ title: '', date: '', description: '' }); }} className="secondary-btn mt-4 text-xs">Submit another request</button></div> : <form onSubmit={submitEventRequest} className="space-y-4"><Field label="Session title" value={request.title} onChange={(value) => setRequest((previous) => ({ ...previous, title: value }))} placeholder="e.g. Product analytics careers at Meridian" /><Field label="Preferred date / format" value={request.date} onChange={(value) => setRequest((previous) => ({ ...previous, date: value }))} placeholder="e.g. 12 September · campus + virtual" /><div><label htmlFor="event-request-description" className="mb-1.5 block text-xs font-semibold text-muted">What will students learn?</label><textarea id="event-request-description" required value={request.description} onChange={(event) => setRequest((previous) => ({ ...previous, description: event.target.value }))} rows={5} placeholder="Audience, learning outcomes, speaker profile and capacity" className="w-full rounded-[16px] border border-black/[0.1] bg-black/[0.03] px-4 py-3 text-sm outline-none focus:border-crimson focus:ring-2 focus:ring-crimson/20" /></div><button type="submit" disabled={hostRequestSaving} className="crimson-btn w-full justify-center disabled:opacity-60"><Send className="h-4 w-4" /> {hostRequestSaving ? 'Saving request…' : 'Save request for CPDC'}</button></form>}<div className="border-t border-black/10 pt-5"><h3 className="font-heading text-base font-semibold">Your previous requests</h3>{hostRequests.length ? <ul className="mt-3 space-y-2">{hostRequests.map((item) => <li key={item.id} className="rounded-[14px] border border-black/10 bg-black/[0.02] p-3"><div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold text-sm">{item.title}</span><span className="badge-pill border border-black/10 bg-white text-muted">{item.status}</span></div><p className="mt-1 text-xs text-muted">{item.preferredDate || 'No preferred date recorded'} · submitted {new Date(item.createdAt).toLocaleDateString()}</p>{item.reviewNote ? <p className="mt-2 text-xs text-[#424245]">CPDC note: {item.reviewNote}</p> : null}</li>)}</ul> : <p className="mt-2 text-sm text-muted">No requests recorded yet.</p>}</div></div></section>}
       {invite ? <InviteDialog candidate={invite.candidate} kind={invite.kind} employerName="your QIU employer account" onClose={() => setInvite(null)} onSend={sendInvite} /> : null}

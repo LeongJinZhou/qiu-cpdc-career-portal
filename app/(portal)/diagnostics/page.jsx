@@ -12,7 +12,7 @@ export default function Page() {
         currentRole={currentRole}
         title="Skills diagnostic review"
         description="Diagnostic attempts belong to the student account and are scored by the server. This role view keeps the learner form closed; use the scoped operations centre for readiness and intervention signals."
-        actions={[{ href: '/admin', label: 'Open student health', description: "Review live readiness and identify the next support action without submitting on a student's behalf." }]}
+        actions={[{ href: '/admin?tab=students', label: 'Open student health', description: "Review live readiness and identify the next support action without submitting on a student's behalf." }]}
       />
     );
   }

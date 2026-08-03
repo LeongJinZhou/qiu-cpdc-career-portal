@@ -21,7 +21,7 @@ const FALLBACK = {
   purpose: 'Find a student and read the part of their record your role is responsible for.',
   defaultTab: 'records',
   tabOrder: ['records', 'overview', 'students', 'approvals', 'analytics'],
-  tasks: ['Search for a student by name or matric number.'],
+  tasks: [{ label: 'Search for a student by name or matric number.', href: '/admin?tab=records' }],
 };
 
 export const ROLE_CONSOLES = {
@@ -32,9 +32,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'records',
     tabOrder: ['records', 'overview', 'analytics', 'data'],
     tasks: [
-      'Look up a student and confirm their approved fieldwork hours.',
-      'Export the cohort list for the clearance meeting.',
-      'Flag students whose records are still incomplete.',
+      { label: 'Look up a student and confirm their approved fieldwork hours.', href: '/admin?tab=records' },
+      { label: 'Review readiness before the clearance meeting.', href: '/admin?tab=analytics' },
+      { label: 'Flag students whose records are still incomplete.', href: '/admin?tab=overview' },
     ],
   },
   CAREER_COUNSELOR: {
@@ -44,9 +44,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'records',
     tabOrder: ['records', 'overview', 'analytics'],
     tasks: [
-      'Open a student before their appointment and review their skill gaps.',
-      'Filter to students who still need a check-in.',
-      'Note which certificates are already verified.',
+      { label: 'Open a student before their appointment and review their skill gaps.', href: '/admin?tab=records' },
+      { label: 'Review the readiness signals that need a check-in.', href: '/admin?tab=analytics' },
+      { label: 'See the live coaching workload and audit trail.', href: '/admin?tab=overview' },
     ],
   },
   PLACEMENT_OFFICER: {
@@ -56,9 +56,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'records',
     tabOrder: ['records', 'overview', 'approvals', 'analytics'],
     tasks: [
-      'Check which students have no approved hours yet.',
-      'Open a logbook and confirm the supervisor sign-off.',
-      'Export your placement list.',
+      { label: 'Check which students have no approved hours yet.', href: '/admin?tab=records' },
+      { label: 'Review logbook entries waiting on a decision.', href: '/admin?tab=approvals' },
+      { label: 'Review placement workload and outstanding actions.', href: '/admin?tab=analytics' },
     ],
   },
   FACULTY_COORDINATOR: {
@@ -68,9 +68,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'records',
     tabOrder: ['records', 'students', 'approvals', 'overview', 'analytics'],
     tasks: [
-      'Start with students marked “Needs urgent follow-up”.',
-      'Open a record to see exactly what is missing.',
-      'Review logbook entries waiting on your decision.',
+      { label: 'Start with students marked “Needs urgent follow-up”.', href: '/admin?tab=students' },
+      { label: 'Open a record to see exactly what is missing.', href: '/admin?tab=records' },
+      { label: 'Review logbook entries waiting on your decision.', href: '/admin?tab=approvals' },
     ],
   },
   HEAD_OF_PROGRAMME: {
@@ -80,9 +80,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'approvals',
     tabOrder: ['approvals', 'records', 'students', 'overview', 'analytics'],
     tasks: [
-      'Clear the Final Year Project queue.',
-      'Open a student record to check progress before you decide.',
-      'Review who on your programme still has no approved hours.',
+      { label: 'Clear the Final Year Project queue.', href: '/admin?tab=approvals' },
+      { label: 'Open a student record to check progress before you decide.', href: '/admin?tab=records' },
+      { label: 'Review who on your programme still has no approved hours.', href: '/admin?tab=students' },
     ],
   },
   ACADEMIC_SUPERVISOR: {
@@ -92,8 +92,8 @@ export const ROLE_CONSOLES = {
     defaultTab: 'records',
     tabOrder: ['records', 'approvals', 'overview'],
     tasks: [
-      'Read the latest logbook entries from your students.',
-      'Endorse entries that are waiting on you.',
+      { label: 'Read the latest logbook entries from your students.', href: '/admin?tab=records' },
+      { label: 'Endorse entries that are waiting on you.', href: '/admin?tab=approvals' },
     ],
   },
   CPDC_ADMIN: {
@@ -103,9 +103,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'overview',
     tabOrder: ['overview', 'records', 'students', 'approvals', 'analytics', 'people', 'audit', 'data'],
     tasks: [
-      'Clear anything sitting in the approvals queues.',
-      'Search the full student directory.',
-      'Check which faculties have students needing follow-up.',
+      { label: 'Clear anything sitting in the approvals queues.', href: '/admin?tab=approvals' },
+      { label: 'Search the full student directory.', href: '/admin?tab=records' },
+      { label: 'Check which faculties have students needing follow-up.', href: '/admin?tab=students' },
     ],
   },
   SUPER_ADMIN: {
@@ -115,9 +115,9 @@ export const ROLE_CONSOLES = {
     defaultTab: 'people',
     tabOrder: ['people', 'audit', 'records', 'overview', 'students', 'approvals', 'analytics', 'data'],
     tasks: [
-      'Review recent role changes in the audit trail.',
-      'Check for accounts still waiting on an invitation.',
-      'Open a student record only when an escalation requires it.',
+      { label: 'Review recent role changes in the audit trail.', href: '/admin?tab=audit' },
+      { label: 'Check for accounts still waiting on an invitation.', href: '/admin?tab=people' },
+      { label: 'Open a student record only when an escalation requires it.', href: '/admin?tab=records' },
     ],
   },
 };
