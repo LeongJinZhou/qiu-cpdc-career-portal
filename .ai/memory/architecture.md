@@ -91,3 +91,34 @@
   granted roles to those holding the capability *before* testing scope;
   previously one role could supply the permission while another supplied the
   reach (a lecturer also enrolled as a student could approve their own FYP).
+
+## Onboarding & connected accounts (Module 1) — added 2026-08-03
+
+Single source of truth for "has this student finished first login":
+`lib/onboarding/policy.js` (pure, unit-tested). The API route, the onboarding
+UI and the portal gate all read `evaluateOnboarding()` — a policy that lives in
+three places is a policy that drifts.
+
+- Completion is a RECORDED FACT on the Student row
+  (`identityConfirmedAt` / `onboardingCompletedAt` / `onboardingVersion`), never
+  a value re-derived from the current step list and never client storage. That
+  is what makes "confirm once" survive a new device or a storage wipe.
+- Re-prompting an existing cohort = bump `ONBOARDING_VERSION`. No migration.
+- LinkedIn required university-wide (alumni contact channel); GitHub required
+  for computing programmes only. Any student may connect any provider — the
+  policy controls only what BLOCKS.
+- Two connection methods, one table (`ConnectedAccount.method`): `OAUTH` when
+  provider credentials exist, `VERIFIED_URL` otherwise. LinkedIn's OIDC does not
+  return the public vanity URL, so a LinkedIn OAuth connection is verified-but-
+  URL-less and the flow still asks for the link. GitHub's /user returns
+  html_url, so GitHub OAuth is complete on its own.
+- `OnboardingGate` fails OPEN: if the check errors the student proceeds. Every
+  write endpoint enforces the requirement server-side anyway.
+
+## Learning catalogue (Module 6) — added 2026-08-03
+
+`CatalogCourse` table replaces the `lib/data/courses.js` fixture as the runtime
+source. Fed by `npm run catalog:sync`; see docs/LEARNING-CATALOGUE.md.
+Key invariant: `availability` is automated (liveness sync) and `curationStatus`
+is editorial (CPDC). Never conflate them. Only a CONFIRMED provider take-down
+(2 consecutive 404/410/retirement-redirects) hides a course; outages never do.
