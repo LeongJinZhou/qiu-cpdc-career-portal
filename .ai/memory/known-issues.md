@@ -258,3 +258,19 @@ Open (explicitly NOT done — do not report these as complete):
 - No cross-module automation rules engine (e.g. alumni completes internship ->
   auto-update CV + XP + roadmap). XP awards are wired per-action only.
 - The four enterprise roles still have no bespoke UI surfaces.
+
+## Environment hazard: shared `.next` (2026-08-03)
+
+Multiple `next dev` servers and a `next build` sharing one `.next` directory
+corrupt each other: chunks vanish mid-request and the running app throws
+"Cannot find module './1234.js'" or "__webpack_require__.a is not a function".
+This has now caused THREE separate misdiagnoses (twice attributed to auth,
+once to application code) because `toIdentityRouteError` reported it as an
+identity outage.
+
+Use the isolated targets instead — they set NEXT_DIST_DIR:
+  npm run build:check    # verification build -> .next-verify
+  npm run dev:isolated   # dev server        -> .next-dev
+
+Symptom-to-cause: `rm: .next: Directory not empty` from `npm run build` means
+another process is writing there right now.
