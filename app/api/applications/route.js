@@ -60,7 +60,7 @@ export async function GET(request) {
       include: {
         student: {
           include: {
-            user: { select: { name: true, email: true } },
+            user: { select: { name: true, email: true, avatarUrl: true, googleAvatarUrl: true, avatarSource: true } },
             programme: { select: { name: true } },
           },
         },
@@ -73,6 +73,9 @@ export async function GET(request) {
         stage: a.stage,
         studentName: a.student.user.name,
         studentEmail: a.student.user.email,
+        studentAvatar: a.student.user.avatarSource === 'CUSTOM'
+          ? a.student.user.avatarUrl
+          : (a.student.user.googleAvatarUrl ?? a.student.user.avatarUrl ?? null),
         programme: a.student.programme?.name ?? null,
         skills: a.student.skillTags ?? [],
         createdAt: a.createdAt,

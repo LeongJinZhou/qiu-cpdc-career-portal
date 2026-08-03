@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { effectiveAvatarUrl } from '@/lib/auth/identity';
 
 /**
  * Public talent feed (Module 13): approved FYP projects whose owner opted in.
@@ -18,7 +19,7 @@ export async function GET() {
       include: {
         student: {
           include: {
-            user: { select: { name: true, avatarUrl: true } },
+            user: { select: { name: true, avatarUrl: true, googleAvatarUrl: true, avatarSource: true } },
             faculty: { select: { id: true, name: true } },
             programme: { select: { name: true } },
           },
@@ -35,7 +36,7 @@ export async function GET() {
         liveUrl: p.liveUrl,
         reviewedAt: p.reviewedAt,
         studentName: p.student.user.name,
-        studentAvatar: p.student.user.avatarUrl,
+        studentAvatar: effectiveAvatarUrl(p.student.user),
         facultyId: p.student.faculty?.id ?? null,
         faculty: p.student.faculty?.name ?? null,
         programme: p.student.programme?.name ?? null,

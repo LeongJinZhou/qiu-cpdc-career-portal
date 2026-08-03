@@ -73,6 +73,15 @@ export default function PortalShell({ children }) {
     };
   }, [showAuthenticatedChrome, isStudent, refreshXp]);
 
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
+
   const xp = liveXp ?? student.xp ?? 0;
   const tier = tierFor(xp);
   const { next, progress } = tierProgress(xp);

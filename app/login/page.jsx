@@ -96,6 +96,23 @@ async function establishServerSession(idToken) {
   return payload.user;
 }
 
+// Best-effort: enrich the student's record with their QIU Employee ID and course
+// from the Google directory (Module 16). Runs AFTER the session exists and never
+// blocks or fails the sign-in — a declined scope or a directory hiccup is fine.
+async function syncDirectoryProfile(accessToken) {
+  if (!accessToken) return;
+  try {
+    await fetch('/api/identity/directory-sync', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ accessToken }),
+    });
+  } catch {
+    // Enrichment is optional; the student is already signed in.
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -207,6 +224,7 @@ export default function LoginPage() {
         setError('');
 
         const user = await establishServerSession(await result.user.getIdToken());
+        await syncDirectoryProfile(result.directoryAccessToken);
         if (!cancelled) {
           goHome(user.role);
         }
@@ -230,12 +248,13 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { redirected, result } = await signInWithGoogle();
+      const { redirected, result, accessToken } = await signInWithGoogle();
       if (redirected || !result?.user) {
         return;
       }
 
       const user = await establishServerSession(await result.user.getIdToken());
+      await syncDirectoryProfile(accessToken);
       goHome(user.role);
     } catch (signInError) {
       setError(signInError.message || 'Unable to sign in with Google.');

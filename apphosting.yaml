@@ -8,11 +8,6 @@ runConfig:
   concurrency: 80
 
 env:
-  - variable: NODE_ENV
-    value: production
-    availability:
-      - BUILD
-      - RUNTIME
   - variable: DATABASE_URL
     value: "postgresql://postgres:postgres@localhost:5432/cpdc?schema=public"
     availability:

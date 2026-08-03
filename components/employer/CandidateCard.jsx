@@ -11,6 +11,7 @@ import {
   Mail,
   Wrench,
 } from 'lucide-react';
+import Avatar from '@/components/ui/Avatar';
 
 // Card language is deliberately shared with components/TalentFeed.jsx: initials
 // avatar with a soft deterministic tint, name + class-of line, project title,
@@ -65,12 +66,7 @@ export default function CandidateCard({
     <article className="surface flex h-full flex-col gap-4 p-5 sm:p-6">
       {/* Identity */}
       <div className="flex items-start gap-3">
-        <div
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${tintFor(candidate.id)}`}
-          aria-hidden="true"
-        >
-          {initialsOf(candidate.name)}
-        </div>
+        <Avatar name={candidate.name} src={candidate.avatarUrl} size={44} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[#1d1d1f]">{candidate.name}</p>
           <p className="flex items-center gap-1.5 text-xs text-muted">

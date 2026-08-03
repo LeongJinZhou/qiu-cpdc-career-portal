@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
 import { resolveActor } from '@/lib/auth/actor';
+import { effectiveAvatarUrl } from '@/lib/auth/identity';
 import { parseJsonBody, toIdentityRouteError } from '@/lib/auth/identity';
 
 const updateSchema = z.object({
@@ -25,7 +26,7 @@ function safeNotification(notification) {
     emailStatus: notification.emailStatus,
     createdAt: notification.createdAt,
     actor: notification.actor
-      ? { name: notification.actor.name, avatarUrl: notification.actor.avatarUrl ?? null }
+      ? { name: notification.actor.name, avatarUrl: effectiveAvatarUrl(notification.actor) }
       : null,
   };
 }
@@ -46,7 +47,7 @@ export async function GET(request) {
         where,
         orderBy: { createdAt: 'desc' },
         take: limit,
-        include: { actor: { select: { name: true, avatarUrl: true } } },
+        include: { actor: { select: { name: true, avatarUrl: true, googleAvatarUrl: true, avatarSource: true } } },
       }),
       prisma.notification.count({ where: { recipientUserId: actor.user.id, readAt: null } }),
     ]);
@@ -88,4 +89,3 @@ export async function PATCH(request) {
     return NextResponse.json({ error: routeError.message, code: routeError.code }, { status: routeError.status });
   }
 }
-

@@ -17,11 +17,12 @@ import {
   canReadGps,
   layersForRole,
 } from '../../../lib/auth/student-profile-visibility.js';
+import { effectiveAvatarUrl } from '../../../lib/auth/identity.js';
 import { tierFor } from '../../../lib/xp.js';
 
 /** Prisma include needed to populate every layer. */
 export const STUDENT_PROFILE_INCLUDE = {
-  user: { select: { id: true, name: true, email: true, accountStatus: true, lastSignInAt: true } },
+  user: { select: { id: true, name: true, email: true, avatarUrl: true, googleAvatarUrl: true, avatarSource: true, accountStatus: true, lastSignInAt: true } },
   faculty: { select: { id: true, name: true, code: true } },
   programme: { select: { id: true, name: true, level: true } },
   xpEvents: { select: { amount: true, source: true, createdAt: true } },
@@ -97,7 +98,12 @@ export function toVisibilityRecord(student, { studentProfile = null, manualCv = 
   return {
     id: student.id,
     matricNo: student.matricNo,
+    // Enrichment read from the QIU Google Workspace directory at login (Module 16).
+    employeeId: student.employeeId ?? null,
+    courseCode: student.courseCode ?? null,
+    employeeType: student.employeeType ?? null,
     name: student.user?.name ?? null,
+    avatarUrl: effectiveAvatarUrl(student.user),
     email: student.user?.email ?? null,
     phone: editableProfile.phone ?? student.phone ?? null,
     facultyId: student.facultyId,

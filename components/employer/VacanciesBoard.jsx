@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BriefcaseBusiness, PlusCircle, Users, Loader2, MapPin, ChevronRight } from 'lucide-react';
 import { applyToJob, fetchJobs, publishJob, fetchApplicants, setApplicationStage } from '@/lib/api';
+import Avatar from '@/components/ui/Avatar';
 
 const STAGES = ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFER', 'REJECTED'];
 const STAGE_STYLE = {
@@ -180,6 +181,7 @@ export default function VacanciesBoard({ currentRole }) {
                   ) : (
                     applicants[job.id].map((a) => (
                       <div key={a.id} className="flex items-center justify-between gap-3 flex-wrap">
+                        <Avatar name={a.studentName} src={a.studentAvatar} size={36} />
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-[#1d1d1f]">{a.studentName}</p>
                           <p className="text-[11px] text-muted">{a.programme ?? '—'} · {a.studentEmail}</p>

@@ -95,10 +95,10 @@ export default function ProfileSettings() {
 }
 
 /**
- * Notification choices are a per-device convenience, not account data — there is
- * no notification delivery service behind them yet. They are stored in this
- * browser and the copy says so, rather than implying an email preference the
- * platform would not honour.
+ * Notification choices are a per-device convenience, not account data. Domain
+ * actions are still recorded server-side in the notification bell and outbox;
+ * these switches only control local highlights until preference storage is
+ * promoted to the account layer.
  */
 function NotificationPreferences() {
   const [notifications, setNotifications] = useState({
@@ -134,8 +134,9 @@ function NotificationPreferences() {
       <div className="border-b border-black/10 pb-4">
         <h2 className="font-heading text-lg font-semibold">What you want to hear about</h2>
         <p className="mt-1 text-xs leading-relaxed text-muted">
-          These choices are remembered on this device only, and change what the portal highlights for
-          you. They do not currently change any emails you receive.
+          These choices are remembered on this device only and change what the portal highlights for
+          you. Registration, approval and workflow alerts are recorded in the notification bell and
+          queued for email when a provider is connected.
         </p>
       </div>
 

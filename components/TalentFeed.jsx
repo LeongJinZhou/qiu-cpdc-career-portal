@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { FACULTIES } from '@/lib/data/facultyData';
 import { fetchTalentFeed, fetchTalentOutreach, sendTalentOutreach } from '@/lib/api';
+import Avatar from '@/components/ui/Avatar';
 
 // Roles allowed to reach out to a showcased student. Students browsing their
 // peers just see the gallery; recruiters and alumni get the outreach controls.
@@ -81,6 +82,7 @@ export default function TalentFeed({ currentRole = 'STUDENT' }) {
         setLiveEntries((data?.projects ?? []).map((p) => ({
           id: p.id,
           studentName: p.studentName,
+          avatarUrl: p.studentAvatar,
           facultyId: p.facultyId,
           programme: p.programme,
           gradYear: p.reviewedAt ? new Date(p.reviewedAt).getFullYear() : new Date().getFullYear(),
@@ -258,12 +260,7 @@ export default function TalentFeed({ currentRole = 'STUDENT' }) {
               >
                 {/* Student identity */}
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`w-11 h-11 rounded-full border flex items-center justify-center text-sm font-bold shrink-0 ${tintFor(entry.id)}`}
-                    aria-hidden="true"
-                  >
-                    {initialsOf(entry.studentName)}
-                  </div>
+                  <Avatar name={entry.studentName} src={entry.avatarUrl} size={44} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#1d1d1f] truncate">{entry.studentName}</p>
                     <p className="text-xs text-muted flex items-center gap-1.5">

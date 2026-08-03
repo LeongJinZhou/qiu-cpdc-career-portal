@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PROVIDERS, courseCredit, courseLink } from '@/lib/data/courses';
 import DismissibleDialog from '@/components/ui/DismissibleDialog';
+import Link from 'next/link';
 
 /**
  * Full course detail.
@@ -138,6 +139,9 @@ export default function CourseDetail({ course, score, why, recommended, xpValue,
 
         {/* Actions pinned at the end of the sheet, thumb-reachable on a phone. */}
         <div className="flex flex-col gap-3 border-t border-black/[0.06] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <Link href={`/learning/${encodeURIComponent(course.id)}`} className="text-center text-xs font-semibold text-muted underline-offset-2 hover:text-crimson hover:underline">
+            Open dedicated course page
+          </Link>
           {link && (
             <a
               href={link.href}

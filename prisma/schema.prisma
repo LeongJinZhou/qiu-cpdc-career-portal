@@ -8,7 +8,8 @@
 // history auditable and makes idempotency enforceable -- see XpEvent.dedupeKey.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -240,6 +241,17 @@ model Student {
   resumeFileData String?
   resumeFileName String?
   resumeFileType String?
+
+  // Identity fields read from the QIU Google Workspace directory at login
+  // (Module 16). employeeId is the directory's Employee ID (e.g.
+  // QIU-202310-006958 — same format as matricNo but sourced from Google, kept
+  // separate so it never overwrites the canonical matric); courseCode is the
+  // programme short code (e.g. "BCS"); employeeType is e.g. "Student". These are
+  // enrichment only and are refreshed on each sign-in via /api/identity/directory-sync.
+  employeeId       String?
+  courseCode       String?
+  employeeType     String?
+  directorySyncedAt DateTime?
 
   // Per-student notification preferences (e.g. email digests). Persisted so a
   // choice follows the student across devices instead of living in localStorage.

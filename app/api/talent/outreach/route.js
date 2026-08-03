@@ -3,8 +3,9 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
 import { resolveActor } from '@/lib/auth/actor';
-import { getRequestId, parseJsonBody, toIdentityRouteError } from '@/lib/auth/identity';
+import { effectiveAvatarUrl, getRequestId, parseJsonBody, toIdentityRouteError } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
+import { createNotification } from '@/lib/notifications';
 
 const OUTREACH_ROLES = new Set(['EMPLOYER', 'ALUMNI', 'CPDC_ADMIN', 'SUPER_ADMIN']);
 const schema = z.object({
@@ -27,13 +28,13 @@ function serialize(outreach) {
     createdAt: outreach.createdAt,
     projectId: outreach.projectId,
     targetStudent: outreach.targetStudent
-      ? { name: outreach.targetStudent.user?.name ?? 'Student', matricNo: outreach.targetStudent.matricNo }
+      ? { name: outreach.targetStudent.user?.name ?? 'Student', matricNo: outreach.targetStudent.matricNo, avatarUrl: effectiveAvatarUrl(outreach.targetStudent.user) }
       : null,
   };
 }
 
 const includeTarget = {
-  targetStudent: { select: { matricNo: true, user: { select: { name: true } } } },
+  targetStudent: { select: { matricNo: true, user: { select: { name: true, avatarUrl: true, googleAvatarUrl: true, avatarSource: true } } } },
 };
 
 export async function GET(request) {
@@ -72,7 +73,7 @@ export async function POST(request) {
         status: true,
         publicOptIn: true,
         studentId: true,
-        student: { select: { matricNo: true, user: { select: { name: true } } } },
+        student: { select: { userId: true, matricNo: true, user: { select: { name: true } } } },
       },
     });
     if (!project || project.status !== 'APPROVED' || !project.publicOptIn) {
@@ -98,6 +99,17 @@ export async function POST(request) {
         resourceId: saved.id,
         after: { kind: saved.kind, projectId: project.id, targetStudentId: project.studentId, status: saved.status },
         requestId: getRequestId(request),
+      });
+      await createNotification(tx, {
+        recipientUserId: project.student.userId,
+        actorUserId: actor.user.id,
+        type: 'TALENT_OUTREACH_RECEIVED',
+        title: body.kind === 'INTERVIEW' ? 'Interview invitation received' : 'Coffee chat request received',
+        body: `${actor.user.name} would like to connect about your project “${project.title}”.${body.message ? ` Message: ${body.message}` : ''}`,
+        href: '/talent',
+        resourceType: 'TalentOutreach',
+        resourceId: saved.id,
+        dedupeKey: `talent.outreach:${saved.id}`,
       });
       return saved;
     });

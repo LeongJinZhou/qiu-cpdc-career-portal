@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Users,
   MessageSquare,
@@ -139,6 +140,18 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
   const [newPostContent, setNewPostContent] = useState('');
   const [showNewPostModal, setShowNewPostModal] = useState(false);
 
+  useEffect(() => {
+    if (!connectModal && !bookingModal && !showNewPostModal) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      setConnectModal(null);
+      setBookingModal(null);
+      setShowNewPostModal(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [bookingModal, connectModal, showNewPostModal]);
+
   const filteredAlumni = ALUMNI_DIRECTORY.filter((alum) => {
     const matchesFaculty = selectedFacultyFilter === 'ALL' || alum.facultyId === selectedFacultyFilter;
     const matchesQuery =
@@ -272,7 +285,9 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
               key={tab.id}
               type="button"
               role="tab"
+              id={`network-tab-${tab.id}`}
               aria-selected={activeTab === tab.id}
+              aria-controls={`network-panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
                 activeTab === tab.id ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
@@ -286,7 +301,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* TAB 1: ALUMNI DIRECTORY, SUGGESTIONS, CONNECT & MENTORSHIP */}
       {activeTab === 'alumni' && (
-        <div className="space-y-6">
+        <div id="network-panel-alumni" role="tabpanel" aria-labelledby="network-tab-alumni" className="space-y-6">
 
           {/* AI-Suggested Matches strip */}
           <div className="surface p-5 space-y-4">
@@ -384,8 +399,8 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                     <div className="flex items-center gap-4">
                       <Avatar name={alum.name} src={alum.avatar} className="w-16 h-16 rounded-2xl shrink-0" textClass="text-lg" />
                       <div className="min-w-0">
-                        <h3 className="font-heading font-bold text-lg text-[#1d1d1f] leading-tight truncate">{alum.name}</h3>
-                        <p className="text-sm text-crimson font-medium truncate">{alum.role} <span className="text-muted">@</span> <span className="font-semibold text-[#1d1d1f]">{alum.company}</span></p>
+                        <h3 className="break-words font-heading text-lg font-bold leading-tight text-[#1d1d1f]">{alum.name}</h3>
+                        <p className="break-words text-sm font-medium text-crimson">{alum.role} <span className="text-muted">@</span> <span className="font-semibold text-[#1d1d1f]">{alum.company}</span></p>
                         <span className="text-xs text-muted flex items-center gap-1 mt-1">
                           <MapPin className="w-3 h-3" /> {alum.location} &bull; Class of {alum.graduationYear}
                         </span>
@@ -437,6 +452,9 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                   </div>
 
                   <div className="pt-4 border-t border-black/10 flex items-center gap-3">
+                    <Link href={`/network/${encodeURIComponent(alum.id)}`} className="secondary-btn text-xs py-2 flex-1 justify-center">
+                      View full profile
+                    </Link>
                     <button
                       onClick={() => canInteract && openConnect(alum)}
                       disabled={requested || !canInteract}
@@ -465,7 +483,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* TAB 2: ALUMNI SUCCESS STORIES */}
       {activeTab === 'stories' && (
-        <div className="space-y-6">
+        <div id="network-panel-stories" role="tabpanel" aria-labelledby="network-tab-stories" className="space-y-6">
           <div className="space-y-1">
             <h3 className="font-heading font-bold text-lg text-[#1d1d1f] flex items-center gap-2">
               <Trophy className="w-5 h-5 text-crimson" /> Alumni Career Journeys
@@ -508,7 +526,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* TAB 3: CROSS-FACULTY DISCUSSION FEED */}
       {activeTab === 'feed' && (
-        <div className="space-y-6">
+        <div id="network-panel-feed" role="tabpanel" aria-labelledby="network-tab-feed" className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <h3 className="font-heading font-bold text-lg text-[#1d1d1f]">Inter-University Startup & Project Board</h3>
@@ -575,8 +593,8 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* CONNECTION REQUEST MODAL (mandatory reaching-out note) */}
       {connectModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation">
-          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="connect-heading">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setConnectModal(null); }}>
+          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="connect-heading" onMouseDown={(event) => event.stopPropagation()}>
             <button
               type="button"
               onClick={() => setConnectModal(null)}
@@ -641,8 +659,8 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* MENTORSHIP SLOT BOOKING MODAL */}
       {bookingModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation">
-          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="booking-heading">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setBookingModal(null); }}>
+          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-md w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="booking-heading" onMouseDown={(event) => event.stopPropagation()}>
             <button
               type="button"
               onClick={() => setBookingModal(null)}
@@ -724,8 +742,8 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
 
       {/* NEW POST MODAL */}
       {showNewPostModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation">
-          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-lg w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="new-post-heading">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowNewPostModal(false); }}>
+          <div className="bg-surface border border-black/10 rounded-[18px] p-7 max-w-lg w-full space-y-5 relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="new-post-heading" onMouseDown={(event) => event.stopPropagation()}>
             <button
               type="button"
               onClick={() => setShowNewPostModal(false)}

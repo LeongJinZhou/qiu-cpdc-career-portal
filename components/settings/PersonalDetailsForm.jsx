@@ -260,6 +260,8 @@ export default function PersonalDetailsForm() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <LockedValue label="QIU email" value={record?.user?.email} />
           <LockedValue label="Student ID" value={student?.matricNo} />
+          {student?.employeeId ? <LockedValue label="Employee ID (from QIU directory)" value={student.employeeId} /> : null}
+          {student?.courseCode ? <LockedValue label="Course" value={student.courseCode} /> : null}
           <LockedValue label="Faculty" value={student?.faculty} />
           <LockedValue label="Programme" value={student?.programme} />
           <LockedValue label="Year of study" value={student?.academicYear ? `Year ${student.academicYear}` : null} />

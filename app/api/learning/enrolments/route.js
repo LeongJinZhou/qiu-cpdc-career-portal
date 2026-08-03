@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
 import { toIdentityRouteError, parseJsonBody, getRequestId } from '@/lib/auth/identity';
 import { createAuditEntry } from '@/lib/audit';
+import { createNotification, createNotifications, userIdsForRoles } from '@/lib/notifications';
 import { awardXpOnce } from '@/lib/xp-ledger';
 import { XP_VALUES } from '@/lib/xp';
 import { courseById } from '@/lib/data/courses';
@@ -175,6 +176,19 @@ export async function POST(request) {
         after: { courseId: saved.courseId, verificationStatus: saved.verificationStatus },
         requestId: getRequestId(request),
       });
+      const reviewerIds = (await userIdsForRoles(tx, [...REVIEW_ROLES]))
+        .filter((userId) => userId !== actor.user.id);
+      await createNotifications(tx, {
+        recipientUserIds: reviewerIds,
+        actorUserId: actor.user.id,
+        type: 'COURSE_COMPLETION_SUBMITTED',
+        title: 'Course evidence needs review',
+        body: `${actor.user.name} submitted “${saved.title}” for verification.`,
+        href: '/learning',
+        resourceType: 'CourseEnrolment',
+        resourceId: saved.id,
+        dedupeKey: `course.submitted:${saved.id}`,
+      });
       return saved;
     });
     return NextResponse.json({ record: mapRecord(record) }, { status: 201 });
@@ -197,6 +211,7 @@ export async function PATCH(request) {
             matricNo: true,
             facultyId: true,
             programmeId: true,
+            userId: true,
             skillTags: true,
             user: { select: { name: true } },
             programme: { select: { name: true } },
@@ -258,6 +273,17 @@ export async function PATCH(request) {
           update: { payload: eventPayload, lastError: null },
           create: { topic: 'learning.course.verified', aggregateType: 'CourseEnrolment', aggregateId: existing.id, payload: eventPayload, dedupeKey: `course.verified:${existing.id}` },
         });
+        await createNotification(tx, {
+          recipientUserId: existing.student.userId,
+          actorUserId: actor.user.id,
+          type: 'COURSE_COMPLETION_VERIFIED',
+          title: 'Course evidence verified',
+          body: `Your course evidence for “${existing.title}” was verified. ${skillTag} was added to your QIU profile.`,
+          href: '/learning',
+          resourceType: 'CourseEnrolment',
+          resourceId: existing.id,
+          dedupeKey: `course.verified.notification:${existing.id}`,
+        });
         await createAuditEntry({
           tx,
           actorUserId: actor.user.id,
@@ -269,6 +295,17 @@ export async function PATCH(request) {
           requestId: getRequestId(request),
         });
       } else {
+        await createNotification(tx, {
+          recipientUserId: existing.student.userId,
+          actorUserId: actor.user.id,
+          type: 'COURSE_COMPLETION_RETURNED',
+          title: 'Course evidence needs an update',
+          body: `Please review the note on your submission for “${existing.title}” and upload clearer evidence if needed.${body.reviewNote ? ` Note: ${body.reviewNote}` : ''}`,
+          href: '/learning',
+          resourceType: 'CourseEnrolment',
+          resourceId: existing.id,
+          dedupeKey: `course.returned.notification:${existing.id}:${existing.updatedAt.toISOString()}`,
+        });
         await createAuditEntry({
           tx,
           actorUserId: actor.user.id,

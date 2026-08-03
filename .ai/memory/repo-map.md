@@ -1,5 +1,5 @@
 # Repository Structure Map
-Last Updated: Sun Aug  2 16:57:14 +08 2026
+Last Updated: Sun Aug  2 23:54:45 +08 2026
 
 ## File Tree
 ```
@@ -43,6 +43,7 @@ Last Updated: Sun Aug  2 16:57:14 +08 2026
 │   │   ├── jobs
 │   │   ├── learning
 │   │   ├── logbook
+│   │   ├── notifications
 │   │   ├── profile
 │   │   ├── student
 │   │   ├── students
@@ -95,6 +96,7 @@ Last Updated: Sun Aug  2 16:57:14 +08 2026
 │   │   ├── AdminUI.jsx
 │   │   ├── AtRiskRadar.jsx
 │   │   ├── AuditLogPanel.jsx
+│   │   ├── DataExplorer.jsx
 │   │   ├── FypApprovalQueue.jsx
 │   │   ├── IdentityManagement.jsx
 │   │   ├── LogbookReviewQueue.jsx
@@ -127,6 +129,7 @@ Last Updated: Sun Aug  2 16:57:14 +08 2026
 │   │   ├── CertificateSubmitModal.jsx
 │   │   ├── CourseCard.jsx
 │   │   ├── CourseDetail.jsx
+│   │   ├── CourseStandalonePage.jsx
 │   │   ├── PathCard.jsx
 │   │   └── VerificationQueue.jsx
 │   ├── marketing
@@ -142,26 +145,35 @@ Last Updated: Sun Aug  2 16:57:14 +08 2026
 │   │   ├── RevealSection.jsx
 │   │   ├── SiteFooter.jsx
 │   │   └── SiteHeader.jsx
+│   ├── network
+│   │   └── AlumniProfilePage.jsx
+│   ├── notifications
+│   │   └── NotificationBell.jsx
 │   ├── portal
 │   │   ├── PortalProvider.jsx
 │   │   ├── PortalShell.jsx
 │   │   ├── QiuLogo.jsx
 │   │   └── RoleGuard.jsx
 │   ├── settings
+│   │   ├── AccountProfileForm.jsx
 │   │   ├── PersonalDetailsForm.jsx
 │   │   └── ResumeEditor.jsx
 │   ├── ui
-│   │   └── Avatar.jsx
+│   │   ├── Avatar.jsx
+│   │   └── DismissibleDialog.jsx
 │   └── workshops
 │       ├── CheckInSheet.jsx
 │       ├── EventBuilder.jsx
 │       ├── EventCard.jsx
+│       ├── WorkshopDetailPage.jsx
 │       └── eventCatalogue.jsx
 ├── docs
+│   ├── GO-LIVE-AND-ROLE-GUIDE.md
 │   ├── USER-GUIDE.md
 │   └── superpowers
 │       ├── plans
 │       └── specs
+├── firebase-debug.log
 ├── firebase.json
 ├── jsconfig.json
 ├── lib
@@ -208,6 +220,7 @@ Last Updated: Sun Aug  2 16:57:14 +08 2026
 │   ├── matching.js
 │   ├── modules.js
 │   ├── next-best-action.js
+│   ├── notifications.js
 │   ├── prisma.js
 │   ├── settings
 │   │   ├── policy.js
@@ -271,13 +284,36 @@ Last Updated: Sun Aug  2 16:57:14 +08 2026
     └── settings
         └── settings-policy.test.mjs
 
-84 directories, 183 files
+87 directories, 193 files
 ```
 
 ## Recent Git Status
 ```
  M .ai/memory/repo-map.md
- M components/AdminControlCenter.jsx
- M components/admin/roleConsole.js
-?? app/api/admin/data/
+ M app/(portal)/ai-suite/page.jsx
+ M app/api/applications/route.js
+ M app/api/learning/enrolments/route.js
+ M app/api/notifications/route.js
+ M app/api/students/profile-view.js
+ M app/api/talent/outreach/route.js
+ M app/api/talent/route.js
+ M components/AlumniNetwork.jsx
+ M components/EmployerWorkspace.jsx
+ M components/ProfileSettings.jsx
+ M components/RoleSettings.jsx
+ M components/TalentFeed.jsx
+ M components/WorkshopHub.jsx
+ M components/employer/CandidateCard.jsx
+ M components/employer/VacanciesBoard.jsx
+ M components/learning/CourseDetail.jsx
+ M components/portal/PortalShell.jsx
+ M lib/auth/identity.js
+ M lib/auth/student-profile-visibility.js
+?? app/(portal)/learning/[id]/
+?? app/(portal)/network/[id]/
+?? app/(portal)/workshops/[id]/
+?? app/api/workshops/[id]/
+?? components/learning/CourseStandalonePage.jsx
+?? components/network/
+?? components/workshops/WorkshopDetailPage.jsx
 ```

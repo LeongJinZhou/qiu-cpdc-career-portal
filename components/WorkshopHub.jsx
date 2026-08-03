@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 import { 
   Calendar, 
@@ -88,6 +89,13 @@ function mapStaticWorkshop(workshop, student) {
 
 export default function WorkshopHub({ student, activeFaculty, currentRole = 'STUDENT', initialSubTab = 'workshops' }) {
   const isStudent = currentRole === 'STUDENT';
+  const publisherLabel = {
+    HEAD_OF_PROGRAMME: 'Programme event editor',
+    FACULTY_COORDINATOR: 'Faculty event editor',
+    PLACEMENT_OFFICER: 'Placement event editor',
+    CPDC_ADMIN: 'CPDC event publisher',
+    SUPER_ADMIN: 'University event publisher',
+  }[currentRole] ?? 'Event publisher';
   // Seed from the static registry so the feed paints instantly, then replace
   // with the authoritative database list (published events, live RSVP and
   // attendance state) as soon as it loads.
@@ -355,7 +363,9 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
           <button
             type="button"
             role="tab"
+            id="workshop-tab-workshops"
             aria-selected={activeSubTab === 'workshops'}
+            aria-controls="workshop-panel-workshops"
             onClick={() => setActiveSubTab('workshops')}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
               activeSubTab === 'workshops' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
@@ -367,7 +377,9 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
           <button
             type="button"
             role="tab"
+            id="workshop-tab-coursera"
             aria-selected={activeSubTab === 'coursera'}
+            aria-controls="workshop-panel-coursera"
             onClick={() => setActiveSubTab('coursera')}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
               activeSubTab === 'coursera' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
@@ -380,13 +392,15 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             <button
               type="button"
               role="tab"
+              id="workshop-tab-admin-publish"
               aria-selected={activeSubTab === 'admin_publish'}
+              aria-controls="workshop-panel-admin-publish"
               onClick={() => setActiveSubTab('admin_publish')}
               className={`whitespace-nowrap px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
                 activeSubTab === 'admin_publish' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
               }`}
             >
-              + CPDC Staff Publisher
+              + {publisherLabel}
             </button>
           )}
         </div>
@@ -403,7 +417,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
       {/* SUB-TAB 1: LIVE WORKSHOPS */}
       {activeSubTab === 'workshops' && (
-        <>
+        <div id="workshop-panel-workshops" role="tabpanel" aria-labelledby="workshop-tab-workshops">
           {loadError && (
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="alert">
               <span>{loadError} Live data is unavailable, so this page is showing the demo catalogue. Demo items cannot be registered or checked in.</span>
@@ -532,12 +546,12 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
               })}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* SUB-TAB 2: COURSERA / EDX INTEGRATION */}
       {activeSubTab === 'coursera' && (
-        <div className="space-y-6">
+        <div id="workshop-panel-coursera" role="tabpanel" aria-labelledby="workshop-tab-coursera" className="space-y-6">
           <div className="p-5 rounded-[18px] surface flex items-center justify-between gap-4">
             <div>
               <h3 className="font-heading font-semibold text-base text-[#1d1d1f]">Coursera & edX course catalogue</h3>
@@ -616,10 +630,10 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                     </div>
                   ) : (
                     isStudent ? (
-                      <a href="/learning" className="w-full crimson-btn justify-center text-xs py-2.5">
-                        <Award className="w-4 h-4" />
-                        <span>Submit evidence in Learning Hub</span>
-                      </a>
+                    <Link href="/learning" className="w-full crimson-btn justify-center text-xs py-2.5">
+                      <Award className="w-4 h-4" />
+                      <span>Submit evidence in Learning Hub</span>
+                    </Link>
                     ) : (
                       <p className="rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2.5 text-center text-[11px] leading-relaxed text-muted">
                         Student evidence submissions and verification decisions are managed in Learning Hub.
@@ -635,11 +649,11 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
       {/* SUB-TAB 3: CPDC ADMIN PUBLISHER */}
       {canPublish && activeSubTab === 'admin_publish' && (
-        <div className="surface p-8 max-w-2xl mx-auto space-y-6">
+        <div id="workshop-panel-admin-publish" role="tabpanel" aria-labelledby="workshop-tab-admin-publish" className="surface p-8 max-w-2xl mx-auto space-y-6">
           <div className="border-b border-black/10 pb-4">
             <h3 className="text-lg font-heading font-semibold text-[#1d1d1f] flex items-center gap-2">
               <PlusCircle className="w-5 h-5 text-crimson" />
-              <span>CPDC Career Officer — Publish Workshop</span>
+              <span>{publisherLabel} — Publish Workshop</span>
             </h3>
             <p className="text-sm text-muted mt-1">Post new career events to student feeds with rules-based match scores.</p>
           </div>
@@ -984,6 +998,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
             {/* Action Buttons inside Modal */}
             <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-black/10">
+              {!selectedWorkshop.isDemo ? <Link href={`/workshops/${encodeURIComponent(selectedWorkshop.id)}`} className="secondary-btn text-xs py-2.5 px-5 font-bold">Open full event page</Link> : null}
               {isStudent && !selectedWorkshop.isDemo ? (
                 <>
                   <button
@@ -1124,10 +1139,10 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
               )}
 
               {isStudent ? (
-                <a href="/learning" className="py-2.5 px-6 rounded-xl crimson-btn text-xs font-bold">
+                <Link href="/learning" className="py-2.5 px-6 rounded-xl crimson-btn text-xs font-bold">
                   <Award className="w-4 h-4" />
                   <span>Submit evidence in Learning Hub</span>
-                </a>
+                </Link>
               ) : (
                 <span className="rounded-xl border border-black/10 bg-black/[0.03] px-4 py-2.5 text-xs text-muted">Student verification actions are hidden for this role.</span>
               )}
