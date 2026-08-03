@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Database,
+  Download,
   Eye,
   Filter,
   RefreshCw,
@@ -68,6 +69,17 @@ function displayValue(column, value) {
   return String(value);
 }
 
+function csvCell(value) {
+  const text = value == null ? '' : String(value);
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+function buildCsv(columns, rows) {
+  const header = columns.map((c) => csvCell(COLUMN_LABELS[c] ?? c)).join(',');
+  const body = rows.map((row) => columns.map((c) => csvCell(row[c])).join(',')).join('\n');
+  return `${header}\n${body}`;
+}
+
 export default function DataExplorer({ currentRole }) {
   const [activeEntity, setActiveEntity] = useState('assessmentAttempt');
   const [query, setQuery] = useState('');
@@ -79,6 +91,7 @@ export default function DataExplorer({ currentRole }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedRow, setSelectedRow] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -111,6 +124,44 @@ export default function DataExplorer({ currentRole }) {
     loadRecords();
   }, [loadRecords]);
 
+  // Export every row matching the current data set + search (not just the page
+  // on screen) by walking pages at the server's max size. Bounded so a huge
+  // table can never spin forever; each fetched page is still audited server-side.
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    setError('');
+    try {
+      const MAX_PAGES = 200;
+      const EXPORT_PAGE_SIZE = 100;
+      let columns = data?.columns ?? [];
+      const allRows = [];
+      for (let p = 1; p <= MAX_PAGES; p += 1) {
+        const res = await fetch(`/api/admin/data/${activeEntity}?page=${p}&pageSize=${EXPORT_PAGE_SIZE}&q=${encodeURIComponent(debouncedQuery)}`, {
+          headers: { 'x-demo-role': currentRole || 'SUPER_ADMIN' },
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Export failed while reading the data set.');
+        if (Array.isArray(json.columns) && json.columns.length) columns = json.columns;
+        allRows.push(...(json.rows ?? []));
+        if (p >= (json.pageCount ?? 1)) break;
+      }
+      if (!allRows.length) { setError('There are no records to export.'); return; }
+      const blob = new Blob([buildCsv(columns, allRows)], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${activeEntity}-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (exportError) {
+      setError(exportError.message || 'The export could not be completed.');
+    } finally {
+      setExporting(false);
+    }
+  }, [activeEntity, debouncedQuery, currentRole, data?.columns]);
+
   const activeMeta = useMemo(() => ENTITIES.find((e) => e.id === activeEntity) || ENTITIES[0], [activeEntity]);
 
   return (
@@ -131,6 +182,16 @@ export default function DataExplorer({ currentRole }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting || loading}
+              className="secondary-btn px-3.5 py-2 text-xs flex items-center gap-2 bg-white disabled:opacity-50"
+              title="Download every matching record as a CSV file"
+            >
+              <Download className={`h-4 w-4 ${exporting ? 'animate-pulse text-crimson' : 'text-muted'}`} />
+              <span>{exporting ? 'Preparing…' : 'Export CSV'}</span>
+            </button>
             <button
               type="button"
               onClick={loadRecords}
