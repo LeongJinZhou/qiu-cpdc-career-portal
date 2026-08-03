@@ -13,12 +13,14 @@ This inventory separates installed skill entries from skills actually used durin
 
 ## Used for this project
 
-- `cavecrew`: read and used for two focused investigator audits (Pascal and Planck) covering architecture, role UX, and missing persistence.
-- `browser:control-in-app-browser`: read and initialized for local browser smoke testing. The browser URL policy blocked localhost DOM inspection, so equivalent local HTTP/runtime checks were used instead.
-- Current skill-routed implementation/review pass: `agency-engineering-frontend-developer`, `core-frontend-react`, `agency-design-ui-designer`, `agency-design-ux-architect`, `ui-ux-design-system`, `ui-ux-ui-styling`, and `agency-design-ui-finish-gate-reviewer` were read and applied to the role-specific UI/design-system routing and finish-gate review.
-- Current quality and platform pass: `agency-engineering-identity-access-engineer`, `agency-engineering-api-platform-engineer`, `core-backend-api`, `agency-engineering-code-reviewer`, `agency-testing-accessibility-auditor`, `agency-testing-api-tester`, `agency-testing-test-automation-engineer`, and `core-testing-testing` were read and applied to the identity/API/quality routing, deterministic skill-router tests, and parallel role-surface audits.
-- `agency-engineering-firebase-github-deployer`: read for release-governance boundaries; deployment was intentionally not run because this request asked for skill use and verification, not publish/deploy.
+- `cavecrew`: read and used to coordinate three focused audits: Hubble (role journeys and module interconnection), Lagrange (UI/UX/accessibility finish gate), and Turing (API authorization, data lifecycle, notifications, and test gaps).
+- `browser:control-in-app-browser`: read and used for local smoke testing of the employer workspace, scoped coordinator console, workshop detail dialog, click-outside dismissal, and keyboard tab navigation.
+- Frontend/design pack: `agency-engineering-frontend-developer`, `core-frontend-react`, `agency-design-ui-designer`, `agency-design-ux-architect`, `ui-ux-design-system`, `ui-ux-ui-styling`, and `agency-design-ui-finish-gate-reviewer` were read and applied to the role-specific UI, shared dialog/tab patterns, form labels, responsive layout, and finish-gate review.
+- Backend/identity/quality pack: `agency-engineering-api-platform-engineer`, `core-backend-api`, `agency-engineering-identity-access-engineer`, `agency-engineering-code-reviewer`, `agency-testing-accessibility-auditor`, `agency-testing-api-tester`, `agency-testing-test-automation-engineer`, and `core-testing-testing` were read and applied to server authorization, Google-session revocation, scoped data access, audit/outbox flows, keyboard behavior, and regression gates.
+- Privacy pack: `agency-data-privacy-officer` and `agency-engineering-privacy-engineer` were read and applied to the public talent-feed/detail projection, opt-in boundaries, and keeping contact/private student data inside structured outreach.
+- `agency-engineering-firebase-github-deployer`: read for release-governance boundaries; deployment was intentionally not run because this request asked for revision and verification, not publish/deploy.
 - Project governance command `ai-update-memory`: executed to refresh `.ai/memory/repo-map.md` (this is a command, not a skill).
+- Project router `npm run skills:route`: executed for this task and confirmed the full relevant web-platform quality pack before implementation.
 - Built-in `apply_patch`, shell quality gates, and the project test/build tooling were used as implementation tools, not separate installed skills.
 
 ## Available in this session

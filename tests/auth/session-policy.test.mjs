@@ -433,6 +433,50 @@ test('readSessionCookie denies a once-valid cookie when the current user is no l
   assert.equal(session, null);
 });
 
+test('readSessionCookie rejects a cookie issued before server-side logout revocation', async () => {
+  const cookie = await createSessionCookie('google-id-token', {
+    secret: 'test-session-secret',
+    verifyGoogleIdToken: async () => ({
+      firebaseUid: 'firebase-123',
+      email: 'student@qiu.edu.my',
+      name: 'Student User',
+      avatarUrl: null,
+    }),
+    authorizeSessionUser: async () => ({
+      id: 'user-1',
+      email: 'student@qiu.edu.my',
+      normalizedEmail: 'student@qiu.edu.my',
+      name: 'Student User',
+      role: 'STUDENT',
+      avatarUrl: null,
+      student: null,
+    }),
+    now: new Date('2026-08-01T10:00:00.000Z'),
+  });
+
+  const { prisma } = createPrismaStub({
+    id: 'user-1',
+    email: 'student@qiu.edu.my',
+    normalizedEmail: 'student@qiu.edu.my',
+    name: 'Student User',
+    role: 'STUDENT',
+    avatarUrl: null,
+    firebaseUid: 'firebase-123',
+    loginAllowed: true,
+    accountStatus: 'ACTIVE',
+    sessionRevokedAt: new Date('2026-08-01T10:01:00.000Z'),
+    student: null,
+  });
+
+  const session = await readSessionCookie(cookie.value, {
+    secret: 'test-session-secret',
+    prisma,
+    now: new Date('2026-08-01T10:02:00.000Z'),
+  });
+
+  assert.equal(session, null);
+});
+
 test('createSessionCookie and readSessionCookie preserve the safe session payload only', async () => {
   const cookie = await createSessionCookie('google-id-token', {
     secret: 'test-session-secret',

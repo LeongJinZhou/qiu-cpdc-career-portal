@@ -7,9 +7,9 @@ import { effectiveAvatarUrl } from '@/lib/auth/identity';
  *
  * Deliberately unauthenticated — it exposes only projects a Head of Programme
  * has APPROVED and the student explicitly opted into sharing (publicOptIn), so
- * there is nothing private to gate. Contact details are limited to the student's
- * name, programme and faculty; the email is included only for opted-in projects
- * so a registered employer can reach out.
+ * there is nothing private to gate. Contact details are not exposed: a
+ * registered employer uses the structured outreach flow, which keeps the
+ * student's email address inside the platform.
  */
 export async function GET() {
   try {

@@ -1,5 +1,5 @@
 # Repository Structure Map
-Last Updated: Mon Aug  3 10:26:16 +08 2026
+Last Updated: Mon Aug  3 11:18:02 +08 2026
 
 ## File Tree
 ```
@@ -160,7 +160,8 @@ Last Updated: Mon Aug  3 10:26:16 +08 2026
 │   │   └── ResumeEditor.jsx
 │   ├── ui
 │   │   ├── Avatar.jsx
-│   │   └── DismissibleDialog.jsx
+│   │   ├── DismissibleDialog.jsx
+│   │   └── useAccessibleTabs.js
 │   └── workshops
 │       ├── CheckInSheet.jsx
 │       ├── EventBuilder.jsx
@@ -206,6 +207,7 @@ Last Updated: Mon Aug  3 10:26:16 +08 2026
 │   │   ├── employers.js
 │   │   ├── facultyData.js
 │   │   ├── guides.js
+│   │   ├── programme-codes.js
 │   │   ├── roadmaps.js
 │   │   └── talent.js
 │   ├── email.js
@@ -286,6 +288,7 @@ Last Updated: Mon Aug  3 10:26:16 +08 2026
     ├── modules-2-3-status.test.mjs
     ├── modules-4-email.test.mjs
     ├── modules-5-policy.test.mjs
+    ├── programme-codes.test.mjs
     ├── security
     │   └── csv-export.test.mjs
     ├── settings
@@ -293,31 +296,14 @@ Last Updated: Mon Aug  3 10:26:16 +08 2026
     └── tooling
         └── skill-router.test.mjs
 
-89 directories, 200 files
+89 directories, 203 files
 ```
 
 ## Recent Git Status
 ```
  M .ai/memory/repo-map.md
- M CODEX.md
- M app/api/admin/data/[entity]/route.js
- M app/api/identity/directory-sync/route.js
- M app/api/talent/outreach/route.js
- M app/api/workshops/rsvp/route.js
- M app/globals.css
- M components/AdminControlCenter.jsx
- M components/LoadingScreen.jsx
- M components/admin/DataExplorer.jsx
- M components/ui/DismissibleDialog.jsx
- M lib/integrations/google-directory.js
- M lib/workshop-policy.js
- M package.json
- M tests/google-directory.test.mjs
- M tests/modules-5-policy.test.mjs
-?? docs/SKILL-ROUTING.md
-?? docs/SKILLS-INVENTORY.md
-?? lib/csv.js
-?? scripts/auto-skill-router.mjs
-?? tests/security/
-?? tests/tooling/
+ M app/api/jobs/route.js
+ M app/api/talent/route.js
+ M docs/SKILLS-INVENTORY.md
+ M tests/auth/session-policy.test.mjs
 ```

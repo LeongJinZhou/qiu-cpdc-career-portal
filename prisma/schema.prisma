@@ -130,8 +130,9 @@ model Faculty {
   workshops   Workshop[]
   assessments Assessment[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  catalogCourses CatalogCourse[]
 }
 
 model Programme {
@@ -156,36 +157,36 @@ model Programme {
 }
 
 model User {
-  id              String         @id @default(cuid())
-  email           String         @unique
-  normalizedEmail String?        @unique
-  name            String
-  role            Role           @default(STUDENT)
-  avatarUrl       String?
+  id               String         @id @default(cuid())
+  email            String         @unique
+  normalizedEmail  String?        @unique
+  name             String
+  role             Role           @default(STUDENT)
+  avatarUrl        String?
   // avatarUrl is the optional user-selected photo. Google’s current photo is
   // kept separately so clearing a custom photo restores the SSO fallback.
-  googleAvatarUrl String?
-  avatarSource    String         @default("GOOGLE") // GOOGLE | CUSTOM
-  firebaseUid     String?        @unique
-  loginAllowed    Boolean        @default(false)
-  accountStatus   AccountStatus  @default(INVITED)
-  lastSignInAt    DateTime?
+  googleAvatarUrl  String?
+  avatarSource     String         @default("GOOGLE") // GOOGLE | CUSTOM
+  firebaseUid      String?        @unique
+  loginAllowed     Boolean        @default(false)
+  accountStatus    AccountStatus  @default(INVITED)
+  lastSignInAt     DateTime?
   // Revokes every cookie issued before this point. This keeps logout effective
   // even when a signed httpOnly cookie was copied before the browser cleared it.
   sessionRevokedAt DateTime?
-  identitySource  IdentitySource @default(MANUAL)
+  identitySource   IdentitySource @default(MANUAL)
 
-  student            Student?
-  roleAssignments    RoleAssignment[]
-  identitySnapshots  IdentitySnapshot[]
-  auditEntries       AuditLog[]
-  updatedSettings    PlatformSetting[]
-  ownedCompanies     Company[]          @relation("CompanyOwner")
-  sentTalentOutreach TalentOutreach[]   @relation("TalentOutreachSender")
-  createdAssessments Assessment[]       @relation("AssessmentCreator")
-  workshopRequests  WorkshopRequest[]   @relation("WorkshopRequestRequester")
-  receivedNotifications Notification[]  @relation("NotificationRecipient")
-  sentNotifications      Notification[] @relation("NotificationActor")
+  student               Student?
+  roleAssignments       RoleAssignment[]
+  identitySnapshots     IdentitySnapshot[]
+  auditEntries          AuditLog[]
+  updatedSettings       PlatformSetting[]
+  ownedCompanies        Company[]          @relation("CompanyOwner")
+  sentTalentOutreach    TalentOutreach[]   @relation("TalentOutreachSender")
+  createdAssessments    Assessment[]       @relation("AssessmentCreator")
+  workshopRequests      WorkshopRequest[]  @relation("WorkshopRequestRequester")
+  receivedNotifications Notification[]     @relation("NotificationRecipient")
+  sentNotifications     Notification[]     @relation("NotificationActor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -257,14 +258,37 @@ model Student {
   // separate so it never overwrites the canonical matric); courseCode is the
   // programme short code (e.g. "BCS"); employeeType is e.g. "Student". These are
   // enrichment only and are refreshed on each sign-in via /api/identity/directory-sync.
-  employeeId       String?
-  courseCode       String?
-  employeeType     String?
+  employeeId        String?
+  courseCode        String?
+  employeeType      String?
   directorySyncedAt DateTime?
 
   // Per-student notification preferences (e.g. email digests). Persisted so a
   // choice follows the student across devices instead of living in localStorage.
   notificationPrefs Json?
+
+  // ---------------------------------------------------------------------
+  // First-login onboarding state (Module 1).
+  //
+  // These live on the Student row, NOT in sessionStorage, because the whole
+  // point is that a student confirms their details ONCE and never sees the
+  // confirmation screen again -- on any device, in any browser, after any
+  // sign-out. Client storage cannot make that promise.
+  //
+  //   identityConfirmedAt -- the student reviewed and accepted the
+  //     auto-detected name / matric / faculty / programme / year.
+  //   onboardingCompletedAt -- the student finished the whole first-run flow
+  //     (identity + required professional connections). The portal gate reads
+  //     this single field.
+  //   onboardingVersion -- the flow revision the student completed. Bumping
+  //     ONBOARDING_VERSION in lib/onboarding/policy.js is how CPDC re-prompts
+  //     an existing cohort when a new mandatory step is introduced, without a
+  //     data migration and without re-asking anyone who is already current.
+  identityConfirmedAt   DateTime?
+  onboardingCompletedAt DateTime?
+  onboardingVersion     Int       @default(0)
+
+  connectedAccounts ConnectedAccount[]
 
   // Derived lifecycle state. It is never used to grant employer visibility;
   // a student must still opt in separately through searchable/publicOptIn.
@@ -308,16 +332,16 @@ model MilestoneCompletion {
 // Programme approval queue. Only APPROVED + publicOptIn projects surface on the
 // public talent feed.
 model FYPProject {
-  id            String  @id @default(cuid())
-  title         String
-  abstract      String
+  id             String  @id @default(cuid())
+  title          String
+  abstract       String
   supervisorName String?
-  repositoryUrl String?
-  liveUrl       String?
+  repositoryUrl  String?
+  liveUrl        String?
   // Poster/demo asset stored inline as a data URL for the prototype; swap for
   // an object-storage key (S3/GCS/Firebase) when a bucket is provisioned.
-  posterData    String?
-  posterName    String?
+  posterData     String?
+  posterName     String?
 
   status      FypStatus @default(PENDING_REVIEW)
   publicOptIn Boolean   @default(false)
@@ -827,15 +851,15 @@ model TalentOutreach {
 // request separate from Workshop prevents a half-complete event brief from
 // appearing in the student catalogue and gives CPDC a durable review trail.
 model WorkshopRequest {
-  id             String   @id @default(cuid())
-  title          String
-  preferredDate  String?
-  description    String
-  status         String   @default("PENDING") // PENDING | APPROVED | RETURNED | DECLINED
-  reviewNote     String?
+  id            String  @id @default(cuid())
+  title         String
+  preferredDate String?
+  description   String
+  status        String  @default("PENDING") // PENDING | APPROVED | RETURNED | DECLINED
+  reviewNote    String?
 
   requesterUserId String
-  requester       User     @relation("WorkshopRequestRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  requester       User   @relation("WorkshopRequestRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -873,4 +897,170 @@ model WorkshopAttendance {
   // One check-in per student per workshop.
   @@unique([workshopId, studentId])
   @@index([studentId])
+}
+
+// ---------------------------------------------------------------------------
+// Module 1 -- Professional presence ("connected accounts").
+//
+// A student's employability profile is only useful to CPDC and to employers if
+// it survives graduation, so the platform requires each student to attach the
+// professional network that matters for their discipline before they finish
+// onboarding. LinkedIn is required university-wide (it is the alumni contact
+// channel); GitHub is required for computing/engineering programmes, where a
+// public repository record is the discipline's real portfolio. Every other
+// provider is offered to everyone and required of no one -- a Business student
+// who wants to attach GitHub is a good outcome, not a policy violation.
+//
+// The required-per-programme policy itself lives in lib/onboarding/policy.js;
+// this table only records what a student actually connected.
+// ---------------------------------------------------------------------------
+
+enum ConnectedAccountProvider {
+  LINKEDIN
+  GITHUB
+  ORCID
+  BEHANCE
+  PORTFOLIO
+}
+
+enum ConnectionMethod {
+  // The student completed the provider's own OAuth consent screen. The
+  // provider vouched for the account, so providerUserId is trustworthy.
+  OAUTH
+  // The student supplied their profile URL and the server validated its shape
+  // and (best-effort) its reachability. Student-asserted, not provider-proven.
+  // Recorded distinctly so CPDC can tell the two apart in reporting and can
+  // later require an OAuth upgrade without losing the URL already collected.
+  VERIFIED_URL
+}
+
+model ConnectedAccount {
+  id       String                   @id @default(cuid())
+  provider ConnectedAccountProvider
+
+  // Canonical public profile URL, normalised (https, no tracking query, no
+  // trailing slash) so the same profile cannot be stored twice in two shapes.
+  //
+  // Optional because the two OAuth providers differ: GitHub's /user returns
+  // html_url, so a GitHub OAuth connection is complete on its own. LinkedIn's
+  // OpenID userinfo returns only sub/name/email -- it proves WHO the account
+  // belongs to but never exposes the public vanity URL. A LinkedIn OAuth
+  // connection is therefore verified-but-URL-less until the student supplies
+  // the public link, which is exactly the state this nullable column encodes.
+  profileUrl     String?
+  // Public handle/vanity segment where one exists (e.g. "yau-ming-soo").
+  handle         String?
+  // Stable provider-side subject id. Only ever populated by the OAUTH method;
+  // a VERIFIED_URL connection has nothing the provider actually vouched for.
+  providerUserId String?
+  method         ConnectionMethod
+  // Provider payload kept verbatim for one-time field-mapping confirmation on
+  // the first real OAuth connection, mirroring the directory-sync approach.
+  rawProfile     Json?
+
+  verifiedAt DateTime  @default(now())
+  // Set when a later liveness check finds the profile gone (404/410). The row
+  // is kept rather than deleted so the student is re-prompted with context
+  // instead of silently losing a completed onboarding step.
+  brokenAt   DateTime?
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One account per provider per student. Reconnecting overwrites in place.
+  @@unique([studentId, provider])
+  @@index([studentId])
+  @@index([provider])
+}
+
+// ---------------------------------------------------------------------------
+// Module 6 -- External learning catalogue (Coursera / edX / LinkedIn Learning).
+//
+// This replaces the static fixture in lib/data/courses.js. It is a table rather
+// than a file for one reason the fixture could never satisfy: a course that the
+// provider takes down must disappear from the student view WITHOUT a code
+// deploy. `availability` is owned by the liveness sync (scripts/sync-catalog.mjs
+// -> lib/learning/liveness.js); CPDC staff own `curationStatus`. The two are
+// separate so an automated take-down can never be mistaken for an editorial
+// decision, and vice versa.
+// ---------------------------------------------------------------------------
+
+enum CourseAvailability {
+  // Last liveness check reached the course page successfully.
+  AVAILABLE
+  // Provider returned 404/410, or redirected to a search/catalogue page --
+  // the course is gone. Hidden from students automatically.
+  UNAVAILABLE
+  // Network/timeout/rate-limit. Deliberately NOT hidden: a provider outage
+  // must not wipe the catalogue. Hidden only after UNAVAILABLE is confirmed.
+  UNKNOWN
+}
+
+enum CourseCurationStatus {
+  PUBLISHED
+  DRAFT
+  // CPDC pulled it deliberately (outdated, superseded, not appropriate).
+  ARCHIVED
+}
+
+model CatalogCourse {
+  id         String @id @default(cuid())
+  // Stable external key, e.g. "coursera:machine-learning-introduction". Lets a
+  // re-sync update a course in place instead of duplicating it.
+  externalId String @unique
+
+  title        String
+  provider     String // coursera | edx | linkedin
+  url          String
+  // The real partner organisation that publishes the course. Never an invented
+  // individual instructor attached to a real course.
+  taughtBy     String?
+  summary      String?
+  duration     String?
+  effort       String?
+  level        String? // Beginner | Intermediate | Advanced
+  prerequisite String?
+  outcomes     String[] @default([])
+  tags         String[] @default([])
+
+  // Primary owning faculty plus the faculties CPDC also recommends it to.
+  // Both feed the per-student match score.
+  facultyId String?
+  faculty   Faculty? @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  alsoFor   String[] @default([])
+
+  xp         Int     @default(300)
+  skillBadge String?
+  theme      String?
+
+  curationStatus   CourseCurationStatus @default(PUBLISHED)
+  availability     CourseAvailability   @default(UNKNOWN)
+  lastCheckedAt    DateTime?
+  // HTTP status / reason from the last liveness probe, for the CPDC console.
+  lastCheckStatus  Int?
+  lastCheckNote    String?
+  // Set the moment availability flips to UNAVAILABLE. Powers "taken down on
+  // <date>" messaging for students who had already enrolled.
+  unavailableSince DateTime?
+  // Consecutive failed probes. A course is only marked UNAVAILABLE after
+  // LIVENESS_FAILURE_THRESHOLD strikes, so one bad response cannot delist it.
+  failureStreak    Int                  @default(0)
+
+  // Denormalised popularity signal, recomputed by the sync from enrolments in
+  // the trailing window. Drives the "Trending" / hottest sort without an
+  // aggregate query on every page load.
+  enrolmentsRecent Int      @default(0)
+  trendingScore    Float    @default(0)
+  addedAt          DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([provider])
+  @@index([facultyId])
+  @@index([curationStatus, availability])
+  @@index([trendingScore])
 }

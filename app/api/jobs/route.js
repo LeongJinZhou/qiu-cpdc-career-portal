@@ -3,7 +3,8 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
 import { resolveActor } from '@/lib/auth/actor';
-import { toIdentityRouteError, parseJsonBody } from '@/lib/auth/identity';
+import { getRequestId, toIdentityRouteError, parseJsonBody } from '@/lib/auth/identity';
+import { createAuditEntry } from '@/lib/audit';
 
 function routeError(error) {
   const e = toIdentityRouteError(error);
@@ -82,32 +83,54 @@ export async function POST(request) {
     const body = await parseJsonBody(request);
     const data = postSchema.parse(body);
 
-    const existingCompany = await prisma.company.findFirst({ where: { name: data.company.name } });
-    if (actor.role === 'EMPLOYER' && existingCompany && existingCompany.ownerUserId !== actor.user.id) {
-      return NextResponse.json(
-        { error: 'That company profile is already managed by another employer account. Ask CPDC to link it to you.', code: 'COMPANY_SCOPE_FORBIDDEN' },
-        { status: 403 },
-      );
-    }
+    const job = await prisma.$transaction(async (tx) => {
+      const existingCompany = await tx.company.findFirst({ where: { name: data.company.name } });
+      if (actor.role === 'EMPLOYER' && existingCompany && existingCompany.ownerUserId !== actor.user.id) {
+        const error = new Error('That company profile is already managed by another employer account. Ask CPDC to link it to you.');
+        error.status = 403;
+        error.code = 'COMPANY_SCOPE_FORBIDDEN';
+        throw error;
+      }
 
-    const company = existingCompany ?? await prisma.company.create({
-      data: {
-        name: data.company.name,
-        industry: data.company.industry ?? null,
-        website: data.company.website || null,
-        ownerUserId: actor.role === 'EMPLOYER' ? actor.user.id : null,
-      },
-    });
+      const company = existingCompany ?? await tx.company.create({
+        data: {
+          name: data.company.name,
+          industry: data.company.industry ?? null,
+          website: data.company.website || null,
+          ownerUserId: actor.role === 'EMPLOYER' ? actor.user.id : null,
+        },
+      });
 
-    const job = await prisma.jobPosting.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        location: data.location ?? null,
-        type: data.type ?? null,
-        skills: data.skills ?? [],
-        companyId: company.id,
-      },
+      const created = await tx.jobPosting.create({
+        data: {
+          title: data.title,
+          description: data.description,
+          location: data.location ?? null,
+          type: data.type ?? null,
+          skills: data.skills ?? [],
+          companyId: company.id,
+        },
+      });
+
+      await createAuditEntry({
+        tx,
+        actorUserId: actor.user.id,
+        action: 'JOB_POSTING_CREATED',
+        resourceType: 'JobPosting',
+        resourceId: created.id,
+        after: {
+          title: created.title,
+          companyId: company.id,
+          companyName: company.name,
+          type: created.type,
+          location: created.location,
+          skillCount: created.skills.length,
+          status: created.status,
+        },
+        requestId: getRequestId(request),
+      });
+
+      return created;
     });
 
     return NextResponse.json({ job: { id: job.id } }, { status: 201 });
