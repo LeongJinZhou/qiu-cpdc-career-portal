@@ -158,7 +158,9 @@ export default function OnboardingPage() {
     setOnboarding(result.state);
   }, []);
 
-  const missing = onboarding?.missingProviders ?? [];
+  // Memoised because it is a useMemo dependency below: a fresh [] literal on
+  // every render would recompute the labels on every render.
+  const missing = useMemo(() => onboarding?.missingProviders ?? [], [onboarding]);
   const connectionsSatisfied = missing.length === 0;
 
   const missingLabels = useMemo(() => {

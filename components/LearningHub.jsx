@@ -17,6 +17,7 @@ import { XP_VALUES } from '@/lib/xp';
 import {
   COURSE_CATALOGUE,
   LEARNING_PATHS,
+  LEVELS,
   PROVIDERS,
   courseById,
   courseMatch,
@@ -98,6 +99,13 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
   // browses detail long before they have a certificate to submit.
   const [detailTarget, setDetailTarget] = useState(null);
   const [notice, setNotice] = useState('');
+  // Live catalogue, loaded from /api/learning/catalog. The static import stays
+  // as the first paint and as the fallback: if the catalogue endpoint is down,
+  // students still see a shelf rather than an empty page.
+  const [catalogue, setCatalogue] = useState(COURSE_CATALOGUE);
+  const [catalogueMeta, setCatalogueMeta] = useState(null);
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [sortMode, setSortMode] = useState('match');
   const [records, setRecords] = useState([]);
   const [queue, setQueue] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
@@ -129,6 +137,37 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
   }, [loadRecords, activeFaculty?.id]);
 
   /**
+   * Pull the live catalogue.
+   *
+   * Staff request `scope=all` so the curation view also shows courses the
+   * liveness sync has delisted — you cannot curate what you cannot see. The
+   * student scope never includes them, which is how a provider take-down
+   * removes a course from the portal with no deploy.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch(
+          `/api/learning/catalog${isStaff ? '?scope=all' : ''}`,
+          { cache: 'no-store', credentials: 'include' },
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        if (cancelled || !Array.isArray(data.courses) || data.courses.length === 0) return;
+        setCatalogue(data.courses);
+        setCatalogueMeta(data);
+      } catch {
+        // Keep the bundled fixture. Logged nowhere on purpose: this is an
+        // expected degradation, not an error the student can act on.
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [isStaff]);
+
+  /**
    * Per-course XP.
    *
    * Each course carries its own value, but Settings exposes a single COURSE
@@ -148,7 +187,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
    */
   const statusById = useMemo(() => {
     const map = {};
-    for (const course of COURSE_CATALOGUE) {
+    for (const course of catalogue) {
       if ((student?.badges ?? []).some((badge) => badgeMatchesCourse(badge, course))) {
         map[course.id] = 'VERIFIED';
       }
@@ -162,7 +201,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
       map[record.courseId] = record.verified ? 'VERIFIED' : 'PENDING';
     }
     return map;
-  }, [records, student?.badges]);
+  }, [records, student?.badges, catalogue]);
 
   const evidenceById = useMemo(() => {
     const map = {};
@@ -186,7 +225,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
    * "Recommended for you" tag plus a one-line reason — but every course stays
    * in the list, because a business student is allowed to learn Python.
    */
-  const scoredCourses = useMemo(() => COURSE_CATALOGUE
+  const scoredCourses = useMemo(() => catalogue
     .map((course) => {
       const { score, reasons } = courseMatch(course, matchContext);
       const facultyServed = servesFaculty(course, activeFaculty?.id);
@@ -203,22 +242,57 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
         }),
       };
     })
-    .sort((a, b) => b.score - a.score), [matchContext, activeFaculty?.id, student?.programme, student?.year, student?.diagnosticResult?.gapTags]);
+    .sort((a, b) => b.score - a.score), [catalogue, matchContext, activeFaculty?.id, student?.programme, student?.year, student?.diagnosticResult?.gapTags]);
 
+  /**
+   * Filter, then sort.
+   *
+   * Filtering narrows; sorting only reorders. Nothing is ever hidden from a
+   * student because of their faculty -- "Recommended" moves a course to the
+   * top, it does not remove the others (Blueprint 12.4). The one thing that
+   * DOES remove a course is the provider taking it down, and that is decided
+   * server-side before this list ever arrives.
+   */
   const visibleCourses = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return scoredCourses.filter(({ course }) => {
+
+    const filtered = scoredCourses.filter(({ course }) => {
       if (providerFilter !== 'all' && course.provider !== providerFilter) return false;
+      if (levelFilter !== 'all' && course.level !== levelFilter) return false;
       if (!needle) return true;
       return `${course.title} ${course.taughtBy} ${course.skillBadge} ${course.tags.join(' ')}`
         .toLowerCase()
         .includes(needle);
     });
-  }, [scoredCourses, query, providerFilter]);
 
+    const sorters = {
+      // Best fit for this student's faculty, programme, year and interests.
+      match: (a, b) => b.score - a.score,
+      // Most enrolled recently, with a decaying bonus for new listings so a
+      // fresh course is discoverable before it has any enrolments.
+      hot: (a, b) => (b.course.trendingScore ?? 0) - (a.course.trendingScore ?? 0)
+        || b.score - a.score,
+      newest: (a, b) => new Date(b.course.addedAt ?? 0) - new Date(a.course.addedAt ?? 0)
+        || b.score - a.score,
+      xp: (a, b) => (b.course.xp ?? 0) - (a.course.xp ?? 0),
+      title: (a, b) => a.course.title.localeCompare(b.course.title),
+    };
+
+    return [...filtered].sort(sorters[sortMode] ?? sorters.match);
+  }, [scoredCourses, query, providerFilter, levelFilter, sortMode]);
+
+  /**
+   * A student's own records resolve against the LIVE catalogue first, then the
+   * bundled fixture. That order matters: a course the provider retired is gone
+   * from the live list, but the student still completed it, so their record
+   * must still render — with the retirement noted rather than silently blank.
+   */
   const myRecords = useMemo(() => records
-    .map((record) => ({ record, course: courseById(record.courseId) }))
-    .filter((entry) => entry.course), [records]);
+    .map((record) => {
+      const live = catalogue.find((course) => course.id === record.courseId);
+      return { record, course: live ?? courseById(record.courseId) };
+    })
+    .filter((entry) => entry.course), [records, catalogue]);
 
   const pendingCount = myRecords.filter((entry) => entry.record.status === 'PENDING').length;
   const verifiedCount = Object.values(statusById).filter((value) => value === 'VERIFIED').length;
@@ -355,7 +429,10 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
           {isStudent && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {[
-                { icon: BookOpen, label: 'Courses listed for you', value: scoredCourses.filter((entry) => entry.recommended).length },
+                // Counts RECOMMENDED courses, not listed ones. The old label
+                // ("Courses listed for you") read as the catalogue size and
+                // contradicted the "28 of 28 shown" line directly below it.
+                { icon: BookOpen, label: `Recommended for you · of ${catalogue.length} listed`, value: scoredCourses.filter((entry) => entry.recommended).length },
                 { icon: Hourglass, label: 'Awaiting verification', value: pendingCount },
                 { icon: Award, label: 'Verified certificates', value: verifiedCount },
               ].map((stat) => {
@@ -415,10 +492,71 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
             </div>
           </div>
 
+          {/* Sort + level. Sorting reorders; it never hides a course. */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-black/10 bg-black/[0.03] p-1">
+              {[
+                { id: 'match', label: 'Best match' },
+                { id: 'hot', label: '🔥 Hottest' },
+                { id: 'newest', label: 'Newest' },
+                { id: 'xp', label: 'Most XP' },
+                { id: 'title', label: 'A–Z' },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={sortMode === option.id}
+                  onClick={() => setSortMode(option.id)}
+                  className={`min-h-[44px] whitespace-nowrap rounded-lg px-3.5 text-xs font-semibold transition ${
+                    sortMode === option.id ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="course-level" className="text-xs font-semibold text-muted">Level</label>
+              <select
+                id="course-level"
+                value={levelFilter}
+                onChange={(event) => setLevelFilter(event.target.value)}
+                className="min-h-[44px] rounded-xl border border-black/10 bg-black/[0.03] px-3 text-xs font-semibold text-[#1d1d1f] focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
+              >
+                <option value="all">Any level</option>
+                {(catalogueMeta?.facets?.levels ?? LEVELS).map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Freshness. The claim that the catalogue is live is evidenced with
+              the actual last-checked date, and take-downs are stated plainly
+              rather than courses just quietly vanishing. */}
+          {catalogueMeta?.lastSync ? (
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+              <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+              <span>
+                {visibleCourses.length} of {catalogueMeta.counts?.listed ?? catalogue.length} courses shown ·
+                {' '}every link checked against the provider on{' '}
+                {new Date(catalogueMeta.lastSync).toLocaleDateString('en-GB', {
+                  day: 'numeric', month: 'short', year: 'numeric',
+                })}
+              </span>
+              {catalogueMeta.counts?.unavailable > 0 ? (
+                <span className="rounded-full bg-black/[0.06] px-2 py-0.5 font-medium">
+                  {catalogueMeta.counts.unavailable} removed by the provider and delisted
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+
           {visibleCourses.length === 0 ? (
             <div className="surface p-10 text-center">
               <p className="font-heading text-base font-semibold text-[#1d1d1f]">No courses match that search</p>
-              <p className="mt-1 text-sm text-muted">Try a skill name like &ldquo;analytics&rdquo;, or clear the provider filter.</p>
+              <p className="mt-1 text-sm text-muted">Try a skill name like &ldquo;analytics&rdquo;, or clear the provider and level filters.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

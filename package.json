@@ -21,7 +21,8 @@
     "db:studio": "prisma studio",
     "skills:route": "node scripts/auto-skill-router.mjs",
     "deploy": "npm run deploy:auto",
-    "deploy:auto": "node scripts/autonomous_deploy_agent.mjs"
+    "deploy:auto": "node scripts/autonomous_deploy_agent.mjs",
+    "catalog:sync": "node scripts/sync-catalog.mjs"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
