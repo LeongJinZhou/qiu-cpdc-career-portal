@@ -126,7 +126,7 @@ export default function NotificationBell({ role }) {
         <section
           role="dialog"
           aria-label="Notifications"
-          className="surface absolute right-0 z-50 mt-2 w-[min(92vw,380px)] overflow-hidden border border-black/10 p-0 shadow-xl"
+          className="surface absolute right-0 z-50 mt-2 w-[min(92vw,380px)] overflow-hidden border border-black/10 p-0 shadow-xl max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[4.5rem] max-[640px]:mt-0 max-[640px]:w-auto max-[640px]:max-w-none"
         >
           <div className="flex items-start justify-between gap-3 border-b border-black/10 px-4 py-3">
             <div>

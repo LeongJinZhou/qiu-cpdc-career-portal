@@ -67,7 +67,20 @@ export default function DismissibleDialog({ children, onClose, labelledBy, class
       className={`fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-4 ${overlayClassName}`}
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        // Keep the pointer sequence on the backdrop. If the dialog unmounts
+        // during mousedown, the browser can retarget mouseup/click to the
+        // page underneath and activate an unrelated link.
+        if (event.target === event.currentTarget) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          event.preventDefault();
+          event.stopPropagation();
+          onClose();
+        }
       }}
     >
       <div

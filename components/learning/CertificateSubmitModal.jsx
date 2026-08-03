@@ -55,7 +55,7 @@ export default function CertificateSubmitModal({ course, autoApprove = false, on
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" role="presentation">
       <div
-        className="surface w-full max-w-md space-y-5 rounded-3xl p-6 shadow-lg"
+        className="surface max-h-[calc(100vh-2rem)] w-full max-w-md space-y-5 overflow-y-auto rounded-3xl p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cert-submit-heading"
@@ -73,7 +73,7 @@ export default function CertificateSubmitModal({ course, autoApprove = false, on
             type="button"
             onClick={onClose}
             aria-label="Close certificate submission"
-            className="-m-2 p-2 text-muted transition hover:text-[#1d1d1f]"
+            className="icon-btn -mr-1 -mt-1"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>

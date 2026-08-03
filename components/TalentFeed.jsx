@@ -396,7 +396,7 @@ export default function TalentFeed({ currentRole = 'STUDENT' }) {
           onClick={() => setOutreach(null)}
         >
           <div
-            className="glass-panel w-full max-w-md p-6 space-y-4"
+            className="glass-panel max-h-[calc(100vh-2rem)] w-full max-w-md space-y-4 overflow-y-auto p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
@@ -416,7 +416,7 @@ export default function TalentFeed({ currentRole = 'STUDENT' }) {
                 type="button"
                 onClick={() => setOutreach(null)}
                 aria-label="Close dialog"
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-black/[0.03] hover:bg-black/[0.06] border border-black/10 text-muted hover:text-[#1d1d1f] transition shrink-0"
+                className="icon-btn shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>

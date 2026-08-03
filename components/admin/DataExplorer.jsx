@@ -231,7 +231,7 @@ export default function DataExplorer({ currentRole }) {
               tabIndex={isSelected ? 0 : -1}
               onClick={() => selectEntity(ent.id)}
               onKeyDown={(event) => handleEntityKeyDown(event, ENTITIES.indexOf(ent))}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition shrink-0 ${
+              className={`flex min-h-11 items-center gap-2 px-4 rounded-xl text-sm font-semibold transition shrink-0 ${
                 isSelected
                   ? 'bg-[#1d1d1f] text-white shadow-sm'
                   : 'bg-black/[0.03] text-muted hover:bg-black/[0.06] hover:text-[#1d1d1f]'

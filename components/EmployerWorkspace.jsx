@@ -151,7 +151,7 @@ export default function EmployerWorkspace({ student, currentRole }) {
       </div>
 
       <div className="flex gap-2 overflow-x-auto border-b border-black/10 pb-2" role="tablist" aria-label="Employer portal views">
-        {tabs.map(({ id, label, icon: Icon }) => <button key={id} {...getTabProps(id)} type="button" role="tab" id={`employer-tab-${id}`} aria-selected={tab === id} aria-controls={`employer-panel-${id}`} onClick={() => setTab(id)} className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold ${tab === id ? 'bg-crimson text-white' : 'text-muted hover:bg-black/[0.04] hover:text-[#1d1d1f]'}`}><Icon className="h-4 w-4" />{label}</button>)}
+        {tabs.map(({ id, label, icon: Icon }) => <button key={id} {...getTabProps(id)} type="button" role="tab" id={`employer-tab-${id}`} aria-selected={tab === id} aria-controls={`employer-panel-${id}`} onClick={() => setTab(id)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold ${tab === id ? 'bg-crimson text-white' : 'text-muted hover:bg-black/[0.04] hover:text-[#1d1d1f]'}`}><Icon className="h-4 w-4" />{label}</button>)}
       </div>
 
       {talentError && <p className="rounded-[14px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900" role="alert">{talentError}</p>}

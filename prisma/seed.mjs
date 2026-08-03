@@ -288,10 +288,81 @@ async function seedWorkshops() {
   console.log(`  workshops: ${await prisma.workshop.count()}`);
 }
 
+async function seedOfficialSsoTestAccounts() {
+  const programme = await prisma.programme.findFirst({
+    where: { facultyId: 'computing_engineering', name: 'Bachelor of Computer Science (Honours)' },
+  });
+
+  if (programme) {
+    const user = await prisma.user.upsert({
+      where: { email: 'yauming.soo@qiu.edu.my' },
+      update: {
+        normalizedEmail: 'yauming.soo@qiu.edu.my',
+        loginAllowed: true,
+        accountStatus: 'ACTIVE',
+      },
+      create: {
+        email: 'yauming.soo@qiu.edu.my',
+        normalizedEmail: 'yauming.soo@qiu.edu.my',
+        name: 'Soo Yau Ming',
+        role: 'STUDENT',
+        loginAllowed: true,
+        accountStatus: 'ACTIVE',
+        identitySource: 'SEEDED',
+      },
+    });
+
+    await prisma.student.upsert({
+      where: { userId: user.id },
+      update: {
+        matricNo: 'QIU-202310-006958',
+        courseCode: 'BCS',
+        employeeId: 'QIU-202310-006958',
+        employeeType: 'Student',
+        facultyId: 'computing_engineering',
+        programmeId: programme.id,
+      },
+      create: {
+        userId: user.id,
+        matricNo: 'QIU-202310-006958',
+        courseCode: 'BCS',
+        employeeId: 'QIU-202310-006958',
+        employeeType: 'Student',
+        facultyId: 'computing_engineering',
+        programmeId: programme.id,
+        academicYear: 3,
+        intakeYearMonth: 202310,
+        intakeSequence: 6958,
+      },
+    });
+    console.log('  seeded QIU student yauming.soo@qiu.edu.my');
+  }
+
+  await prisma.user.upsert({
+    where: { email: 'admin@qiu.edu.my' },
+    update: {
+      normalizedEmail: 'admin@qiu.edu.my',
+      loginAllowed: true,
+      accountStatus: 'ACTIVE',
+    },
+    create: {
+      email: 'admin@qiu.edu.my',
+      normalizedEmail: 'admin@qiu.edu.my',
+      name: 'QIU CPDC Administrator',
+      role: 'CPDC_ADMIN',
+      loginAllowed: true,
+      accountStatus: 'ACTIVE',
+      identitySource: 'SEEDED',
+    },
+  });
+  console.log('  seeded QIU admin admin@qiu.edu.my');
+}
+
 async function main() {
   console.log('Seeding CPDC platform...');
   await seedFaculties();
   await seedDemoStudent();
+  await seedOfficialSsoTestAccounts();
   await seedWorkshops();
   console.log('Seed complete.');
 }

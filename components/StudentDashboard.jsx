@@ -397,7 +397,7 @@ export default function StudentDashboard({
                 <Award className="w-4 h-4 text-crimson" />
                 <span>Verified Badges ({student.badges.length})</span>
               </h3>
-              <button onClick={() => setActiveTab('autocv')} className="text-xs text-crimson hover:text-red-600 font-semibold">
+              <button type="button" onClick={() => setActiveTab('autocv')} className="inline-flex min-h-11 items-center text-xs font-semibold text-crimson hover:text-red-600">
                 Sync to CV →
               </button>
             </div>

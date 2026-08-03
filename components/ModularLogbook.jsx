@@ -631,7 +631,7 @@ export default function ModularLogbook({ student, activeFaculty }) {
                               <button
                                 type="button"
                                 onClick={() => openEditor(log)}
-                                className="text-[11px] font-semibold text-crimson hover:underline flex items-center gap-1"
+                                className="inline-flex min-h-11 items-center gap-1 text-[11px] font-semibold text-crimson hover:underline"
                               >
                                 <Send className="w-3 h-3" /> Wrong email? Edit supervisor &amp; resend
                               </button>

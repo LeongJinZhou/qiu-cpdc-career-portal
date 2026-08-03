@@ -13,18 +13,48 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyDDD76pbjxGyooTL7RzD6IyL6XwHdXEDoI"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "qiu-cpdc-career-portal.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: "qiu-cpdc-career-portal"
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:986984518601:web:120c01b0c5248d610b0e18"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "986984518601"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "qiu-cpdc-career-portal.firebasestorage.app"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: FIREBASE_PROJECT_ID
+    value: "qiu-cpdc-career-portal"
+    availability:
+      - BUILD
+      - RUNTIME
   - variable: AUTH_MODE
-    value: "demo"
+    value: "firebase-google"
     availability:
       - BUILD
       - RUNTIME
   - variable: NEXT_PUBLIC_AUTH_MODE
-    value: "demo"
+    value: "firebase-google"
     availability:
       - BUILD
       - RUNTIME

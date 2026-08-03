@@ -480,7 +480,7 @@ export default function CareerPath({ student, activeFaculty }) {
                       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                className={`flex min-h-11 shrink-0 items-center px-3.5 rounded-full text-xs font-semibold border transition ${
                   isCurrent
                     ? 'bg-crimson text-white border-crimson'
                     : 'bg-black/[0.03] text-[#424245] border-black/10 hover:border-crimson/40 hover:text-crimson'

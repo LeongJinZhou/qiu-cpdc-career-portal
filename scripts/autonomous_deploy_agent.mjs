@@ -66,10 +66,12 @@ try {
     const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
     
     // Construct high-fidelity descriptive changelog as required by user governance rules
-    const commitDescription = `feat(enterprise-core): resolve admin data explorer component & enhance build gate [${timestamp}]\n\n` +
-      `[Modules Affected]: AdminControlCenter, DataExplorer, API Data Entity Routings, CI/CD Deployment Governance\n` +
-      `[Role & Access Impact]: Grants CPDC Admin, Super Admin, and University Registrar deep interactive access to cross-student raw database tables (Assessment Attempts, Job Applications, Workshops, Course Enrolments, Audit Logs).\n` +
-      `[Architectural Rationale]: Implements required frontend component to eliminate Webpack module not found errors during cloud framework build and upgrades pre-push verification to run full npm run build alongside unit test suite.`;
+    const commitDescription = `feat(auth): activate Google Workspace SSO & zero-secret JWK verification [${timestamp}]\n\n` +
+      `1. [Official Google Workspace SSO Activation]: Switched AUTH_MODE and NEXT_PUBLIC_AUTH_MODE from "demo" to "firebase-google" in .env and apphosting.yaml to enforce enterprise SSO across all user sessions.\n` +
+      `2. [Firebase SDK Integration]: Injected full Firebase Web SDK Client config keys (qiu-cpdc-career-portal) for live production runtime and build environments.\n` +
+      `3. [Zero-Secret Token Verification]: Enhanced lib/auth/config.js and lib/auth/firebase-admin.js to enable public JWK verification directly via project ID without requiring manual secret keys in environment variables.\n` +
+      `4. [Database Allowlist & Seeding]: Updated prisma/seed.mjs to automatically provision yauming.soo@qiu.edu.my (Student, Course: BCS, Employee ID: QIU-202310-006958) and admin@qiu.edu.my (CPDC_ADMIN) to guarantee instant, seamless test-run access.\n` +
+      `[Role & Access Impact]: Zero sensitive credentials staged or pushed; seamless production SSO onboarding enabled across student and admin personas.`;
 
     execSync('git -C . add -A', { stdio: 'inherit' });
     execSync(`git -C . commit -m "${commitDescription.replace(/"/g, '\\"')}"`, { stdio: 'inherit' });

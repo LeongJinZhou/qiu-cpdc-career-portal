@@ -320,7 +320,7 @@ export default function PortalShell({ children }) {
               </button>
 
               {switcherOpen && (
-                <div className="surface absolute right-0 z-50 mt-2 w-72 p-2" role="menu" aria-label="Portal view options">
+                <div className="surface absolute right-0 z-50 mt-2 w-72 p-2 max-[640px]:fixed max-[640px]:left-3 max-[640px]:right-3 max-[640px]:top-[4.5rem] max-[640px]:mt-0 max-[640px]:w-auto max-[640px]:max-h-[calc(100vh-5.5rem)] max-[640px]:overflow-y-auto" role="menu" aria-label="Portal view options">
                   <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
                     View as
                   </p>

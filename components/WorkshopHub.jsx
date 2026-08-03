@@ -370,7 +370,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             aria-selected={activeSubTab === 'workshops'}
             aria-controls="workshop-panel-workshops"
             onClick={() => setActiveSubTab('workshops')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex min-h-11 items-center px-3.5 rounded-lg text-xs font-semibold transition ${
               activeSubTab === 'workshops' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
             }`}
           >
@@ -385,7 +385,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             aria-selected={activeSubTab === 'coursera'}
             aria-controls="workshop-panel-coursera"
             onClick={() => setActiveSubTab('coursera')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex min-h-11 items-center px-3.5 rounded-lg text-xs font-semibold transition ${
               activeSubTab === 'coursera' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
             }`}
           >
@@ -401,7 +401,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
               aria-selected={activeSubTab === 'admin_publish'}
               aria-controls="workshop-panel-admin-publish"
               onClick={() => setActiveSubTab('admin_publish')}
-              className={`whitespace-nowrap px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
+              className={`flex min-h-11 items-center whitespace-nowrap px-3.5 rounded-lg text-xs font-semibold transition ${
                 activeSubTab === 'admin_publish' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
               }`}
             >
@@ -496,7 +496,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                   <button
                     type="button"
                     onClick={() => setSelectedWorkshop(w)}
-                    className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-black/[0.04] text-[#1d1d1f] hover:bg-black/[0.08] transition flex items-center justify-center gap-2 border border-black/10"
+                    className="secondary-btn w-full text-xs"
                   >
                     <BookOpen className="w-4 h-4 text-crimson" />
                     <span>View Syllabus, Speaker & Logistics</span>
@@ -533,7 +533,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                           setCheckInXp(0);
                           setAlreadyCheckedIn(Boolean(w.attended));
                         }}
-                        className="secondary-btn text-xs py-2.5"
+                        className="secondary-btn text-xs"
                       >
                         <QrCode className="w-4 h-4" />
                         <span>Scan QR</span>
@@ -599,7 +599,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                   <button
                     type="button"
                     onClick={() => setSelectedCourse(c)}
-                    className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-black/[0.04] text-[#1d1d1f] hover:bg-black/[0.08] transition flex items-center justify-center gap-1.5 border border-black/10"
+                    className="secondary-btn w-full text-xs"
                   >
                     <BookOpen className="w-3.5 h-3.5 text-crimson" />
                     <span>View Syllabus & Accreditation</span>
@@ -610,7 +610,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                       href={c.externalUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[11px] text-[#1d1d1f] bg-blue-50/70 border border-blue-200 hover:bg-blue-100 py-2 px-3 rounded-xl font-bold transition flex items-center justify-center gap-1"
+                      className="secondary-btn w-full text-[11px]"
                     >
                       <ExternalLink className="w-3.5 h-3.5 text-blue-600" /> Open Course on {String(c.platform).split(' ')[0]}
                     </a>

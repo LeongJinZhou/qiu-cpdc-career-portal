@@ -306,7 +306,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
               aria-selected={activeTab === tab.id}
               aria-controls={`network-panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
+              className={`flex min-h-11 items-center px-4 rounded-lg text-sm font-semibold transition whitespace-nowrap ${
                 activeTab === tab.id ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
               }`}
             >
@@ -383,7 +383,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
               </span>
               <button
                 onClick={() => setSelectedFacultyFilter('ALL')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
+                className={`flex min-h-11 items-center px-3.5 rounded-lg text-xs font-semibold transition shrink-0 ${
                   selectedFacultyFilter === 'ALL' ? 'bg-crimson text-white' : 'bg-black/[0.03] text-muted hover:bg-black/[0.06]'
                 }`}
               >
@@ -393,7 +393,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                 <button
                   key={f.id}
                   onClick={() => setSelectedFacultyFilter(f.id)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
+                  className={`flex min-h-11 items-center px-3.5 rounded-lg text-xs font-semibold transition shrink-0 ${
                     selectedFacultyFilter === f.id ? 'bg-crimson text-white' : 'bg-black/[0.03] text-muted hover:bg-black/[0.06]'
                   }`}
                 >
@@ -452,9 +452,9 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                           aria-checked={isAvailable}
                           aria-label={`Toggle mentorship availability for ${alum.name}`}
                           onClick={() => toggleMentor(alum.id)}
-                          className={`relative h-6 w-10 shrink-0 rounded-full transition ${isAvailable ? 'bg-crimson' : 'bg-black/15'}`}
+                          className={`relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-start rounded-full px-0.5 transition ${isAvailable ? 'bg-crimson' : 'bg-black/15'}`}
                         >
-                          <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isAvailable ? 'translate-x-4' : ''}`} />
+                          <span className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${isAvailable ? 'translate-x-5' : ''}`} />
                         </button>
                       ) : <span className="text-[11px] text-muted">Read-only</span>}
                     </div>

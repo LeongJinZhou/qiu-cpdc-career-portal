@@ -108,7 +108,7 @@ export default function AICareerSuite({ student, activeFaculty }) {
             role="tab"
             aria-selected={activeTab === 'interview'}
             onClick={() => setActiveTab('interview')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+            className={`flex min-h-11 items-center px-4 rounded-lg text-sm font-semibold transition ${
               activeTab === 'interview' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
             }`}
           >
@@ -120,7 +120,7 @@ export default function AICareerSuite({ student, activeFaculty }) {
             role="tab"
             aria-selected={activeTab === 'skillgap'}
             onClick={() => setActiveTab('skillgap')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+            className={`flex min-h-11 items-center px-4 rounded-lg text-sm font-semibold transition ${
               activeTab === 'skillgap' ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
             }`}
           >
