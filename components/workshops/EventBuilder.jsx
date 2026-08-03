@@ -205,7 +205,7 @@ export default function EventBuilder({ currentRole, activeFaculty, events = [], 
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div>
             <label className={LABEL} htmlFor="eb-speaker">Speaker / facilitator</label>
             <input id="eb-speaker" className={INPUT} value={speakerName} onChange={(e) => setSpeakerName(e.target.value)}
@@ -224,7 +224,7 @@ export default function EventBuilder({ currentRole, activeFaculty, events = [], 
             placeholder="One sentence students can actually judge relevance from" />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div>
             <label className={LABEL} htmlFor="eb-date">Date &amp; time</label>
             <input id="eb-date" className={INPUT} value={date} onChange={(e) => setDate(e.target.value)}
@@ -238,7 +238,7 @@ export default function EventBuilder({ currentRole, activeFaculty, events = [], 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
             <label className={LABEL} htmlFor="eb-category">Category</label>
             <select id="eb-category" className={INPUT} value={category} onChange={(e) => setCategory(e.target.value)}>

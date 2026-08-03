@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import StudentDashboard from '@/components/StudentDashboard';
 import AdminControlCenter from '@/components/AdminControlCenter';
+import StudentPathway from '@/components/portal/StudentPathway';
 import { usePortal } from '@/components/portal/PortalProvider';
 
 /**
@@ -39,11 +40,22 @@ export default function Page() {
   }
 
   return (
-    <StudentDashboard
-      student={student}
-      setStudent={setStudent}
-      activeFaculty={activeFaculty}
-      setActiveTab={navigate}
-    />
+    <div className="space-y-6">
+      {/* The pathway spine sits ABOVE the dashboard tiles on purpose. The tiles
+          answer "what is available"; the pathway answers "what should I do
+          next", and a student who reads only the first screen should get the
+          second answer. Students only — staff and employers have a different
+          job here and would be misled by a student progress track. */}
+      {currentRole === 'STUDENT' ? (
+        <StudentPathway student={student} activeFaculty={activeFaculty} />
+      ) : null}
+
+      <StudentDashboard
+        student={student}
+        setStudent={setStudent}
+        activeFaculty={activeFaculty}
+        setActiveTab={navigate}
+      />
+    </div>
   );
 }

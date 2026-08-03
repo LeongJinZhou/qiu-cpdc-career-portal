@@ -2,14 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Activity,
   AlertCircle,
   ArrowLeft,
   ArrowRight,
   Database,
   Download,
   Eye,
-  Filter,
   RefreshCw,
   Search,
   ShieldAlert,
@@ -17,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { buildCsv } from '@/lib/csv';
+import DismissibleDialog from '@/components/ui/DismissibleDialog';
 
 const ENTITIES = [
   { id: 'student', label: 'Students', desc: 'Every student record with the Employee ID, course code and email read from the QIU Google directory at login.' },
@@ -83,7 +82,6 @@ export default function DataExplorer({ currentRole }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [exporting, setExporting] = useState(false);
   const tabRefs = useRef([]);
-  const closeInspectorRef = useRef(null);
 
   const selectEntity = useCallback((entityId) => {
     setActiveEntity(entityId);
@@ -103,20 +101,6 @@ export default function DataExplorer({ currentRole }) {
     selectEntity(ENTITIES[nextIndex].id);
     tabRefs.current[nextIndex]?.focus();
   }, [selectEntity]);
-
-  useEffect(() => {
-    if (!selectedRow) return undefined;
-    const previousFocus = document.activeElement;
-    const handleInspectorKeyDown = (event) => {
-      if (event.key === 'Escape') setSelectedRow(null);
-    };
-    document.addEventListener('keydown', handleInspectorKeyDown);
-    closeInspectorRef.current?.focus();
-    return () => {
-      document.removeEventListener('keydown', handleInspectorKeyDown);
-      previousFocus?.focus?.();
-    };
-  }, [selectedRow]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -297,7 +281,7 @@ export default function DataExplorer({ currentRole }) {
                 type="button"
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg border border-black/10 hover:bg-black/[0.04] disabled:opacity-40 disabled:pointer-events-none transition"
+                className="icon-btn rounded-lg border border-black/10 hover:bg-black/[0.04] disabled:opacity-40 disabled:pointer-events-none transition"
                 aria-label="Previous page"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -309,7 +293,7 @@ export default function DataExplorer({ currentRole }) {
                 type="button"
                 disabled={!data.pageCount || page >= data.pageCount || loading}
                 onClick={() => setPage((p) => p + 1)}
-                className="p-1.5 rounded-lg border border-black/10 hover:bg-black/[0.04] disabled:opacity-40 disabled:pointer-events-none transition"
+                className="icon-btn rounded-lg border border-black/10 hover:bg-black/[0.04] disabled:opacity-40 disabled:pointer-events-none transition"
                 aria-label="Next page"
               >
                 <ArrowRight className="h-4 w-4" />
@@ -411,17 +395,13 @@ export default function DataExplorer({ currentRole }) {
 
       {/* Deep Inspection Drawer Modal */}
       {selectedRow && (
-        <div
-          className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-[2px] animate-fadeIn"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="admin-inspector-title"
-          onClick={() => setSelectedRow(null)}
+        <DismissibleDialog
+          onClose={() => setSelectedRow(null)}
+          labelledBy="admin-inspector-title"
+          overlayClassName="items-stretch justify-end bg-black/40 p-0"
+          className="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-2xl"
         >
-          <div
-            className="w-full max-w-lg bg-white h-full overflow-y-auto p-6 shadow-2xl flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex h-full flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-black/10 pb-4">
                 <div>
@@ -434,9 +414,8 @@ export default function DataExplorer({ currentRole }) {
                 </div>
                 <button
                   type="button"
-                  ref={closeInspectorRef}
                   onClick={() => setSelectedRow(null)}
-                  className="p-2 rounded-xl text-muted hover:bg-black/[0.05] transition"
+                  className="icon-btn"
                   aria-label="Close record inspector"
                 >
                   <X className="h-5 w-5" />
@@ -469,13 +448,13 @@ export default function DataExplorer({ currentRole }) {
               <button
                 type="button"
                 onClick={() => setSelectedRow(null)}
-                className="w-full py-2.5 rounded-xl bg-[#1d1d1f] text-white text-sm font-semibold hover:bg-black transition shadow-sm"
+                className="secondary-btn w-full border-[#1d1d1f] bg-[#1d1d1f] text-sm font-semibold text-white hover:bg-black"
               >
                 Close Inspector
               </button>
             </div>
           </div>
-        </div>
+        </DismissibleDialog>
       )}
     </div>
   );

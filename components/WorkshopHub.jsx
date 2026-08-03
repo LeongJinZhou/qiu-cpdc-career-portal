@@ -434,7 +434,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
           ) : matchedWorkshops.length === 0 ? (
             <div className="surface p-8 text-center text-sm text-muted">No workshops are published for this feed yet. Check back soon.</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {matchedWorkshops.map(w => {
             const isFacultyMatch = w.faculty === activeFaculty.id;
             return (
@@ -572,7 +572,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             <span>Learning paths are grouped by faculty focus; sync a verified certificate to unlock the related badge.</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {coursesList.map(c => (
               <div key={c.id} className="surface p-6 space-y-4 flex flex-col justify-between">
                 <div className="space-y-3">
@@ -672,7 +672,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 placeholder="e.g. McKinsey Strategy & Consulting Case Workshop"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                 required
               />
             </div>
@@ -685,7 +685,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 placeholder="Audience, problem context and the practical value of attending"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full rounded-[18px] bg-black/[0.04] border border-black/10 px-4 py-3 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                className="w-full rounded-[18px] bg-black/[0.04] border border-black/10 px-4 py-3 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                 required
               />
             </div>
@@ -699,7 +699,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                   placeholder="e.g. Sarah Jenkins (Managing Director)"
                   value={newSpeaker}
                   onChange={(e) => setNewSpeaker(e.target.value)}
-                  className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                  className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                   required
                 />
               </div>
@@ -712,7 +712,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                   placeholder="e.g. 2026-09-05 | 14:00 GMT+8"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                  className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                 />
               </div>
             </div>
@@ -736,7 +736,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 placeholder="Leave blank for unlimited"
                 value={newCapacity}
                 onChange={(e) => setNewCapacity(e.target.value)}
-                className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
               />
             </div>
 
@@ -748,7 +748,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 placeholder="e.g. Faculty Auditorium B & Zoom Live"
                 value={newLocation}
                 onChange={(e) => setNewLocation(e.target.value)}
-                className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
               />
             </div>
 
@@ -818,13 +818,17 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
 
       {/* QR SCANNER MODAL */}
       {isStudent && qrModal && !qrModal.isDemo && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setQrModal(null); }}>
-          <div className="surface rounded-3xl p-7 max-w-sm w-full space-y-6 text-center relative shadow-lg" role="dialog" aria-modal="true" aria-labelledby="qr-checkin-heading" onMouseDown={(event) => event.stopPropagation()}>
+        <DismissibleDialog
+          onClose={() => setQrModal(null)}
+          labelledBy="qr-checkin-heading"
+          overlayClassName="bg-black/80 backdrop-blur-md"
+          className="surface relative my-4 max-h-[calc(100vh-2rem)] w-full max-w-sm space-y-6 overflow-y-auto rounded-3xl p-7 text-center shadow-lg"
+        >
             <button
               type="button"
               onClick={() => setQrModal(null)}
               aria-label="Close QR check-in"
-              className="absolute top-4 right-4 text-muted hover:text-[#1d1d1f] p-1 transition"
+              className="icon-btn absolute right-4 top-4"
             >
               <X className="w-5 h-5" />
             </button>
@@ -877,8 +881,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                 <span>{isScanning ? 'Verifying...' : qrModal.attended ? 'Attendance already logged' : qrModal.qrCode ? 'Verify QR check-in' : 'Verify attendance (demo)'}</span>
               </button>
             )}
-          </div>
-        </div>
+        </DismissibleDialog>
       )}
 
       {/* DEEP WORKSHOP DETAILS MODAL */}
@@ -892,7 +895,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
               type="button"
               onClick={() => setSelectedWorkshop(null)}
               aria-label="Close modal"
-              className="absolute top-5 right-5 text-muted hover:text-[#1d1d1f] p-1.5 rounded-full hover:bg-black/[0.05] transition"
+              className="icon-btn absolute right-5 top-5"
             >
               <X className="w-6 h-6" />
             </button>
@@ -930,7 +933,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             </div>
 
             {/* Logistics & Access Coordinates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="surface p-4 rounded-2xl space-y-2 border border-black/10">
                 <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase">
                   <MapPin className="w-4 h-4 text-crimson" /> Physical Venue & Facility
@@ -1002,8 +1005,8 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
             </div>
 
             {/* Action Buttons inside Modal */}
-            <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-black/10">
-              {!selectedWorkshop.isDemo ? <Link href={`/workshops/${encodeURIComponent(selectedWorkshop.id)}`} className="secondary-btn text-xs py-2.5 px-5 font-bold">Open full event page</Link> : null}
+            <div className="flex flex-col items-stretch gap-3 border-t border-black/10 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+              {!selectedWorkshop.isDemo ? <Link href={`/workshops/${encodeURIComponent(selectedWorkshop.id)}`} className="secondary-btn w-full font-bold sm:w-auto">Open full event page</Link> : null}
               {isStudent && !selectedWorkshop.isDemo ? (
                 <>
                   <button
@@ -1016,7 +1019,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                       setCheckInXp(0);
                       setAlreadyCheckedIn(Boolean(target.attended));
                     }}
-                    className="secondary-btn text-xs py-2.5 px-5 font-bold"
+                    className="secondary-btn w-full font-bold sm:w-auto"
                   >
                     <QrCode className="w-4 h-4" />
                     <span>Launch QR Check-in Scanner</span>
@@ -1029,9 +1032,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
                       setSelectedWorkshop(prev => prev ? { ...prev, registered: !prev.registered } : null);
                     }}
                     disabled={busyId === selectedWorkshop.id || (!selectedWorkshop.registered && selectedWorkshop.seatsLeft === 0)}
-                    className={`py-2.5 px-6 rounded-xl text-xs font-bold transition flex items-center gap-2 disabled:opacity-60 ${
-                      selectedWorkshop.registered ? 'bg-emerald-100 text-emerald-800 border border-emerald-500/40' : 'crimson-btn'
-                    }`}
+                    className={`w-full font-bold sm:w-auto ${selectedWorkshop.registered ? 'secondary-btn btn-success' : 'crimson-btn'} disabled:opacity-60`}
                   >
                     {selectedWorkshop.registered ? <CheckCircle2 className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                     <span>{selectedWorkshop.registered ? 'Registered for Workshop' : 'Confirm Workshop Registration'}</span>
@@ -1055,7 +1056,7 @@ export default function WorkshopHub({ student, activeFaculty, currentRole = 'STU
               type="button"
               onClick={() => setSelectedCourse(null)}
               aria-label="Close modal"
-              className="absolute top-5 right-5 text-muted hover:text-[#1d1d1f] p-1.5 rounded-full hover:bg-black/[0.05] transition"
+              className="icon-btn absolute right-5 top-5"
             >
               <X className="w-6 h-6" />
             </button>

@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Hourglass,
   Layers,
+  Flame,
   Search,
   ShieldCheck,
   Sparkles,
@@ -471,7 +472,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search by title, partner or skill"
-                className="h-11 w-full rounded-[18px] border border-black/10 bg-black/[0.04] pl-11 pr-4 text-sm text-[#1d1d1f] transition placeholder:text-black/20 focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
+                className="h-11 w-full rounded-[18px] border border-black/10 bg-black/[0.04] pl-11 pr-4 text-sm text-[#1d1d1f] transition placeholder:text-black/40 focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
               />
             </div>
 
@@ -497,7 +498,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
             <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-black/10 bg-black/[0.03] p-1">
               {[
                 { id: 'match', label: 'Best match' },
-                { id: 'hot', label: '🔥 Hottest' },
+                { id: 'hot', label: 'Hottest', icon: Flame },
                 { id: 'newest', label: 'Newest' },
                 { id: 'xp', label: 'Most XP' },
                 { id: 'title', label: 'A–Z' },
@@ -511,6 +512,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
                     sortMode === option.id ? 'bg-crimson text-white' : 'text-muted hover:text-[#1d1d1f]'
                   }`}
                 >
+                  {option.icon ? <option.icon className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" /> : null}
                   {option.label}
                 </button>
               ))}
@@ -559,7 +561,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
               <p className="mt-1 text-sm text-muted">Try a skill name like &ldquo;analytics&rdquo;, or clear the provider and level filters.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {visibleCourses.map(({ course, score, recommended, why }) => (
                 <CourseCard
                   key={course.id}
@@ -595,7 +597,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {sortedPaths.map((path) => (
               <PathCard
                 key={path.id}
@@ -641,7 +643,7 @@ export default function LearningHub({ student, activeFaculty, currentRole = 'STU
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {COURSE_CATALOGUE.filter((course) => statusById[course.id]).map((course) => (
                   <CourseCard
                     key={course.id}

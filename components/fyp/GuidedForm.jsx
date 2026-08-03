@@ -31,7 +31,7 @@ export default function GuidedForm({ formData, onFieldChange }) {
               value={formData[field.id] || ''}
               onChange={(e) => onFieldChange(field.id, e.target.value)}
               required={field.required}
-              className="w-full p-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition leading-relaxed"
+              className="w-full p-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition leading-relaxed"
             />
           ) : (
             <input
@@ -41,7 +41,7 @@ export default function GuidedForm({ formData, onFieldChange }) {
               value={formData[field.id] || ''}
               onChange={(e) => onFieldChange(field.id, e.target.value)}
               required={field.required}
-              className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+              className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
             />
           )}
         </div>

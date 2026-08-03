@@ -33,8 +33,14 @@ export default function ProfileSettings() {
             <UserCircle className="h-6 w-6 text-crimson" aria-hidden="true" /> Profile &amp; settings
           </h1>
           <p className="section-subtitle mt-1.5 max-w-2xl">
-            Keep your details and resume up to date. Everything you change here is saved to your QIU
-            account, not just to this browser.
+            {/* This used to claim EVERYTHING here saves to the QIU account.
+                Your details and resume do; notification preferences are still
+                stored per-browser (see NotificationPreferences below), so the
+                blanket claim was false for that one tab. Scoped rather than
+                deleted, because the guarantee is real and worth stating where
+                it actually holds. */}
+            Keep your details and resume up to date. Your details, links and resume are saved to your
+            QIU account, so they follow you to any device.
           </p>
         </div>
         <span className="badge-pill w-fit border border-black/10 bg-white text-muted">

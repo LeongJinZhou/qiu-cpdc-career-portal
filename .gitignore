@@ -58,3 +58,5 @@ pnpm-debug.log*
 .vscode/
 *.swp
 *.swo
+.next-verify/
+.next-dev/

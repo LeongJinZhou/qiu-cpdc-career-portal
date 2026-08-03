@@ -56,21 +56,43 @@
 
   --font-outfit: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Shared interaction geometry. Keep these values in one place so a role
+     workspace does not acquire its own button language. */
+  --control-height-sm: 2.5rem;
+  --control-height: 2.75rem;
+  --control-height-lg: 3rem;
+  --focus-ring: rgba(176, 0, 19, 0.24);
 }
 
-html, body {
-  background-color: var(--bg-canvas);
-  color: var(--ink);
-  font-family: var(--font-inter);
-  min-height: 100vh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+/*
+ * Element defaults live in `@layer base` for the same reason the file refuses a
+ * `* { margin: 0 }` reset: Tailwind v4 emits utilities into `@layer utilities`,
+ * and UNLAYERED CSS BEATS LAYERED CSS regardless of specificity.
+ *
+ * Unlayered, the heading rule below silently defeated every `tracking-*`
+ * utility in the app. Around twenty small uppercase labels were rendering at
+ * -0.02em instead of the positive tracking they declared -- and tight negative
+ * tracking on 11px uppercase text is the worst legibility combination there is.
+ * Nothing looked broken, which is exactly why it survived so long.
+ *
+ * Anything targeting a bare element selector belongs in here.
+ */
+@layer base {
+  html, body {
+    background-color: var(--bg-canvas);
+    color: var(--ink);
+    font-family: var(--font-inter);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: var(--font-outfit);
-  letter-spacing: -0.02em;
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-outfit);
+    letter-spacing: -0.02em;
+  }
 }
 
 /* Custom scrollbar — light, unobtrusive. */
@@ -147,7 +169,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     font-weight: 600;
     border: none;
     border-radius: 980px; /* Apple pill */
-    padding: 0.6rem 1.25rem;
+    min-height: var(--control-height);
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    justify-content: center;
+    text-align: center;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -170,7 +197,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     border: 1px solid var(--line-strong);
     font-weight: 500;
     border-radius: 980px;
-    padding: 0.6rem 1.25rem;
+    min-height: var(--control-height);
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    justify-content: center;
+    text-align: center;
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease;
     display: inline-flex;
@@ -214,6 +246,93 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     border-color: var(--crimson);
     box-shadow: 0 0 0 3px var(--crimson-tint);
   }
+}
+
+/*
+ * Shared control contract.
+ *
+ * This block intentionally sits outside Tailwind's layers. A component can
+ * still opt into `.btn-compact` or `.btn-lg`, but accidental `py-2`/`text-xs`
+ * utilities cannot silently create a 32px action in one module and a 52px
+ * action in another. The 44px default is the portal's minimum touch target.
+ */
+.crimson-btn,
+.secondary-btn {
+  min-height: var(--control-height);
+  padding-block: 0;
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.crimson-btn.btn-compact,
+.secondary-btn.btn-compact {
+  min-height: var(--control-height-sm);
+  padding-inline: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.crimson-btn.btn-lg,
+.secondary-btn.btn-lg {
+  min-height: var(--control-height-lg);
+  padding-inline: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.secondary-btn.btn-between {
+  justify-content: space-between;
+  text-align: left;
+}
+
+.secondary-btn.btn-success {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.secondary-btn.btn-success:hover {
+  border-color: #6ee7b7;
+  background: #d1fae5;
+}
+
+.icon-btn {
+  display: inline-flex;
+  min-height: var(--control-height);
+  min-width: var(--control-height);
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  color: var(--muted);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ink);
+}
+
+.crimson-btn:disabled,
+.secondary-btn:disabled,
+.crimson-btn[aria-disabled='true'],
+.secondary-btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
+  transform: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 @layer components {

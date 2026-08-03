@@ -22,6 +22,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { careerPathFor, milestoneId } from '@/lib/data/roadmaps';
+import Disclosure from '@/components/ui/Disclosure';
 import {
   fetchLifecycleStatus,
   fetchMilestoneCompletions,
@@ -260,7 +261,7 @@ export default function CareerPath({ student, activeFaculty }) {
         </div>
 
         {/* 4-Stage Horizontal Flow Diagram */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+        <div className="relative grid grid-cols-1 gap-4 lg:grid-cols-4">
           {stages.map((stage, idx) => {
             const isCurrent = stage.year === currentYear;
             const isPast = stage.year < currentYear;
@@ -323,91 +324,112 @@ export default function CareerPath({ student, activeFaculty }) {
         </div>
       </div>
 
-      {/* VERIFIED LIFECYCLE RULES */}
-      <div className="surface p-6 space-y-6 border border-crimson/25 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
-          <div className="space-y-1">
-            <h3 className="text-lg font-heading font-bold flex items-center gap-2.5 text-white">
-              <ShieldCheck className="w-6 h-6 text-crimson animate-pulse" />
-              <span>Verified Lifecycle Rules</span>
+      {/*
+        VERIFIED LIFECYCLE RULES
+
+        Restructured for two reasons. First, this was a dark slate/black
+        gradient panel dropped into a light app -- a visible design break on the
+        flagship student screen. Second, ~85 lines of governance prose sat
+        permanently above the live state a student actually returns to check.
+
+        So: the live state and its action stay open (that is the recurring
+        need), and the three rule explanations -- read once, never again -- move
+        behind a disclosure. Nothing was deleted; the governance text is one tap
+        away and still fully readable.
+      */}
+      <section aria-labelledby="lifecycle-heading" className="surface overflow-hidden">
+        <div className="flex flex-col gap-4 border-b border-black/10 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+          <div className="min-w-0 space-y-1">
+            <h3 id="lifecycle-heading" className="flex items-center gap-2.5 font-heading text-base font-semibold text-[#1d1d1f]">
+              <ShieldCheck className="h-5 w-5 flex-shrink-0 text-crimson" aria-hidden="true" />
+              <span>Verified lifecycle</span>
             </h3>
-            <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
-              This panel shows the implemented lifecycle rule and the boundaries for related approval and scoring workflows. Other approvals remain in their source modules.
+            <p className="max-w-2xl text-xs leading-relaxed text-muted">
+              Your internship status updates automatically from supervisor-approved logbook hours.
             </p>
           </div>
-          <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-crimson/20 text-red-300 border border-crimson/50 whitespace-nowrap self-start sm:self-center">
-            ● Approved-hours rule active
+          <span className="badge-pill self-start whitespace-nowrap border border-emerald-300 bg-emerald-50 text-emerald-800">
+            Approved-hours rule active
           </span>
-        </div>
-
-        {/* Lifecycle and progress rules */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-red-400 uppercase tracking-wide">
-              <Briefcase className="w-4 h-4" /> Rule 1: Internship completion
-            </div>
-            <p className="text-sm font-bold text-white">Approved-hours lifecycle transition</p>
-            <p className="text-xs text-white/70 leading-relaxed">
-              When approved Logbook hours reach the configured threshold, the lifecycle status changes to <span className="text-white font-bold">Internship Complete</span> and the transition is recorded in the event and audit trails. This does not approve other student work.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wide">
-              <GraduationCap className="w-4 h-4" /> Rule 2: FYP approval
-            </div>
-            <p className="text-sm font-bold text-white">FYP approval stays in the FYP workflow</p>
-            <p className="text-xs text-white/70 leading-relaxed">
-              A supervisor or programme approval is the source of truth for FYP status. This career-path panel does not grant approval, change email access, or claim alumni-directory placement.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wide">
-              <Zap className="w-4 h-4" /> Rule 3: Diagnostic scoring
-            </div>
-            <p className="text-sm font-bold text-white">Rules-based diagnostic score</p>
-            <p className="text-xs text-white/70 leading-relaxed">
-              The diagnostic scores submitted answers against its question key, labels lower-scoring categories as focus areas, and feeds those tags into workshop matching. It does not register students for events or academic tracks automatically.
-            </p>
-          </div>
         </div>
 
         {/* Live lifecycle state. The action re-checks real approved hours; it
             cannot mark an internship complete by itself. */}
-        <div className="pt-2 border-t border-white/10 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="grid gap-4 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              <span className="font-bold uppercase tracking-wide text-white/60">Live lifecycle state</span>
-              <span className={`font-bold ${lifecycle?.status === 'INTERNSHIP_COMPLETE' ? 'text-emerald-400' : 'text-amber-300'}`}>
+              <span className="font-semibold uppercase tracking-wide text-muted">Live lifecycle state</span>
+              <span className={`font-bold ${lifecycle?.status === 'INTERNSHIP_COMPLETE' ? 'text-emerald-700' : 'text-amber-700'}`}>
                 {lifecycleLoading ? 'Loading…' : (lifecycle?.status ?? 'ACTIVE_STUDENT').replaceAll('_', ' ')}
               </span>
             </div>
-            <div className="flex items-center justify-between gap-3 text-xs text-white/70">
+            <div className="flex items-center justify-between gap-3 text-xs text-muted">
               <span>Verified logbook hours</span>
-              <span className="font-bold text-white">
+              <span className="font-bold text-[#1d1d1f]">
                 {Number(lifecycle?.approvedHours ?? 0).toFixed(1)} / {lifecycle?.threshold ?? 100} hours
               </span>
             </div>
-            <div className="h-2 rounded-full bg-white/10" role="progressbar" aria-label="Verified internship hours" aria-valuemin="0" aria-valuemax={lifecycle?.threshold ?? 100} aria-valuenow={Math.min(Number(lifecycle?.approvedHours ?? 0), lifecycle?.threshold ?? 100)}>
-              <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${Math.min(100, (Number(lifecycle?.approvedHours ?? 0) / (lifecycle?.threshold || 100)) * 100)}%` }} />
+            <div className="h-2 rounded-full bg-black/[0.08]" role="progressbar" aria-label="Verified internship hours" aria-valuemin="0" aria-valuemax={lifecycle?.threshold ?? 100} aria-valuenow={Math.min(Number(lifecycle?.approvedHours ?? 0), lifecycle?.threshold ?? 100)}>
+              <div className="h-full rounded-full bg-emerald-600 transition-all" style={{ width: `${Math.min(100, (Number(lifecycle?.approvedHours ?? 0) / (lifecycle?.threshold || 100)) * 100)}%` }} />
             </div>
-            <p className="text-[11px] leading-relaxed text-white/60">
-              Supervisor approvals trigger this rule automatically. The outbox event, audit entry, and student lifecycle state are recorded together.
-            </p>
           </div>
 
           <button
             type="button"
             onClick={handleLifecycleCheck}
             disabled={lifecycleChecking}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold text-white transition hover:bg-white/15 disabled:opacity-60"
+            className="secondary-btn inline-flex min-h-[44px] items-center justify-center gap-2 px-4 text-xs font-semibold disabled:opacity-60"
           >
-            {lifecycleChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {lifecycleChecking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ShieldCheck className="h-4 w-4" aria-hidden="true" />}
             {lifecycleChecking ? 'Checking verified hours…' : 'Re-check lifecycle status'}
           </button>
         </div>
-      </div>
+
+        <div className="border-t border-black/10 px-5 sm:px-6">
+          <Disclosure
+            variant="inline"
+            title="How these rules work"
+            summary="What updates automatically, and what stays with your supervisor"
+            persistKey="careerpath.lifecycle-rules"
+            defaultOpen={false}
+          >
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div className="space-y-2 rounded-[14px] border border-black/10 bg-black/[0.02] p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-crimson">
+                  <Briefcase className="h-4 w-4" aria-hidden="true" /> Rule 1: Internship completion
+                </div>
+                <p className="text-sm font-semibold text-[#1d1d1f]">Approved-hours lifecycle transition</p>
+                <p className="text-xs leading-relaxed text-muted">
+                  When approved Logbook hours reach the configured threshold, the lifecycle status changes to <span className="font-semibold text-[#1d1d1f]">Internship Complete</span> and the transition is recorded in the event and audit trails. This does not approve other student work.
+                </p>
+              </div>
+
+              <div className="space-y-2 rounded-[14px] border border-black/10 bg-black/[0.02] p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  <GraduationCap className="h-4 w-4" aria-hidden="true" /> Rule 2: FYP approval
+                </div>
+                <p className="text-sm font-semibold text-[#1d1d1f]">FYP approval stays in the FYP workflow</p>
+                <p className="text-xs leading-relaxed text-muted">
+                  A supervisor or programme approval is the source of truth for FYP status. This career-path panel does not grant approval, change email access, or claim alumni-directory placement.
+                </p>
+              </div>
+
+              <div className="space-y-2 rounded-[14px] border border-black/10 bg-black/[0.02] p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-700">
+                  <Zap className="h-4 w-4" aria-hidden="true" /> Rule 3: Diagnostic scoring
+                </div>
+                <p className="text-sm font-semibold text-[#1d1d1f]">Rules-based diagnostic score</p>
+                <p className="text-xs leading-relaxed text-muted">
+                  The diagnostic scores submitted answers against its question key, labels lower-scoring categories as focus areas, and feeds those tags into workshop matching. It does not register students for events or academic tracks automatically.
+                </p>
+              </div>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted">
+              Supervisor approvals trigger these rules automatically. The outbox event, audit entry, and student lifecycle state are recorded together.
+            </p>
+          </Disclosure>
+        </div>
+      </section>
 
       {/* Self-reported progress + sticky year tabs */}
       <div className="surface p-5 md:p-6 space-y-5 sticky top-2 z-20">
@@ -603,7 +625,7 @@ export default function CareerPath({ student, activeFaculty }) {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-5 pb-5 pt-1 grid grid-cols-1 md:grid-cols-2 gap-2.5 border-t border-black/[0.06]">
+                    <div className="grid grid-cols-1 gap-2.5 border-t border-black/[0.06] px-5 pb-5 pt-1 lg:grid-cols-2">
                       {stage.items.map((item, i) => (
                         <div
                           key={item.id}
@@ -617,7 +639,12 @@ export default function CareerPath({ student, activeFaculty }) {
                             disabled={savingId === item.id}
                             aria-pressed={item.selfReported}
                             aria-label={item.selfReported ? `Remove self-report for "${item.label}"` : `Self-report "${item.label}" as complete`}
-                            className="shrink-0 mt-0.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-crimson/40 disabled:opacity-60"
+                            /* The 20px icon was the entire hit area, for the
+                               primary action of the whole module -- under half
+                               the 44px minimum. Negative margins keep the icon
+                               optically where it was while the touch target
+                               grows around it, so nothing shifts visually. */
+                            className="-m-2.5 mt-[-0.375rem] flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition hover:bg-black/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-crimson/40 disabled:opacity-60"
                           >
                             {savingId === item.id ? (
                               <Loader2 className="w-5 h-5 text-crimson animate-spin" />

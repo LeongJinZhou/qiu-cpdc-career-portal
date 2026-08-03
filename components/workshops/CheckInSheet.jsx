@@ -108,7 +108,7 @@ export default function CheckInSheet({ event, onConfirm, onClose }) {
               onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setError(''); }}
               placeholder="000000"
               aria-describedby={error ? 'checkin-error' : 'checkin-hint'}
-              className="w-full rounded-[18px] border border-black/10 bg-black/[0.04] px-4 py-4 text-center font-mono text-3xl tracking-[0.4em] text-[#1d1d1f] placeholder:text-black/20 focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
+              className="w-full rounded-[18px] border border-black/10 bg-black/[0.04] px-4 py-4 text-center font-mono text-3xl tracking-[0.4em] text-[#1d1d1f] placeholder:text-black/40 focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
             />
 
             {error && (

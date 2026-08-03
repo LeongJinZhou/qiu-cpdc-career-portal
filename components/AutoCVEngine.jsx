@@ -13,8 +13,10 @@ import {
   RefreshCw,
   History,
   ScanSearch,
+  AlertCircle,
 } from 'lucide-react';
 import { fetchCvData } from '@/lib/api';
+import Disclosure from '@/components/ui/Disclosure';
 
 export default function AutoCVEngine({ student, activeFaculty }) {
   const cvRef = useRef(null);
@@ -43,6 +45,16 @@ export default function AutoCVEngine({ student, activeFaculty }) {
   const certifications = live?.certifications ?? [];
   const manualSections = live?.manualSections ?? { experience: [], volunteering: [], achievements: [] };
   const uploadedResume = live?.uploadedResume ?? null;
+  // The collapsed summary must stand alone -- a row reading only "Data sources"
+  // would be worse than no collapsing at all, because the student could not
+  // tell whether anything is actually connected without opening it.
+  const sourceSummary = [
+    student?.programme ? 'Academic profile' : null,
+    uploadedResume ? 'Uploaded resume' : null,
+    badges.length ? `${badges.length} badge${badges.length === 1 ? '' : 's'}` : null,
+    loggedHours ? `${Number(loggedHours).toFixed(0)} verified hours` : null,
+  ].filter(Boolean).join(' · ') || 'Nothing synced yet';
+
   const manualEntries = Object.entries(manualSections).flatMap(([section, entries]) => (
     (entries ?? []).map((entry) => ({ ...entry, section }))
   ));
@@ -276,11 +288,30 @@ export default function AutoCVEngine({ student, activeFaculty }) {
         {/* Left Side (5 Cols): Data Sources & Controls */}
         <div className="lg:col-span-5 space-y-5">
           
-          <div className="surface p-6 space-y-4">
-            <h3 className="font-heading font-semibold text-sm text-[#1d1d1f] flex items-center gap-2 border-b border-black/10 pb-3">
-              <Sparkles className="w-4 h-4 text-crimson" />
-              <span>Auto-Synced Data Sources</span>
-            </h3>
+          {/*
+            Four read-only status tiles used to occupy the top of this column,
+            above the controls the student actually came here to use. They are
+            reassurance ("yes, the data is connected"), not a task -- so they
+            collapse behind a one-line summary that carries the same
+            reassurance without the vertical cost.
+
+            The pending-entries warning is deliberately hoisted OUT of the
+            collapsed area: it explains why the CV is missing content, which is
+            an active problem the student must be able to see without hunting.
+          */}
+          <Disclosure
+            title="Auto-synced data sources"
+            summary={sourceSummary}
+            icon={Sparkles}
+            persistKey="cv.data-sources"
+            defaultOpen={false}
+            badge={
+              <span className="badge-pill border border-emerald-300 bg-emerald-50 text-emerald-800">
+                Synced
+              </span>
+            }
+          >
+            <div className="space-y-4">
 
             {/* Source Item 1 */}
             <div className="p-4 rounded-[18px] bg-black/[0.03] border border-black/[0.06] space-y-1.5">
@@ -348,13 +379,21 @@ export default function AutoCVEngine({ student, activeFaculty }) {
                   ? `${logbookEntries.length} approved entr${logbookEntries.length === 1 ? 'y is' : 'ies are'} ready for export.`
                   : 'No approved fieldwork entries are ready for export yet.'}
               </p>
-              {pendingLogbookEntries.length > 0 ? (
-                <p className="text-xs text-amber-700">
-                  {pendingLogbookEntries.length} pending entr{pendingLogbookEntries.length === 1 ? 'y is' : 'ies are'} not included until a supervisor approves {pendingLogbookEntries.length === 1 ? 'it' : 'them'}.
-                </p>
-              ) : null}
             </div>
-          </div>
+            </div>
+          </Disclosure>
+
+          {/* Kept outside the disclosure on purpose: this is the reason a CV
+              looks incomplete, and a student must not have to expand a panel
+              to discover it. */}
+          {pendingLogbookEntries.length > 0 ? (
+            <p className="flex items-start gap-2 rounded-[18px] border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-800" role="status">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+              <span>
+                {pendingLogbookEntries.length} pending fieldwork entr{pendingLogbookEntries.length === 1 ? 'y is' : 'ies are'} not included in your CV until a supervisor approves {pendingLogbookEntries.length === 1 ? 'it' : 'them'}.
+              </span>
+            </p>
+          ) : null}
 
           {/* Editable Executive Summary */}
           <div className="surface p-6 space-y-3">
@@ -364,7 +403,7 @@ export default function AutoCVEngine({ student, activeFaculty }) {
               value={summaryText}
               onChange={(e) => setSummaryText(e.target.value)}
               rows={4}
-              className="w-full p-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#424245] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition leading-relaxed"
+              className="w-full p-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#424245] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition leading-relaxed"
             />
             {aiReview && <div className="rounded-[16px] border border-black/10 bg-black/[0.025] p-4" role="status"><div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold uppercase tracking-wide text-muted">Inline resume review</span><span className={`font-heading text-xl font-bold ${aiReview.score >= 67 ? 'text-emerald-600' : 'text-amber-600'}`}>{aiReview.score}/100</span></div><div className="mt-3 space-y-2">{aiReview.checks.map((check) => <p key={check.label} className={`flex items-center gap-2 text-xs ${check.passed ? 'text-emerald-700' : 'text-amber-700'}`}>{check.passed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}{check.label}</p>)}</div>{aiReview.score < 100 && <button type="button" onClick={applySuggestion} className="mt-3 text-xs font-semibold text-crimson hover:underline">Apply suggested rewrite</button>}</div>}
           </div>

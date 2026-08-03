@@ -10,6 +10,25 @@ import { awardXpOnce } from '@/lib/xp-ledger';
 import { XP_VALUES } from '@/lib/xp';
 import { courseById } from '@/lib/data/courses';
 
+/**
+ * Resolve a course's canonical skill badge.
+ *
+ * The live catalogue is the CatalogCourse table; the fixture is only a
+ * first-paint fallback. Reading the fixture alone meant a course that exists in
+ * the database but not in lib/data/courses.js -- i.e. anything CPDC adds after
+ * this file was written -- silently lost its skill badge, and with it the CV
+ * skill line and the badge award on verification.
+ *
+ * Falls back to the fixture so nothing regresses for the original entries.
+ */
+async function resolveSkillBadge(courseId) {
+  const row = await prisma.catalogCourse.findFirst({
+    where: { externalId: { endsWith: `:${courseId}` } },
+    select: { skillBadge: true },
+  });
+  return row?.skillBadge ?? courseById(courseId)?.skillBadge ?? null;
+}
+
 const REVIEW_ROLES = new Set([
   'HEAD_OF_PROGRAMME',
   'FACULTY_COORDINATOR',
@@ -154,13 +173,16 @@ export async function POST(request) {
     const actor = requireStudentActor(await resolveActor(request));
     const body = submissionSchema.parse(await parseJsonBody(request));
     const now = new Date();
+    // Resolved before the transaction so the DB lookup does not extend the
+    // transaction's lifetime for a value that is only advisory.
+    const resolvedSkillBadge = await resolveSkillBadge(body.courseId);
     const record = await prisma.$transaction(async (tx) => {
       const saved = await tx.courseEnrolment.upsert({
         where: { studentId_courseId: { studentId: actor.student.id, courseId: body.courseId } },
         update: {
           title: body.title,
           provider: body.provider ?? null,
-          skillTag: body.skillTag ?? courseById(body.courseId)?.skillBadge ?? null,
+          skillTag: body.skillTag ?? resolvedSkillBadge,
           status: 'COMPLETED',
           certificateUrl: body.evidenceUrl ?? null,
           evidenceUrl: body.evidenceUrl ?? null,
@@ -176,7 +198,7 @@ export async function POST(request) {
           courseId: body.courseId,
           title: body.title,
           provider: body.provider ?? null,
-          skillTag: body.skillTag ?? courseById(body.courseId)?.skillBadge ?? null,
+          skillTag: body.skillTag ?? resolvedSkillBadge,
           status: 'COMPLETED',
           certificateUrl: body.evidenceUrl ?? null,
           evidenceUrl: body.evidenceUrl ?? null,

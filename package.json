@@ -22,7 +22,9 @@
     "skills:route": "node scripts/auto-skill-router.mjs",
     "deploy": "npm run deploy:auto",
     "deploy:auto": "node scripts/autonomous_deploy_agent.mjs",
-    "catalog:sync": "node scripts/sync-catalog.mjs"
+    "catalog:sync": "node scripts/sync-catalog.mjs",
+    "build:check": "NEXT_DIST_DIR=.next-verify prisma generate && NEXT_DIST_DIR=.next-verify next build",
+    "dev:isolated": "NEXT_DIST_DIR=.next-dev next dev"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"

@@ -112,7 +112,7 @@ export default function NotificationBell({ role }) {
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={unreadCount ? `${unreadCount} unread notifications` : 'Notifications'}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-muted transition hover:bg-black/[0.04] hover:text-[#1d1d1f]"
+        className="icon-btn relative border border-black/10 bg-white"
       >
         <Bell className="h-4 w-4" aria-hidden="true" />
         {unreadCount > 0 && (
@@ -135,12 +135,12 @@ export default function NotificationBell({ role }) {
             </div>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
-                <button type="button" onClick={markAllRead} className="rounded-lg p-2 text-muted hover:bg-black/[0.04]" title="Mark all as read">
+                <button type="button" onClick={markAllRead} className="icon-btn" title="Mark all as read">
                   <CheckCheck className="h-4 w-4" aria-hidden="true" />
                   <span className="sr-only">Mark all as read</span>
                 </button>
               )}
-              <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted hover:bg-black/[0.04]" aria-label="Close notifications">
+              <button type="button" onClick={() => setOpen(false)} className="icon-btn" aria-label="Close notifications">
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -180,4 +180,3 @@ export default function NotificationBell({ role }) {
     </div>
   );
 }
-

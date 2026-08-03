@@ -4,8 +4,21 @@
     {
       "name": "cpdc-platform-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "cpdc-isolated",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:isolated"
+      ],
+      "port": 4100,
       "autoPort": true
     }
   ]

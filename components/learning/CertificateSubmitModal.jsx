@@ -120,7 +120,7 @@ export default function CertificateSubmitModal({ course, autoApprove = false, on
                 value={link}
                 onChange={(event) => { setLink(event.target.value); setError(''); }}
                 placeholder="https://coursera.org/verify/..."
-                className="h-11 w-full rounded-[18px] border border-black/10 bg-black/[0.04] px-4 text-sm text-[#1d1d1f] transition placeholder:text-black/20 focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
+                className="h-11 w-full rounded-[18px] border border-black/10 bg-black/[0.04] px-4 text-sm text-[#1d1d1f] transition placeholder:text-black/40 focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson"
               />
               <p className="mt-1.5 text-[11px] text-muted">
                 Providers publish a shareable verification page for each certificate — paste that link.

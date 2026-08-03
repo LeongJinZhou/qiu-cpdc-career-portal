@@ -52,6 +52,14 @@ function summarizeScope(user) {
   return user.assignments.map((assignment) => `${assignment.scopeType}:${assignment.scopeValue}`).join(', ');
 }
 
+/**
+ * @param user The User record itself, NOT the row wrapper.
+ *
+ * Call sites pass `{ user, student, assignments }` rows, and this used to be
+ * handed the wrapper. `wrapper.loginAllowed` and `wrapper.accountStatus` are
+ * both undefined, so every row rendered "undefined · blocked" -- telling an
+ * administrator that every active, allowlisted account was locked out.
+ */
 function summarizeStatus(user) {
   return user.loginAllowed ? `${user.accountStatus} · allowlisted` : `${user.accountStatus} · blocked`;
 }
@@ -452,7 +460,7 @@ export default function IdentityManagement({ activeFaculty, currentRole }) {
                   <td className="px-4 py-4 text-xs text-muted">
                     {user.student ? `${user.student.matricNo} · Year ${user.student.academicYear}` : 'No linked student record'}
                   </td>
-                  <td className="px-4 py-4 text-xs text-muted">{summarizeStatus(user)}</td>
+                  <td className="px-4 py-4 text-xs text-muted">{summarizeStatus(user.user)}</td>
                   <td className="px-4 py-4 text-right">
                     <button type="button" onClick={() => openEditDrawer(user)} className="secondary-btn px-3 py-2 text-xs">
                       <PencilLine className="h-3.5 w-3.5" />
@@ -514,7 +522,7 @@ export default function IdentityManagement({ activeFaculty, currentRole }) {
               {error ? <ApiNotice title="Could not save this identity record" body={error} /> : null}
               {authNotice ? <ApiNotice tone="warning" title="Real session required" body={authNotice} /> : null}
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <Field label="Email" htmlFor="identity-email">
                   <input id="identity-email" value={form.email} onChange={(event) => updateForm('email', event.target.value)} className="h-11 w-full rounded-[16px] border border-black/10 bg-white px-3 text-sm outline-none focus:border-crimson" placeholder="person@qiu.edu.my" />
                 </Field>
@@ -547,7 +555,7 @@ export default function IdentityManagement({ activeFaculty, currentRole }) {
                   <p className="font-semibold">Student profile (optional unless the account is a student)</p>
                   <p className="mt-1 text-sm text-muted">Format must be QIU-YYYYMM-NNNNNN. Faculty and programme must match.</p>
                 </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <Field label="Student ID" htmlFor="identity-matric">
                     <input id="identity-matric" value={form.studentProfile.matricNo} onChange={(event) => updateForm('studentProfile.matricNo', event.target.value)} className="h-11 w-full rounded-[16px] border border-black/10 bg-white px-3 text-sm outline-none focus:border-crimson" placeholder="QIU-202404-007157" />
                   </Field>
@@ -584,7 +592,7 @@ export default function IdentityManagement({ activeFaculty, currentRole }) {
                   {form.roleAssignments.length === 0 ? (
                     <p className="text-sm text-muted">No scoped assignments added yet.</p>
                   ) : form.roleAssignments.map((assignment, index) => (
-                    <div key={`${assignment.role}-${index}`} className="grid grid-cols-1 gap-3 rounded-[16px] border border-black/10 bg-white p-3 md:grid-cols-[1fr_1fr_1.1fr_auto]">
+                    <div key={`${assignment.role}-${index}`} className="grid grid-cols-1 gap-3 rounded-[16px] border border-black/10 bg-white p-3 lg:grid-cols-[1fr_1fr_1.1fr_auto]">
                       <select value={assignment.role} onChange={(event) => updateAssignment(index, 'role', event.target.value)} aria-label={`Role assignment ${index + 1} role`} className="h-11 rounded-[14px] border border-black/10 bg-white px-3 text-sm outline-none focus:border-crimson">
                         {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
                       </select>

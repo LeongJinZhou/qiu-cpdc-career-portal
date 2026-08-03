@@ -150,7 +150,29 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
 
       {tab === 'overview' && <AdminSuperDashboard overview={overview} />}
 
-      {tab === 'students' && <StudentHealth students={scopedStudents} currentRole={currentRole} facultyFilter={facultyFilter} setFacultyFilter={setFacultyFilter} query={query} setQuery={setQuery} onSelect={setSelectedStudent} loading={overviewLoading} />}
+      {tab === 'students' && (
+        <>
+          {/* The page header badge says "Live database operations", and for the
+              People, Audit and Analytics tabs that is true. This tab is not:
+              buildCohort() in components/admin/cohort.js synthesises a cohort
+              from the seeded student plus the faculty/workshop fixtures. An
+              administrator must not mistake a modelled cohort for a real one,
+              so the tab states its own provenance rather than inheriting a
+              claim made for its neighbours. */}
+          <p
+            className="mb-4 flex items-start gap-2 rounded-[18px] border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900"
+            role="note"
+          >
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+            <span>
+              <strong>Modelled cohort, not live data.</strong> This view projects one seeded student
+              across the faculty and workshop fixtures to demonstrate the at-risk signals. The
+              People, Audit and Analytics tabs read the real database.
+            </span>
+          </p>
+          <StudentHealth students={scopedStudents} currentRole={currentRole} facultyFilter={facultyFilter} setFacultyFilter={setFacultyFilter} query={query} setQuery={setQuery} onSelect={setSelectedStudent} loading={overviewLoading} />
+        </>
+      )}
 
       {tab === 'approvals' && (
         <div className="space-y-8">
@@ -197,7 +219,7 @@ function AnalyticsView({ students, overview }) {
 }
 
 function ApprovalSummary({ items }) {
-  return <section className="space-y-4"><div className="surface border-crimson/20 bg-crimson/[0.03] p-5"><div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-crimson" /><div><h2 className="font-heading font-semibold">Live review workload</h2><p className="mt-1 text-sm text-muted">Counts are derived from pending database records. Open the owning module to make a scoped decision.</p></div></div></div>{items.length ? <div className="grid gap-3 md:grid-cols-3">{items.map((item) => <div key={item.id} className="surface p-5"><p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.type}</p><p className="mt-2 font-heading text-3xl font-bold">{item.count}</p><p className="mt-1 text-xs text-muted">pending in this scope</p>{item.href ? <Link href={item.href} className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-crimson hover:underline">Open owning module <ArrowRight className="h-3.5 w-3.5" /></Link> : null}</div>)}</div> : <div className="surface p-10 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" /><p className="mt-3 font-semibold">Review workload clear</p><p className="mt-1 text-sm text-muted">New records will appear here when students submit them.</p></div>}</section>;
+  return <section className="space-y-4"><div className="surface border-crimson/20 bg-crimson/[0.03] p-5"><div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-crimson" /><div><h2 className="font-heading font-semibold">Live review workload</h2><p className="mt-1 text-sm text-muted">Counts are derived from pending database records. Open the owning module to make a scoped decision.</p></div></div></div>{items.length ? <div className="grid gap-3 lg:grid-cols-3">{items.map((item) => <div key={item.id} className="surface p-5"><p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.type}</p><p className="mt-2 font-heading text-3xl font-bold">{item.count}</p><p className="mt-1 text-xs text-muted">pending in this scope</p>{item.href ? <Link href={item.href} className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-crimson hover:underline">Open owning module <ArrowRight className="h-3.5 w-3.5" /></Link> : null}</div>)}</div> : <div className="surface p-10 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" /><p className="mt-3 font-semibold">Review workload clear</p><p className="mt-1 text-sm text-muted">New records will appear here when students submit them.</p></div>}</section>;
 }
 
 function IdentityDrawer({ student, canOverride, onClose }) {

@@ -317,7 +317,7 @@ export default function StudentDashboard({
                   </div>
 
                   {/* Tasks List */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-black/[0.06]">
+                  <div className="grid grid-cols-1 gap-3 border-t border-black/[0.06] pt-4 lg:grid-cols-3">
                     {stage.tasks.map((task, tIdx) => (
                       <button
                         type="button"
@@ -421,8 +421,9 @@ export default function StudentDashboard({
             <h4 className="text-xs uppercase font-extrabold text-crimson tracking-wider">Fast Actions</h4>
             <div className="grid grid-cols-1 gap-2">
               <button
+                type="button"
                 onClick={() => setActiveTab('autocv')}
-                className="w-full secondary-btn text-xs justify-between py-3"
+                className="w-full secondary-btn btn-between"
               >
                 <span className="flex items-center gap-2">
                   <FileCheck className="w-4 h-4 text-muted" />
@@ -432,8 +433,9 @@ export default function StudentDashboard({
               </button>
 
               <button
+                type="button"
                 onClick={() => setActiveTab('logbook')}
-                className="w-full secondary-btn text-xs justify-between py-3"
+                className="w-full secondary-btn btn-between"
               >
                 <span className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-muted" />

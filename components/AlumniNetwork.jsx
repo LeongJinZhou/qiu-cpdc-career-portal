@@ -135,6 +135,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
   const [bookingModal, setBookingModal] = useState(null); // alum object
   const [selectedSlot, setSelectedSlot] = useState('');
   const [bookedSuccess, setBookedSuccess] = useState(false);
+  const [bookingTopic, setBookingTopic] = useState('');
   const [bookings, setBookings] = useState([]); // { id, alumId, alumName, slot }
 
   // Discussion Feed State
@@ -213,6 +214,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
   const openBooking = (alum) => {
     setBookingModal(alum);
     setSelectedSlot(alum.coffeeChatSlots[0] || '');
+    setBookingTopic('');
     setBookedSuccess(false);
   };
 
@@ -220,9 +222,20 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
     e.preventDefault();
     if (!selectedSlot) return;
     // Record the booking in-memory so the card + summary can reflect it.
+    //
+    // `topic` is captured here deliberately. The textarea used to be
+    // uncontrolled and was never read, so a student wrote a considered request
+    // to a mentor and it evaporated on submit -- the worst kind of bug,
+    // because nothing appeared to fail.
     setBookings((prev) => [
       ...prev.filter((b) => b.alumId !== bookingModal.id),
-      { id: 'bk-' + Date.now(), alumId: bookingModal.id, alumName: bookingModal.name, slot: selectedSlot }
+      {
+        id: 'bk-' + Date.now(),
+        alumId: bookingModal.id,
+        alumName: bookingModal.name,
+        slot: selectedSlot,
+        topic: bookingTopic.trim(),
+      }
     ]);
     setBookedSuccess(true);
   };
@@ -391,7 +404,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
           </div>
 
           {/* Directory Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {filteredAlumni.map((alum) => {
               const isAvailable = mentorAvailable[alum.id];
               const booked = bookingFor(alum.id);
@@ -419,9 +432,18 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                         alumni profile will own the write action once the
                         network tables are connected. */}
                     <div className="flex items-center justify-between px-1">
+                      {/* The label carries the state, not the dot.
+                          This read "Available to mentor" for every alum
+                          regardless of `isAvailable`, with only an emerald-vs-grey
+                          dot distinguishing them -- so the text was actively
+                          wrong for unavailable mentors, and a colourblind or
+                          screen-reader user got the opposite of the truth. */}
                       <span className="text-xs font-semibold text-[#424245] flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-black/20'}`} />
-                        Available to mentor
+                        <span
+                          className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-black/20'}`}
+                          aria-hidden="true"
+                        />
+                        {isAvailable ? 'Available to mentor' : 'Not mentoring right now'}
                       </span>
                       {isAlumni ? (
                         <button
@@ -455,22 +477,24 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-black/10 flex items-center gap-3">
-                    <Link href={`/network/${encodeURIComponent(alum.id)}`} className="secondary-btn text-xs py-2 flex-1 justify-center">
+                  <div className="flex flex-col gap-2 border-t border-black/10 pt-4 sm:flex-row sm:items-center sm:gap-3">
+                    <Link href={`/network/${encodeURIComponent(alum.id)}`} className="secondary-btn w-full sm:flex-1">
                       View full profile
                     </Link>
                     <button
+                      type="button"
                       onClick={() => canInteract && openConnect(alum)}
                       disabled={requested || !canInteract}
-                      className={`secondary-btn text-xs py-2 flex-1 justify-center ${requested ? 'opacity-60 cursor-default' : ''}`}
+                      className={`secondary-btn w-full sm:flex-1 ${requested ? 'opacity-60 cursor-default' : ''}`}
                     >
                       {requested ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <UserPlus className="w-4 h-4" />}
                       <span>{requested ? 'Request Sent' : canInteract ? 'Connect' : 'View only'}</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => canBookMentor && openBooking(alum)}
                       disabled={!canBookMentor || !isAvailable || !!booked}
-                      className={`crimson-btn text-xs py-2 flex-1 justify-center ${(!isAvailable || booked) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`crimson-btn w-full sm:flex-1 ${(!isAvailable || booked) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <Calendar className="w-4 h-4" />
                       <span>{booked ? 'Booked' : canBookMentor ? 'Book Slot' : 'Student booking'}</span>
@@ -713,7 +737,7 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                           name="slot"
                           checked={selectedSlot === slot}
                           onChange={() => setSelectedSlot(slot)}
-                          className="accent-red-500"
+                          className="accent-crimson"
                         />
                       </label>
                     ))}
@@ -725,8 +749,10 @@ export default function AlumniNetwork({ student, activeFaculty, currentRole = 'S
                   <textarea
                     id="booking-topic"
                     rows={3}
+                    value={bookingTopic}
+                    onChange={(event) => setBookingTopic(event.target.value)}
                     placeholder="e.g. Would love advice on interviewing for MNC software engineering roles and resume tips..."
-                    className="w-full p-3.5 rounded-xl bg-black/[0.04] border border-black/10 text-xs text-[#1d1d1f] focus:outline-none focus:border-crimson"
+                    className="w-full p-3.5 rounded-xl bg-black/[0.04] border border-black/10 text-xs text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:border-crimson"
                     required
                   />
                 </div>

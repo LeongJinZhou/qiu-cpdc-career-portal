@@ -250,7 +250,7 @@ export default function TalentFeed({ currentRole = 'STUDENT' }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
           {filtered.map((entry) => {
             const interviewSent = sentIds.has(`${entry.id}:interview`);
             const coffeeSent = sentIds.has(`${entry.id}:coffee`);

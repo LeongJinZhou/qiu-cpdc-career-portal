@@ -370,7 +370,15 @@ export default function ModularLogbook({ student, activeFaculty }) {
 
           {/* Approval link success banner */}
           {lastApproval && (
-            <div className="surface p-5 border-emerald-500/30 bg-emerald-50/20 space-y-3">
+            /* role="status" is not decoration here. This banner carries a
+               SINGLE-USE approval token that is never shown again. Without a
+               live region a screen-reader user submits the form, hears nothing,
+               navigates away, and has permanently lost the link. */
+            <div
+              role="status"
+              aria-live="polite"
+              className="surface p-5 border-emerald-500/30 bg-emerald-50/20 space-y-3"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 text-emerald-700 text-sm font-semibold">
                   <CheckCircle2 className="w-4.5 h-4.5" />
@@ -379,8 +387,8 @@ export default function ModularLogbook({ student, activeFaculty }) {
                 <button
                   type="button"
                   onClick={() => setLastApproval(null)}
-                  className="text-muted hover:text-[#6e6e73] transition"
-                  aria-label="Dismiss"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted transition hover:bg-black/[0.04] hover:text-[#6e6e73]"
+                  aria-label="Dismiss the supervisor approval link banner"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -448,17 +456,25 @@ export default function ModularLogbook({ student, activeFaculty }) {
                           placeholder={field.placeholder}
                           value={formData[field.id] || ''}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                          className="w-full p-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition leading-relaxed"
+                          className="w-full p-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition leading-relaxed"
                           required
                         />
                       ) : (
                         <input
                           id={field.id}
                           type={field.type}
+                          /* The faculty log schemas render `hours` as
+                             type="number". On a phone that shows the full
+                             keyboard unless inputMode says otherwise, and this
+                             is the most-used numeric field in the product.
+                             min/step also stop "-3" or "2.7318" hours. */
+                          inputMode={field.type === 'number' ? 'decimal' : undefined}
+                          min={field.type === 'number' ? 0 : undefined}
+                          step={field.type === 'number' ? 0.25 : undefined}
                           placeholder={field.placeholder}
                           value={formData[field.id] || ''}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                          className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                          className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                           required
                         />
                       )}
@@ -475,7 +491,7 @@ export default function ModularLogbook({ student, activeFaculty }) {
                       placeholder="Who should sign off on this entry?"
                       value={supervisorName}
                       onChange={(e) => setSupervisorName(e.target.value)}
-                      className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                      className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                       required
                     />
                   </div>
@@ -488,7 +504,7 @@ export default function ModularLogbook({ student, activeFaculty }) {
                       placeholder="For emailing the magic link directly"
                       value={supervisorEmail}
                       onChange={(e) => setSupervisorEmail(e.target.value)}
-                      className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
+                      className="w-full h-11 px-4 rounded-[18px] bg-black/[0.04] border border-black/10 text-sm text-[#1d1d1f] placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-crimson focus:border-crimson transition"
                     />
                   </div>
 

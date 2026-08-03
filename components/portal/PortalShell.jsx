@@ -12,6 +12,7 @@ import { tierFor, tierProgress } from '@/lib/xp';
 import { usePortal } from './PortalProvider';
 import QiuLogo from './QiuLogo';
 import OnboardingTour from '@/components/OnboardingTour';
+import DismissibleDialog from '@/components/ui/DismissibleDialog';
 import { useSettings } from '@/lib/settings';
 import { signOutGoogle } from '@/lib/auth/firebase-client';
 import Avatar from '@/components/ui/Avatar';
@@ -150,6 +151,19 @@ export default function PortalShell({ children }) {
   return (
     <div className="min-h-screen bg-canvas text-[#1d1d1f]">
       {/*
+        Skip link (WCAG 2.4.1). Every route renders an 8-12 item sidebar before
+        <main>, so without this a keyboard or screen-reader user re-traverses
+        the whole navigation on every single page. Visually hidden until
+        focused, then the first thing in the tab order.
+      */}
+      <a
+        href="#portal-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-[14px] focus:bg-crimson focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
+      {/*
         ---------------- Side navigation ----------------
 
         Three layouts, not two, because a half-width desktop window is its own
@@ -186,7 +200,7 @@ export default function PortalShell({ children }) {
                 // hover tooltip both have to come from the element itself.
                 aria-label={mod.longLabel}
                 title={mod.longLabel}
-                className={`flex items-center justify-center gap-3 rounded-[14px] px-3 py-2.5 text-sm transition-colors lg:justify-start ${
+                className={`flex min-h-11 items-center justify-center gap-3 rounded-[14px] px-3 text-sm transition-colors lg:justify-start ${
                   active
                     ? 'bg-crimson font-semibold text-white'
                     : 'text-muted hover:bg-black/[0.03] hover:text-[#1d1d1f]'
@@ -257,14 +271,14 @@ export default function PortalShell({ children }) {
         keeps the bar beside the nav instead of on top of it.
       */}
       <header className="sticky top-0 z-40 border-b border-black/10 bg-canvas/90 backdrop-blur-xl md:ml-[72px] lg:ml-64">
-        <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-8">
+          <div className="flex min-w-0 items-center justify-between gap-3 px-4 py-3 lg:px-8">
           {/* Mobile brand + menu */}
-          <div className="flex items-center gap-3 md:hidden">
+          <div className="flex shrink-0 items-center gap-3 md:hidden">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="rounded-xl p-2 text-muted hover:bg-black/[0.03] hover:text-[#1d1d1f]"
+              className="icon-btn"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -284,7 +298,7 @@ export default function PortalShell({ children }) {
 
           {/* min-w-0 lets these shrink instead of overflowing the 375px bar. */}
           <div className="flex min-w-0 items-center gap-2">
-            <span className="inline-flex max-w-[8.5rem] flex-shrink items-center gap-1.5 overflow-hidden rounded-full bg-crimson/10 px-2.5 py-1.5 text-xs font-semibold text-crimson sm:px-3 lg:hidden">
+              <span className="inline-flex max-w-[8.5rem] flex-shrink items-center gap-1.5 overflow-hidden rounded-full bg-crimson/10 px-2.5 py-1.5 text-xs font-semibold text-crimson sm:px-3 max-[390px]:hidden lg:hidden">
               <Sparkles className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <span className="truncate whitespace-nowrap">
                 {isStudent ? (xpReady ? `${xp.toLocaleString()} XP` : 'XP') : roleLabel}
@@ -297,7 +311,7 @@ export default function PortalShell({ children }) {
                 onClick={() => setSwitcherOpen((open) => !open)}
                 aria-expanded={switcherOpen}
                 aria-haspopup="true"
-                className="flex min-w-0 items-center gap-1.5 rounded-[14px] border border-black/10 bg-black/[0.03] px-2.5 py-2 text-xs hover:bg-black/[0.06] sm:gap-2 sm:px-3"
+                className="flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-[14px] border border-black/10 bg-black/[0.03] px-3 text-xs hover:bg-black/[0.06] sm:gap-2"
               >
                 <span className="max-w-[5rem] truncate sm:max-w-[9rem]">
                   {ROLES.find((r) => r.id === currentRole)?.label ?? currentRole}
@@ -320,7 +334,7 @@ export default function PortalShell({ children }) {
                         setSwitcherOpen(false);
                         router.push(`${homeFor(role.id, activeFaculty.id, settings)}?demoRole=${encodeURIComponent(role.id)}`);
                       }}
-                      className={`w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-black/[0.03] ${
+                        className={`min-h-11 w-full rounded-xl px-3 text-left text-sm hover:bg-black/[0.03] ${
                         currentRole === role.id ? 'text-crimson font-semibold' : 'text-[#1d1d1f]'
                       }`}
                     >
@@ -349,7 +363,7 @@ export default function PortalShell({ children }) {
                           setActiveFaculty(faculty);
                           setSwitcherOpen(false);
                         }}
-                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-black/[0.03] ${
+                        className={`flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm hover:bg-black/[0.03] ${
                           activeFaculty.id === faculty.id ? 'text-crimson font-semibold' : 'text-[#1d1d1f]'
                         }`}
                       >
@@ -390,7 +404,7 @@ export default function PortalShell({ children }) {
               href="/settings"
               aria-label="Open profile and settings"
               title="Profile and settings"
-              className="rounded-full focus:outline-none focus:ring-2 focus:ring-crimson focus:ring-offset-2"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full"
             >
               <Avatar
                 name={identity?.user?.name ?? student.name ?? roleLabel}
@@ -404,25 +418,23 @@ export default function PortalShell({ children }) {
 
       {/* ---------------- Mobile drawer ---------------- */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setMenuOpen(false)}
-            aria-hidden="true"
-          />
-          <nav
-            className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-black/10 bg-surface p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation"
-          >
+        <DismissibleDialog
+          onClose={() => setMenuOpen(false)}
+          labelledBy="mobile-menu-title"
+          overlayClassName="items-stretch justify-start bg-black/70 p-0 md:hidden"
+          className="h-full w-72 max-w-[calc(100vw-2rem)] overflow-y-auto border-r border-black/10 bg-surface p-4 shadow-2xl"
+        >
+          <nav className="flex h-full flex-col" aria-label="Mobile navigation">
             <div className="flex items-center justify-between pb-4">
-              <QiuLogo className="h-7 w-auto" />
+              <div className="flex min-w-0 items-center gap-2">
+                <QiuLogo className="h-7 w-auto" />
+                <h2 id="mobile-menu-title" className="sr-only">Portal navigation</h2>
+              </div>
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
-                className="rounded-xl p-2 text-muted hover:bg-black/[0.03]"
+                className="icon-btn"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -438,7 +450,7 @@ export default function PortalShell({ children }) {
                     href={mod.href}
                     onClick={() => setMenuOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className={`flex items-center gap-3 rounded-[14px] px-3 py-3 text-sm ${
+                    className={`flex min-h-12 items-center gap-3 rounded-[14px] px-3 text-sm ${
                       active ? 'bg-crimson font-semibold text-white' : 'text-muted hover:bg-black/[0.03]'
                     }`}
                   >
@@ -452,17 +464,19 @@ export default function PortalShell({ children }) {
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-sm text-muted hover:bg-black/[0.03]"
+              className="flex min-h-12 items-center gap-3 rounded-[14px] px-3 text-sm text-muted hover:bg-black/[0.03]"
             >
               <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
               Sign out
             </button>
           </nav>
-        </div>
+        </DismissibleDialog>
       )}
 
       {/* ---------------- Content ---------------- */}
-      <main className="md:pl-[72px] lg:pl-64">
+      {/* tabIndex={-1} so the skip link can actually move focus here; without
+          it the browser scrolls but focus stays on the link. */}
+      <main id="portal-main" tabIndex={-1} className="md:pl-[72px] lg:pl-64 focus:outline-none">
         {/* pb-24 clears the phone tab bar; from md up the rail replaces it. */}
         <div className="mx-auto max-w-6xl px-4 py-6 pb-24 sm:px-6 md:pb-8 lg:px-8 lg:py-8">
           {children}
@@ -471,7 +485,7 @@ export default function PortalShell({ children }) {
 
       {/* ---------------- Mobile bottom tab bar ---------------- */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-surface/95 backdrop-blur-xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
         aria-label="Primary"
       >
         <div className="flex items-stretch justify-around">
@@ -483,7 +497,7 @@ export default function PortalShell({ children }) {
                 key={mod.id}
                 href={mod.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2.5 text-[10px] ${
+                className={`flex min-h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-[10px] ${
                   active ? 'text-crimson' : 'text-muted'
                 }`}
               >
