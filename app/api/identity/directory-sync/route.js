@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { requireStudentActor, resolveActor } from '@/lib/auth/actor';
 import { createAuditEntry } from '@/lib/audit/index.js';
 import { getRequestId, parseJsonBody, toIdentityRouteError } from '@/lib/auth/identity';
-import { fetchGoogleDirectoryProfile } from '@/lib/integrations/google-directory';
+import { directoryIdentityMatches, fetchGoogleDirectoryProfile } from '@/lib/integrations/google-directory';
+import { matchProgrammeByCourseCode } from '@/lib/data/programme-codes';
 
 /**
  * Enrich the signed-in student's record from the QIU Google Workspace directory
@@ -39,18 +40,37 @@ export async function POST(request) {
       return NextResponse.json({ synced: false, reason: result.error?.code ?? 'LOOKUP_FAILED' });
     }
 
-    // Log the raw payload ONCE per student so the field mapping can be confirmed
-    // against a real QIU directory record on first sign-in, then tightened.
-    if (!actor.student.directorySyncedAt) {
-      console.info('[directory-sync] first People API profile for student', actor.student.id, JSON.stringify(result.raw)?.slice(0, 4000));
+    const { email, employeeId, courseCode, employeeType } = result.data;
+    if (!directoryIdentityMatches(actor.user.email, email)) {
+      await prisma.$transaction(async (tx) => {
+        await createAuditEntry({
+          tx,
+          actorUserId: actor.user.id,
+          action: 'STUDENT_DIRECTORY_SYNC_REJECTED',
+          resourceType: 'Student',
+          resourceId: actor.student.id,
+          metadata: { reason: 'IDENTITY_MISMATCH', directoryEmailPresent: Boolean(email) },
+          requestId: getRequestId(request),
+        });
+      });
+      return NextResponse.json({ synced: false, reason: 'IDENTITY_MISMATCH' });
+    }
+    // Auto-resolve programme + faculty from the course code (e.g. "BCS" ->
+    // Bachelor of Computer Science in Computing & Engineering). Only applied
+    // when the code maps to exactly one programme; an ambiguous code leaves the
+    // existing programme/faculty untouched rather than guessing wrong.
+    let resolvedProgramme = null;
+    if (courseCode) {
+      const programmes = await prisma.programme.findMany({ select: { id: true, name: true, code: true, facultyId: true } });
+      resolvedProgramme = matchProgrammeByCourseCode(courseCode, programmes);
     }
 
-    const { email, employeeId, courseCode, employeeType } = result.data;
     const data = {
       directorySyncedAt: new Date(),
       ...(employeeId ? { employeeId } : {}),
       ...(courseCode ? { courseCode } : {}),
       ...(employeeType ? { employeeType } : {}),
+      ...(resolvedProgramme ? { programmeId: resolvedProgramme.id, facultyId: resolvedProgramme.facultyId } : {}),
     };
 
     await prisma.$transaction(async (tx) => {
@@ -61,12 +81,27 @@ export async function POST(request) {
         action: 'STUDENT_DIRECTORY_SYNCED',
         resourceType: 'Student',
         resourceId: actor.student.id,
-        after: { employeeId: employeeId ?? null, courseCode: courseCode ?? null, employeeType: employeeType ?? null, email: email ?? null },
+        after: {
+          employeeId: employeeId ?? null,
+          courseCode: courseCode ?? null,
+          employeeType: employeeType ?? null,
+          email: email ?? null,
+          programmeId: resolvedProgramme?.id ?? null,
+          facultyId: resolvedProgramme?.facultyId ?? null,
+        },
         requestId: getRequestId(request),
       });
     });
 
-    return NextResponse.json({ synced: true, profile: { employeeId: employeeId ?? null, courseCode: courseCode ?? null, employeeType: employeeType ?? null } });
+    return NextResponse.json({
+      synced: true,
+      profile: {
+        employeeId: employeeId ?? null,
+        courseCode: courseCode ?? null,
+        employeeType: employeeType ?? null,
+        programme: resolvedProgramme ? { id: resolvedProgramme.id, name: resolvedProgramme.name, facultyId: resolvedProgramme.facultyId } : null,
+      },
+    });
   } catch (error) {
     const e = toIdentityRouteError(error);
     return NextResponse.json({ error: e.message, code: e.code }, { status: e.status });

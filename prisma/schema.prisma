@@ -137,6 +137,12 @@ model Faculty {
 model Programme {
   id    String         @id @default(cuid())
   name  String
+  // Short QIU course code (e.g. "BCS"). Used to auto-resolve a student's
+  // programme + faculty from their Google directory course code at login
+  // (Module 16). Optional: when absent, the resolver falls back to the initials
+  // of the programme name. Admins can set the authoritative code in People &
+  // access to override the fallback.
+  code  String?
   level ProgrammeLevel
 
   facultyId String
