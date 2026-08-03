@@ -14,7 +14,6 @@ const LINK_COLUMNS = [
     title: 'Community',
     links: [
       { label: 'Employers & Alumni', href: '#employers' },
-      { label: 'Sign in', href: '/login' },
     ],
   },
   {

@@ -353,12 +353,17 @@ export default function LoginPage() {
           ) : null}
         </div>
 
+        {/* The note has to match the mode the site is actually running in.
+            It used to say "This is a demo sign-in" unconditionally, which
+            became false the moment AUTH_MODE flipped to firebase-google -- a
+            real student on the live SSO page was told their sign-in was a
+            demo. */}
         <div className="mt-6 flex items-start gap-2 rounded-[18px] border border-black/10 bg-black/[0.03] p-3.5 text-left">
           <FlaskConical className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted" aria-hidden="true" />
           <p className="text-xs leading-relaxed text-muted">
-            This is a demo sign-in. Real access needs Google authentication plus a QIU account
-            record approved on the server.
-            {DEMO_MODE_ENABLED ? ' Local demo access is enabled only for development smoke tests.' : ''}
+            {DEMO_MODE_ENABLED
+              ? 'This is a demo sign-in, enabled only for local development smoke tests. Real access needs Google authentication plus a QIU account record approved on the server.'
+              : 'Sign in with your QIU Google account. Access also requires that an administrator has already added your account to the QIU Career Hub — if sign-in succeeds but you are refused, contact CPDC.'}
           </p>
         </div>
       </div>

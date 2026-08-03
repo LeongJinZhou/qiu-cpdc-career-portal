@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ArrowRight, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import PortalPreview from '@/components/marketing/PortalPreview';
 
 /**
@@ -83,16 +82,9 @@ export default function Hero() {
             className="qiu-fade-up mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start"
             style={{ animationDelay: '500ms' }}
           >
-            <Link
-              href="/login"
-              className="crimson-btn min-h-[44px] w-full justify-center text-base sm:w-auto"
-            >
-              Sign in with QIU SSO
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
             <a
               href="#journey"
-              className="secondary-btn min-h-[44px] w-full justify-center text-base sm:w-auto"
+              className="crimson-btn min-h-[44px] w-full justify-center text-base sm:w-auto"
             >
               See how it works
             </a>

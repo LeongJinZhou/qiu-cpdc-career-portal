@@ -3,46 +3,23 @@ import Avatar from '@/components/ui/Avatar';
 import {
   Trophy,
   Sparkles,
-  CheckCircle2,
-  Clock,
   ChevronRight,
   Zap,
   Award,
   GitBranch,
   ShieldCheck,
   BookOpen,
-  TrendingUp,
-  Map,
-  Target,
   FileCheck,
-  UserCheck,
-  Lock
 } from 'lucide-react';
-import { careerPathFor } from '@/lib/data/roadmaps';
 import { tierFor, tierProgress } from '@/lib/xp';
 import { fetchLeaderboard, fetchXpSummary } from '@/lib/api';
 import { onXpUpdated } from '@/lib/xp-events';
-import { nextBestAction } from '@/lib/next-best-action';
 
 export default function StudentDashboard({
   student,
-  setStudent,
   activeFaculty,
   setActiveTab
 }) {
-  const roadmap = careerPathFor(activeFaculty.id).map((stage) => ({
-    ...stage,
-    // Dashboard cards are a compact overview; the Career Path module owns
-    // persisted completion. Labels here describe position in the path rather
-    // than pretending an unverified fixture is complete.
-    status: stage.year < Number(student.year)
-      ? 'PAST_STAGE'
-      : stage.year === Number(student.year)
-        ? 'IN_PROGRESS'
-        : 'UPCOMING',
-    tasks: stage.items,
-  }));
-
   // XP is the real total summed from the XpEvent ledger — not the hardcoded
   // DEFAULT_STUDENT.xp. It loads on mount and updates live whenever another
   // module (career milestone, workshop check-in, FYP submit) awards XP, so the
@@ -95,10 +72,6 @@ export default function StudentDashboard({
   const tier = tierFor(displayXp);
   const progress = tierProgress(displayXp);
 
-  const nextBest = nextBestAction({ student, activeFaculty });
-  const ACTION_ICONS = { UserCheck, Target, FileCheck, BookOpen, TrendingUp, Map };
-  const NbaIcon = ACTION_ICONS[nextBest.icon] ?? Target;
-
   // A little celebration when a real award lands (fired by the live XP event).
   useEffect(() => {
     const unsubscribe = onXpUpdated(() => {
@@ -109,29 +82,6 @@ export default function StudentDashboard({
 
   return (
     <div className="space-y-10 animate-fadeIn">
-
-      {/* Next Best Action — one clear, non-blocking suggestion at the top. */}
-      {setActiveTab && (
-        <button
-          onClick={() => setActiveTab(nextBest.tab)}
-          className="w-full text-left surface surface-interactive border-crimson/30 p-5 md:p-6 flex items-center gap-4"
-        >
-          <span className="p-3 rounded-2xl bg-crimson/10 text-crimson shrink-0">
-            <NbaIcon className="w-6 h-6" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-crimson">Next best action</p>
-            <h3 className="font-heading font-bold text-lg text-[#1d1d1f] leading-snug mt-0.5">
-              {nextBest.title}
-            </h3>
-            <p className="text-sm text-muted mt-0.5 hidden sm:block">{nextBest.desc}</p>
-          </div>
-          <span className="crimson-btn shrink-0 hidden md:inline-flex">
-            {nextBest.cta} <ChevronRight className="w-4 h-4" />
-          </span>
-          <ChevronRight className="w-5 h-5 text-crimson shrink-0 md:hidden" />
-        </button>
-      )}
 
       {/* Hero Dark Glassmorphic Card */}
       <div className="relative overflow-hidden rounded-[18px] bg-gradient-to-br from-white via-white to-[#f2f2f5] border border-black/10 p-6 md:p-10 shadow-lg">
@@ -242,115 +192,10 @@ export default function StudentDashboard({
         </div>
       </div>
 
-      {/* Grid: 4-Year Roadmap + Leaderboard */}
+      {/* Distinct dashboard insights. The pathway above owns journey guidance;
+          this area only covers live XP evidence and shortcuts to other modules. */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Left Column (2 Cols): Dynamic 4-Year Roadmap */}
-        <div className="lg:col-span-2 space-y-6">
-
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h2 className="section-title flex items-center gap-2">
-                <Target className="w-5 h-5 text-crimson" />
-                <span>4-Year Dynamic Career Roadmap</span>
-              </h2>
-              <p className="section-subtitle mt-1">
-                Your career plan for <span className="text-[#1d1d1f] font-semibold">{activeFaculty.name}</span>
-              </p>
-            </div>
-
-            <span className="badge-pill bg-black/[0.03] text-muted border border-black/10">
-              Updated for You
-            </span>
-          </div>
-
-          <div className="space-y-5">
-            {roadmap.map((stage, idx) => {
-              const isCurrent = stage.year === student.year;
-              const isDone = stage.status === 'COMPLETED';
-              const isPastStage = stage.status === 'PAST_STAGE';
-
-              return (
-                <div
-                  key={idx}
-                  className={`rounded-[18px] p-6 border transition-all ${
-                    isCurrent
-                      ? 'bg-crimson/[0.06] border-crimson/30 shadow-sm'
-                      : isDone
-                      ? 'bg-black/[0.02] border-black/10'
-                      : 'bg-black/[0.02] border-black/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${
-                      isDone
-                          ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/25'
-                          : isPastStage
-                          ? 'bg-amber-500/10 text-amber-700 border border-amber-500/25'
-                          : isCurrent
-                          ? 'bg-crimson text-white shadow-lg shadow-crimson/30 font-extrabold'
-                          : 'bg-black/[0.03] text-[#424245] border border-black/10'
-                      }`}>
-                        {isDone ? <CheckCircle2 className="w-4 h-4" /> : stage.year}
-                      </div>
-
-                      <div>
-                        <h3 className={`text-lg font-bold font-heading ${isCurrent || isDone ? 'text-[#1d1d1f]' : isPastStage ? 'text-amber-800' : 'text-[#424245]'}`}>{stage.title}</h3>
-                        <span className="text-xs text-muted font-medium flex items-center gap-1.5 mt-0.5">
-                          {isCurrent ? <><Zap className="w-3 h-3 text-crimson" /> Active Academic Year</> :
-                           isDone ? <><CheckCircle2 className="w-3 h-3 text-emerald-600" /> Completed Stage</> :
-                           isPastStage ? <><Clock className="w-3 h-3 text-amber-600" /> Past stage — review outstanding items</> :
-                           <><Lock className="w-3 h-3 text-muted" /> Upcoming Milestone</>}
-                        </span>
-                      </div>
-                    </div>
-
-                    <span className={`text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full ${
-                      isDone ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/25' :
-                      isCurrent ? 'bg-crimson/15 text-crimson border border-crimson/30' :
-                      isPastStage ? 'bg-amber-500/10 text-amber-700 border border-amber-500/25' :
-                      'bg-black/[0.03] text-muted border border-black/10'
-                    }`}>
-                      {stage.status.replace('_', ' ')}
-                    </span>
-                  </div>
-
-                  {/* Tasks List */}
-                  <div className="grid grid-cols-1 gap-3 border-t border-black/[0.06] pt-4 lg:grid-cols-3">
-                    {stage.tasks.map((task, tIdx) => (
-                      <button
-                        type="button"
-                        key={`${stage.year}-${tIdx}`}
-                        onClick={() => setActiveTab && setActiveTab('careerpath')}
-                        className={`p-3.5 rounded-xl text-xs flex flex-col justify-between transition ${
-                            isDone
-                              ? 'bg-black/[0.03] text-[#424245] hover:bg-black/[0.06]'
-                            : isPastStage
-                            ? 'bg-amber-500/10 border border-amber-500/20 text-amber-800 hover:bg-amber-500/15'
-                            : isCurrent
-                            ? 'bg-crimson/10 border border-crimson/25 text-crimson hover:bg-crimson/15'
-                            : 'bg-black/[0.03] text-[#6e6e73] hover:bg-black/[0.06]'
-                        }`}
-                      >
-                        <span className="font-medium leading-snug">{task.label}</span>
-                        <div className="mt-3 flex items-center justify-between text-[10px] text-muted">
-                          <span>{isDone ? 'Review in Career Path' : isPastStage ? 'Review outstanding' : isCurrent ? 'Track in Career Path' : 'Upcoming'}</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-
-        {/* Right Column (1 Col): Live Leaderboard & Quick Badges */}
-        <div className="space-y-6">
+        <div className="col-span-1 grid gap-6 lg:col-span-3 lg:grid-cols-3">
 
           {/* Live Leaderboard */}
           <div className="glass-panel p-5 space-y-4">
@@ -397,9 +242,6 @@ export default function StudentDashboard({
                 <Award className="w-4 h-4 text-crimson" />
                 <span>Verified Badges ({student.badges.length})</span>
               </h3>
-              <button type="button" onClick={() => setActiveTab('autocv')} className="inline-flex min-h-11 items-center text-xs font-semibold text-crimson hover:text-red-600">
-                Sync to CV →
-              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

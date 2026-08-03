@@ -52,7 +52,6 @@ export default function Page() {
 
       <StudentDashboard
         student={student}
-        setStudent={setStudent}
         activeFaculty={activeFaculty}
         setActiveTab={navigate}
       />
