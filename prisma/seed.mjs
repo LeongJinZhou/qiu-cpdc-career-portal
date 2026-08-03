@@ -336,6 +336,49 @@ async function seedOfficialSsoTestAccounts() {
       },
     });
     console.log('  seeded QIU student yauming.soo@qiu.edu.my');
+
+    const jzUser = await prisma.user.upsert({
+      where: { email: 'jinzhou.leong@qiu.edu.my' },
+      update: {
+        normalizedEmail: 'jinzhou.leong@qiu.edu.my',
+        loginAllowed: true,
+        accountStatus: 'ACTIVE',
+      },
+      create: {
+        email: 'jinzhou.leong@qiu.edu.my',
+        normalizedEmail: 'jinzhou.leong@qiu.edu.my',
+        name: 'Leong Jin Zhou',
+        role: 'STUDENT',
+        loginAllowed: true,
+        accountStatus: 'ACTIVE',
+        identitySource: 'SEEDED',
+      },
+    });
+
+    await prisma.student.upsert({
+      where: { userId: jzUser.id },
+      update: {
+        matricNo: 'QIU-202310-007000',
+        courseCode: 'BCS',
+        employeeId: 'QIU-202310-007000',
+        employeeType: 'Student',
+        facultyId: 'computing_engineering',
+        programmeId: programme.id,
+      },
+      create: {
+        userId: jzUser.id,
+        matricNo: 'QIU-202310-007000',
+        courseCode: 'BCS',
+        employeeId: 'QIU-202310-007000',
+        employeeType: 'Student',
+        facultyId: 'computing_engineering',
+        programmeId: programme.id,
+        academicYear: 3,
+        intakeYearMonth: 202310,
+        intakeSequence: 7000,
+      },
+    });
+    console.log('  seeded QIU student jinzhou.leong@qiu.edu.my');
   }
 
   await prisma.user.upsert({
