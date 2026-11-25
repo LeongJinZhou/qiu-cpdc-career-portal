@@ -1,6 +1,6 @@
 // The signed-in frame: brand, navigation by permission, the person and sign-out.
-import { ClipboardList, GraduationCap, LogOut, ScrollText, UserRound, Users, type LucideIcon } from 'lucide-react';
-import type { MouseEvent, ReactNode } from 'react';
+import { ClipboardList, GraduationCap, LogOut, Menu, ScrollText, UserRound, Users, X, type LucideIcon } from 'lucide-react';
+import { useState, type MouseEvent, type ReactNode } from 'react';
 import { BadgeCheck, BookOpenCheck, BriefcaseBusiness, Building2, Gauge } from 'lucide-react'; // slice 2b
 // slice 3a (workshops, CV, career path)
 import { CalendarDays, FileText, Route } from 'lucide-react';
@@ -44,6 +44,30 @@ export const NAV: NavItem[] = [
   // --- slice 3b (end) ---
 ];
 
+/** Menu sections. NAV keeps its order (the first allowed item is the person's home); this only groups it. */
+const GROUPS: { label: string; paths: string[] }[] = [
+  {
+    label: 'My career',
+    paths: ['/profile', '/cv', '/skills', '/learning', '/logbook', '/my-project', '/assessments', '/career-path'],
+  },
+  { label: 'Opportunities', paths: ['/jobs', '/workshops', '/network', '/interview'] },
+  {
+    label: 'CPDC',
+    paths: ['/alumni', '/people', '/registrations', '/internships', '/showcase', '/employers', '/learning-checks',
+      '/assessment-builder', '/mentoring', '/questions', '/audit'],
+  },
+];
+
+export function navGroups(items: NavItem[]): { label: string; items: NavItem[] }[] {
+  const grouped = GROUPS.map((group) => ({
+    label: group.label,
+    items: group.paths.flatMap((to) => items.filter((item) => item.path === to)),
+  }));
+  const rest = items.filter((item) => !GROUPS.some((group) => group.paths.includes(item.path)));
+  if (rest.length > 0) grouped.push({ label: 'More', items: rest });
+  return grouped.filter((group) => group.items.length > 0);
+}
+
 export function Shell({
   me,
   path,
@@ -57,28 +81,32 @@ export function Shell({
   onSignOut: () => void;
   children: ReactNode;
 }) {
-  const items = NAV.filter((item) => can(me, item.permission));
+  const [menuOpen, setMenuOpen] = useState(false);
+  const groups = navGroups(NAV.filter((item) => can(me, item.permission)));
   const follow = (to: string) => (event: MouseEvent) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
     event.preventDefault();
+    setMenuOpen(false);
     go(to);
   };
   return (
     <>
       <header className="shell-top">
         <div className="shell-bar">
+          <button
+            type="button"
+            className="btn btn-quiet btn-small shell-menu-button"
+            aria-expanded={menuOpen}
+            aria-controls="shell-nav"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+            <span>Menu</span>
+          </button>
           <a className="shell-brand" href="/profile" onClick={follow('/profile')}>
             <img src="/brand/qiu-mark-dark.png" alt="" />
             <span>Career Portal</span>
           </a>
-          <nav className="shell-nav" aria-label="Main">
-            {items.map(({ path: to, label, icon: Icon }) => (
-              <a key={to} href={to} onClick={follow(to)} aria-current={path.startsWith(to) ? 'page' : undefined}>
-                <Icon size={16} aria-hidden="true" />
-                {label}
-              </a>
-            ))}
-          </nav>
           <div className="shell-user">
             <div className="shell-user-text">
               <strong>{me.user.display_name}</strong>
@@ -91,7 +119,22 @@ export function Shell({
           </div>
         </div>
       </header>
-      <main className="shell-main">{children}</main>
+      <div className="shell-body">
+        <nav id="shell-nav" className="shell-nav" data-open={menuOpen} aria-label="Main">
+          {groups.map((group) => (
+            <div key={group.label} className="shell-nav-group">
+              <h2>{group.label}</h2>
+              {group.items.map(({ path: to, label, icon: Icon }) => (
+                <a key={to} href={to} onClick={follow(to)} aria-current={path.startsWith(to) ? 'page' : undefined}>
+                  <Icon size={16} aria-hidden="true" />
+                  {label}
+                </a>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <main className="shell-main">{children}</main>
+      </div>
     </>
   );
 }

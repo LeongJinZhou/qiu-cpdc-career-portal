@@ -3,6 +3,7 @@
 // Needs the fake data from api/bin/seed.php (npm run test:e2e runs it). Titles carry a stamp: workshops and paths
 // of earlier runs stay in the local database.
 import { expect, test, type Page } from '@playwright/test';
+import { onboardIfAsked } from './onboarding';
 
 async function signIn(page: Page, provider: 'google' | 'linkedin', persona: string, mode = '') {
   await page.goto(`/api/auth/${provider}/start${mode}`);
@@ -45,13 +46,7 @@ test('workshop RSVP and check-in, CV builder and career path', async ({ page }) 
   // A student: onboarding first (slice 1), then the slice 3a screens. Not the persona "student": the slice 1 spec
   // makes that one alumni. The fake LinkedIn persona "staff" is free for this student to link.
   await signIn(page, 'google', 'student-b');
-  await page.getByRole('link', { name: 'Sign in with LinkedIn' }).click();
-  await page.getByRole('link', { name: /\(staff\)$/ }).click();
-  await page.getByLabel('I follow Quest International University on LinkedIn.').check();
-  await page.getByLabel('Profile link').fill('linkedin.com/in/fake-other-student');
-  await page.getByLabel('I agree that CPDC keeps and uses my career profile as described.').check();
-  await page.getByRole('button', { name: 'Finish and open my profile' }).click();
-  await expect(page).toHaveURL(/\/profile$/);
+  await onboardIfAsked(page, 'staff', 'linkedin.com/in/fake-other-student');
 
   await page.getByRole('link', { name: 'Workshops' }).click();
   const card = page.getByRole('article', { name: title });

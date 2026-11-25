@@ -2,6 +2,7 @@
 // mentoring, she accepts and both see the match; the student then practises an interview question with the fake AI.
 // Needs the fake data from api/bin/seed.php (npm run test:e2e runs it) and AI_DRIVER=fake in .env.
 import { expect, test, type Page } from '@playwright/test';
+import { onboardIfAsked } from './onboarding';
 
 async function signIn(page: Page, provider: 'google' | 'linkedin', persona: string, mode = '') {
   await page.goto(`/api/auth/${provider}/start${mode}`);
@@ -31,13 +32,7 @@ test('alumni directory, mentoring match and interview practice', async ({ page }
   // A new student onboards, finds her in the directory and asks for mentoring. The personas "student-b" and the
   // LinkedIn "staff" account are used so student-onboarding.spec.ts still finds "student" fresh in the same seed.
   await signIn(page, 'google', 'student-b');
-  await page.getByRole('link', { name: 'Sign in with LinkedIn' }).click();
-  await page.getByRole('link', { name: /\(staff\)$/ }).click();
-  await page.getByLabel('I follow Quest International University on LinkedIn.').check();
-  await page.getByLabel('Profile link').fill('linkedin.com/in/fake-other-student');
-  await page.getByLabel('I agree that CPDC keeps and uses my career profile as described.').check();
-  await page.getByRole('button', { name: 'Finish and open my profile' }).click();
-  await expect(page).toHaveURL(/\/profile$/);
+  await onboardIfAsked(page, 'staff', 'linkedin.com/in/fake-other-student');
 
   await page.getByRole('link', { name: 'Alumni network' }).click();
   const card = page.getByRole('listitem').filter({ hasText: 'Fake Alumna' });

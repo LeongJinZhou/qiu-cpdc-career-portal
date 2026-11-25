@@ -19,12 +19,19 @@ $pdo = Connection::fromEnv();
 $pdo->exec(
     "UPDATE setting SET value = '[\"qiu.edu.my\", \"example.test\"]' WHERE setting_key = 'google_hosted_domains'"
 );
+// The e2e specs sign in many times a minute from one address; production keeps the migration's 10.
+$pdo->exec("UPDATE setting SET value = '120' WHERE setting_key = 'rate_login_per_ip_per_min'");
 
 $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
 foreach (
     ['graduate_registration', 'career_skill', 'career_education', 'career_experience', 'job_confirmation',
     'career_profile', 'github_account', 'linkedin_account', 'user_role_grant', 'login_log', 'audit_log', 'user',
-    'rate_limit'] as $table
+    'rate_limit',
+    // Rows owned by a person in slices 2-3 (CPDC's own lists such as skill areas and question banks stay).
+    'logbook_review_link', 'logbook_entry', 'internship', 'showcase_tech', 'showcase_project', 'assessment_answer',
+    'assessment_attempt', 'job_application', 'skill_rating', 'skill_assessment', 'learning_record', 'workshop_rsvp',
+    'cv_document', 'career_path_progress', 'mentor_request', 'mentor_offer', 'network_profile', 'interview_item',
+    'interview_session'] as $table
 ) {
     $pdo->exec("DELETE FROM `$table`");
 }
