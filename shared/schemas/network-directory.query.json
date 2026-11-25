@@ -1,0 +1,13 @@
+{
+  "$comment": "Query of GET /api/network/directory. Filters match only fields the alumnus chose to show.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "q": { "type": "string", "maxLength": 100 },
+    "faculty": { "type": "string", "maxLength": 200 },
+    "year": { "type": "integer", "minimum": 1990, "maximum": 2100 },
+    "mentors": { "enum": ["1"] },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

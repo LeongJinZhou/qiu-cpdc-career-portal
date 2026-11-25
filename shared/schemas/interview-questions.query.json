@@ -1,0 +1,10 @@
+{
+  "$comment": "Query of GET /api/interview/questions (CPDC question bank).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "field": { "type": "string", "maxLength": 80 },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

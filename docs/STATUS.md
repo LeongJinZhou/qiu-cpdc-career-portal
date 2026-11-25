@@ -14,6 +14,17 @@
   ESLint, TypeScript, 1 Playwright spec of the main path (`e2e/student-onboarding.spec.ts`).
 - Hosting files: `Dockerfile` + `render.yaml` (Render test copy), `deploy/exabytes/` and `docs/RELEASE.md`.
 
+<!-- slice 3b (begin) -->
+## Done: slice 3b, 2026-11-26 (alumni network, mentoring, interview practice; branch claude/mod-network-a78b2e)
+- Opt-in alumni directory (/network), mentoring offers, requests, accept/decline/withdraw, match with emails.
+- CPDC: Mentoring activity (/mentoring, audited) and Interview questions bank (/questions, audited).
+- Interview practice (/interview) with AI feedback behind `Interview\Ai\Coach` (fake driver locally, Claude when
+  `AI_DRIVER=anthropic` + `ANTHROPIC_API_KEY`), daily cap and per-minute limit.
+- Checks: 27 integration + 16 unit tests added, PHPStan level 8, e2e `e2e/network-interview.spec.ts`.
+- Open for the lead: add `AI_DRIVER`, `ANTHROPIC_API_KEY` (sync: false), `AI_MODEL` to render.yaml; add slice 3b
+  tables to the DELETE list of api/bin/seed.php; founder sets the Claude key when ready (paid service).
+<!-- slice 3b (end) -->
+
 ## Open
 - Founder: create the MySQL database for Render (Aiven free plan or similar), fill Render values, register the new
   callback URLs at Google and LinkedIn (docs/RELEASE.md). Exabytes upload when ready.

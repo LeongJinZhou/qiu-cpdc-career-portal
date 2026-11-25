@@ -37,7 +37,7 @@ test('student onboarding, LinkedIn PDF import and the alumni tracker', async ({ 
   await page.getByRole('link', { name: 'People' }).click();
   await page.getByLabel('Search').fill('Fake Student');
   await page.getByRole('button', { name: 'Show' }).click();
-  await page.getByRole('link', { name: 'View' }).first().click();
+  await page.getByRole('link', { name: 'View', exact: true }).first().click();
   await page.getByLabel('Graduated in').fill('2026');
   await page.getByRole('button', { name: 'Make alumni' }).click();
   await expect(page.getByText(/Now an alumnus\. They sign in with LinkedIn/)).toBeVisible();

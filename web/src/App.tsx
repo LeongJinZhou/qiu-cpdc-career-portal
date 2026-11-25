@@ -29,6 +29,12 @@ import { SkillsPage } from './skills/SkillsPage';
 import { CareerPathPage } from './careerpath/CareerPathPage';
 import { CvPage } from './cv/CvPage';
 import { WorkshopsPage } from './workshops/WorkshopsPage';
+// --- slice 3b (begin) ---
+import { InterviewPage } from './interview/InterviewPage';
+import { QuestionBank } from './interview/QuestionBank';
+import { MentoringActivity } from './network/MentoringActivity';
+import { NetworkPage } from './network/NetworkPage';
+// --- slice 3b (end) ---
 
 type State = { kind: 'loading' } | { kind: 'error'; error: unknown } | { kind: 'out' } | { kind: 'in'; me: Me };
 
@@ -50,6 +56,12 @@ const TITLES: Record<string, string> = {
   '/workshops': 'Workshops',
   '/cv': 'CV builder',
   '/career-path': 'Career path',
+  // --- slice 3b (begin) ---
+  '/network': 'Alumni network',
+  '/interview': 'Interview practice',
+  '/mentoring': 'Mentoring activity',
+  '/questions': 'Interview questions',
+  // --- slice 3b (end) ---
 };
 
 export function App() {
@@ -167,6 +179,12 @@ export function App() {
       {page === '/workshops' && <WorkshopsPage me={me} />}
       {page === '/cv' && <CvPage me={me} go={go} />}
       {page === '/career-path' && <CareerPathPage me={me} go={go} />}
+      {/* --- slice 3b (begin) --- */}
+      {page === '/network' && <NetworkPage me={me} />}
+      {page === '/interview' && <InterviewPage me={me} />}
+      {page === '/mentoring' && <MentoringActivity />}
+      {page === '/questions' && <QuestionBank me={me} />}
+      {/* --- slice 3b (end) --- */}
     </Shell>
   );
 }

@@ -1,0 +1,8 @@
+{
+  "$comment": "POST /api/network/requests/{id}/accept and /decline: the mentor's optional reply.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "reply": { "type": "string", "maxLength": 600 }
+  }
+}

@@ -250,3 +250,34 @@ alumni, admin, superadmin; workshops.manage and careerpath.manage for admin and 
   with skills and ordered steps; editing keeps step ids, so ticks survive. A person sees their own programme first
   (any case), can look at others, sees which path skills their profile lists, and ticks steps (own progress only).
 <!-- slice 3a: end -->
+
+<!-- slice 3b (begin) -->
+## 12. Slice 3b: alumni network, mentoring, interview practice (2026-11-26)
+Rules (server enforced):
+1. The alumni directory is opt-in. An alumnus appears only after ticking "Show me" (`network_profile.visible`),
+   and then shows only the name (linked to LinkedIn, rule 13) plus each field they ticked: job title, company,
+   faculty, graduation year. Search and filters match only shown fields. Only active alumni are listed.
+2. Alumni may offer mentoring: up to 6 topics and 1-10 students per month (`mentor_offer`). Paused or hidden
+   mentors cannot be asked.
+3. A student asks a mentor with a 20-600 character message. One open request per student and mentor; at most
+   `mentor_open_requests_max` (3) open requests per student; `rate_mentor_request_per_user_per_hour` (5).
+4. The mentor accepts (only while accepted requests this UTC month < slots) or declines, with an optional reply;
+   the student may withdraw a waiting request. Emails are shared only inside an accepted match: the mentor sees
+   the student's QIU email, the student sees the mentor's personal email if set.
+5. CPDC (`mentoring.activity`) sees counts and recent matches (names, LinkedIn, date), never messages or replies.
+   Each view is audited.
+6. Interview practice: CPDC keeps a question bank by field (`interview.bank`; switch off, never delete; audited).
+   A student or alumnus starts a session of up to `interview_questions_per_session` (5) random questions of one
+   field, answers each once in text (20 to `interview_answer_max_chars` (2000) characters) and gets AI feedback:
+   score 1-5, summary, strengths, things to improve.
+7. AI runs only on the server behind `Interview\Ai\Coach`: `AI_DRIVER=fake` (dev and tests, refused in
+   production) or `anthropic` with `ANTHROPIC_API_KEY` (Claude Messages API, structured output, model `AI_MODEL`,
+   default claude-opus-5-5). No key: the screen says "not set up yet" and answering returns 503.
+8. AI feedback is capped at `interview_ai_per_user_per_day` (20, rolling 24 hours) and `rate_ai_per_user_per_min`
+   (6). A failed AI call frees the question and does not count. Sessions and feedback are the owner's only.
+
+Permissions: network.view (everyone except pending), network.own (alumni), mentoring.request (students),
+mentoring.activity and interview.bank (admin, superadmin), interview.practice (students, alumni).
+Tables: network_profile, mentor_offer, mentor_request, interview_question, interview_session, interview_item
+(migrations 0400-0402).
+<!-- slice 3b (end) -->
