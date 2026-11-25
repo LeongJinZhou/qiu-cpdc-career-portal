@@ -155,3 +155,37 @@ Each slice is shown to the founder before the next starts.
 - 2026-11-25: no "Verified on LinkedIn" partner tier (founder). Job history comes from the LinkedIn PDF only.
   The portal never scrapes LinkedIn (account-ban risk, against LinkedIn's terms).
 - 2026-11-25: "follow the QIU LinkedIn page" is a required tick, not a check: LinkedIn's API cannot tell.
+
+<!-- slice 2b (start) -->
+## 9. Slice 2b: employers and jobs, skills diagnostics, learning (2026-11-26)
+Rules (the server enforces every one):
+1. CPDC (`jobs.manage`: admin, superadmin) keeps the employer directory and posts jobs and internships: title,
+   employer, type (full-time, part-time, internship, contract), location, closing date, description, status
+   (draft, open, closed) and optionally the level 1-5 each skill area needs. Every change is audited.
+2. Students and alumni (`jobs.browse`) see a job only while it is open: status open, active employer, closing date
+   today or later in `display_timezone`. A job they applied to stays visible to them after it closes.
+3. One application per person per job: a note (max 2000) and an optional CV PDF. CPDC sees the note, the CV and the
+   person's full career profile (rule 14); opening an application and downloading a CV are audited.
+4. CPDC moves an application between: submitted, reviewing, shortlisted, interview, offered, hired, rejected
+   (audited). Only the applicant withdraws, until CPDC decides (hired or rejected); a withdrawal is final.
+   Applicants see only their own applications and status.
+5. Uploads (CV, learning proof): PDF only, checked by content (`%PDF-`), max `upload_pdf_max_bytes` (5 MB),
+   `rate_upload_per_user_per_min` (10). Kept under `STORAGE_DIR/uploads/<cv|learning>/` with a random name, outside
+   the web root; served only as a download to the owner or CPDC. The client's file name is display-only.
+6. Skills (`skills.own`: students, alumni): a self-rating 1-5 per skill area (CPDC's list, `skill_area`), saved
+   whole each time so growth shows over time. The gap view compares the latest rating with an open job's levels;
+   an unrated area counts as 0. Ratings are private to the person.
+7. Learning (`learning.own`: students, alumni): course or certificate, provider, completion date (not in the
+   future), a link (http/https) or a PDF proof or both. CPDC (`learning.verify`) verifies or declines with a note
+   the person reads; audited; nobody decides on their own record. A verified record cannot be deleted.
+
+Data model (migrations 0200, 0201): `employer` (unique name per organisation, active), `job_posting`, `job_skill`
+(job, area, level), `job_application` (unique job + user, status, cv_file random key), `skill_area`,
+`skill_assessment` + `skill_rating` (one row per area per rating), `learning_record` (status submitted, verified,
+rejected; CHECK link or proof).
+
+Decisions:
+- 2026-11-26: employers do not sign in yet; CPDC enters jobs for them (the old portal's employer role returns
+  later, as a permission, if the founder wants employers to post themselves).
+- 2026-11-26: skill areas are a fixed list per organisation in the database (8 to start); no edit screen yet.
+<!-- slice 2b (end) -->

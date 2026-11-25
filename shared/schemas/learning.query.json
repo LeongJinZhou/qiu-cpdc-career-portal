@@ -1,0 +1,11 @@
+{
+  "$comment": "Query of GET /api/learning/review (CPDC).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "q": { "type": "string", "maxLength": 100 },
+    "status": { "enum": ["submitted", "verified", "rejected"] },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

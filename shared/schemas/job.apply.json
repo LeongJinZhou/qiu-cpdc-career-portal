@@ -1,0 +1,8 @@
+{
+  "$comment": "Text fields of POST /api/jobs/{id}/apply (multipart). The optional CV is the file field 'cv' (PDF).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "note": { "type": "string", "maxLength": 2000 }
+  }
+}

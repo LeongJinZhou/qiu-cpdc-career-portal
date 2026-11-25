@@ -1,0 +1,9 @@
+{
+  "$comment": "PATCH /api/applications/{id}/status: CPDC moves an application. Withdrawn is the applicant's own step.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status"],
+  "properties": {
+    "status": { "enum": ["submitted", "reviewing", "shortlisted", "interview", "offered", "hired", "rejected"] }
+  }
+}

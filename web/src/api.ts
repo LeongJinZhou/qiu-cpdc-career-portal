@@ -90,6 +90,17 @@ export function apiUpload<T>(path: string, field: string, file: File, csrfToken:
   return send<T>(path, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-Token': csrfToken }, body: form });
 }
 
+// --- slice 2b (start) ---
+/** Text fields and optional files as multipart/form-data with the CSRF token. Empty fields are left out. */
+export function apiPostForm<T>(path: string, fields: Record<string, string | File | null>, csrfToken: string): Promise<T> {
+  const form = new FormData();
+  for (const [name, value] of Object.entries(fields)) {
+    if (value !== null && value !== '') form.append(name, value);
+  }
+  return send<T>(path, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-Token': csrfToken }, body: form });
+}
+// --- slice 2b (end) ---
+
 interface Loaded<T> {
   id: string;
   group: string;

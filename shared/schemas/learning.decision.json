@@ -1,0 +1,10 @@
+{
+  "$comment": "POST /api/learning/{id}/decision: CPDC verifies or rejects a learning record. A rejection needs a note for the person.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision"],
+  "properties": {
+    "decision": { "enum": ["verified", "rejected"] },
+    "note": { "type": "string", "maxLength": 500 }
+  }
+}
