@@ -1,87 +1,51 @@
 # STATUS
 
+## Open
+- Founder: create the MySQL database for Render (Aiven free plan or similar), fill the Render values, register the
+  callback URLs at Google and LinkedIn (docs/RELEASE.md). Exabytes upload when ready.
+- Founder, when wanted: `ANTHROPIC_API_KEY` in Render for interview feedback (paid; `AI_MODEL` claude-sonnet-5-5 in
+  render.yaml). Without it the interview screen says "not set up yet".
+- Email: Render has no sendmail, so `MAIL_DRIVER=log` there (supervisor links are only logged, not emailed). Exabytes
+  uses `MAIL_DRIVER=mail` + `MAIL_FROM`. For Render: SMTP later.
+- Render's free disk is lost on restart: uploaded CVs, certificate PDFs and project pictures vanish there. Before real
+  users on Render: a persistent disk or object storage. Exabytes keeps files.
+- Supervisor emails are flagged, not checked: CPDC sees a "Personal email: check" badge on free-mail or QIU addresses.
+- Low findings left from the release review: project pictures keep EXIF data (re-encode with GD); no daily cap on
+  assessment attempts or interview session starts; three route styles across slices (one routes file per module
+  would be cleaner); duplicate date and test sign-in helpers; two h1 on /cv and /my-project; strike-through on done
+  career-path steps; no hint on the disabled "Save my rating".
+- Settings screen for `google_hosted_domains`, `student_employee_types`, `qiu_linkedin_page_url` (today in the DB).
+- No screen to edit skill areas; no employer self-service; no email when an application status changes.
+- LinkedIn photo links expire after weeks: refreshed at each LinkedIn sign-in; initials shown when broken.
+- Local dev on Windows: `php -S` hangs; `tools/php-dev-server.mjs` replaces it. PHPStan's parallel workers can hang:
+  `--debug` runs it serially.
+- No production sweep yet ("production" before real students use it).
+
+## Next step
+Founder sets up the Render database and keys; then the lead checks sign-in and each module live.
+
+## Done: slices 2 and 3, 2026-11-26 (four parallel sessions, merged into main)
+- 2a: internship logbook with supervisor approval by single-use emailed link (no login), CPDC intern progress; FYP
+  showcase and talent feed; self-assessments with server scoring.
+- 2b: employers and jobs with applications and CV PDF; skills self-rating with job gap view; learning records with
+  CPDC verification.
+- 3a: workshops with RSVP, waitlist under a row lock, check-in code and attendance CSV; CV builder saved on the
+  server (A4 print); career paths per programme.
+- 3b: opt-in alumni directory, mentoring requests and matches; interview practice with AI feedback (server only,
+  fake driver locally, daily cap).
+- Merge: grouped side menu (My career / Opportunities / CPDC; drawer under 960px with Escape and focus handling);
+  seed clears every person-owned table; e2e specs share `e2e/onboarding.ts`; local seed raises the sign-in limit.
+- Release review (code, security, UX) fixed: assessment attempt locks against edits; supervisor decision audited
+  (link id only) and the student notice sent after the commit; personal supervisor email flag; duplicate-key check
+  on job applications; AI answer cannot break its fence; render.yaml mail and AI settings; employer and job lists as
+  cards on phones; page headings kept on load errors; exact current-menu match; "Assessment builder" label.
+- Checks: 272 PHPUnit tests, PHPStan level 8, ESLint, PHPCS, TypeScript, build, 5 Playwright specs, gitleaks.
+
 ## Done: slice 1, 2026-11-25 (foundation)
 - Rebuild as React + TypeScript (Vite) + plain PHP 8.3 + MySQL 8, structure of sld-orientation. Firebase removed.
 - Google sign-in (server side, PKCE, `google_hosted_domains`, directory profile: matric/staff no, faculty, title).
 - LinkedIn: compulsory link for students and staff (onboarding gate), follow-QIU tick, profile URL, PDPA consent;
   alumni-only LinkedIn sign-in; "Register as a QIU graduate" with CPDC approval and merge by matric number.
-- Career profile: headline, about, location, personal email, status and current job, jobs, education, skills.
-  LinkedIn PDF import (read once, preview, save; file never kept). Optional GitHub link.
-- Admin: People (search, role change rules), person detail (audited), Alumni tracker (employment rate per faculty
-  and year, filters, CSV with formula escaping, "make alumni" by matric list), Graduate sign-ups, Audit log.
-- Alumni job confirmation every `alumni_job_confirm_days` (180), history in `job_confirmation`.
-- Checks: 104 PHPUnit tests (unit + integration through the real pipeline with fake Google/LinkedIn), PHPStan level 8,
-  ESLint, TypeScript, 1 Playwright spec of the main path (`e2e/student-onboarding.spec.ts`).
+- Career profile with LinkedIn PDF import; optional GitHub link; People, person detail, Alumni tracker (employment
+  rate, CSV, "make alumni" by matric list), Graduate sign-ups, Audit log; alumni job confirmation every 180 days.
 - Hosting files: `Dockerfile` + `render.yaml` (Render test copy), `deploy/exabytes/` and `docs/RELEASE.md`.
-
-<!-- slice 3b (begin) -->
-## Done: slice 3b, 2026-11-26 (alumni network, mentoring, interview practice; branch claude/mod-network-a78b2e)
-- Opt-in alumni directory (/network), mentoring offers, requests, accept/decline/withdraw, match with emails.
-- CPDC: Mentoring activity (/mentoring, audited) and Interview questions bank (/questions, audited).
-- Interview practice (/interview) with AI feedback behind `Interview\Ai\Coach` (fake driver locally, Claude when
-  `AI_DRIVER=anthropic` + `ANTHROPIC_API_KEY`), daily cap and per-minute limit.
-- Checks: 27 integration + 16 unit tests added, PHPStan level 8, e2e `e2e/network-interview.spec.ts`.
-- Open for the lead: add `AI_DRIVER`, `ANTHROPIC_API_KEY` (sync: false), `AI_MODEL` to render.yaml; add slice 3b
-  tables to the DELETE list of api/bin/seed.php; founder sets the Claude key when ready (paid service).
-<!-- slice 3b (end) -->
-
-## Open
-- Founder: create the MySQL database for Render (Aiven free plan or similar), fill Render values, register the new
-  callback URLs at Google and LinkedIn (docs/RELEASE.md). Exabytes upload when ready.
-- Slice 2: logbook with supervisor email approval, employers (jobs, applications), skills diagnostics, learning
-  certificates, FYP showcase and talent feed, assessments (port from the old portal, which saves these).
-- Slice 3: workshops (RSVP, check-in), CV builder saved on the server, alumni network, career path, AI interview
-  practice (sample-only in the old portal).
-- Settings screen for `google_hosted_domains`, `student_employee_types`, `qiu_linkedin_page_url` (today in the DB).
-- LinkedIn photo links expire after weeks: refreshed at each LinkedIn sign-in; initials shown when broken.
-- PHP CodeSniffer: 58 line-length warnings (no errors).
-- Local dev on Windows: `php -S` hangs after a while; `tools/php-dev-server.mjs` (php-cgi per request) replaces it.
-- No production sweep yet ("production" before real students use it).
-
-## Next step
-Founder sets up the Render database and keys; then the lead checks sign-in live. Slices 2 and 3 can run as
-parallel sessions, one module group each, on top of `main`.
-
-<!-- ---- slice 2a (logbook, showcase, assessments): begin ---- -->
-## Done: slice 2a, 2026-11-26 (branch `claude/mod-logbook-396638`, not merged)
-- Internship logbook with supervisor approval by single-use emailed link (no login), CPDC intern progress.
-- FYP showcase (project, technologies, links, checked picture upload) and talent feed for staff and CPDC.
-- Self-assessments: CPDC editor with points and result bands, students and alumni take them, server scoring,
-  latest results on the profile.
-- Checks: 148 PHPUnit tests (44 new), Vitest for the new screen logic, PHPStan, ESLint, PHPCS with no warnings,
-  build, 2 Playwright specs (new: `e2e/logbook-showcase-assessment.spec.ts`), gitleaks on history.
-- Open from 2a: production mail needs `MAIL_DRIVER=mail` and `MAIL_FROM` on Exabytes (Render has no sendmail: keep
-  `log` there or add SMTP later). `api/bin/seed.php` does not clear the 2a tables (orphan rows after a reseed are
-  hidden by joins). The shell nav overflows sideways once every module adds items: needs a grouped menu.
-<!-- ---- slice 2a: end ---- -->
-
-<!-- slice 2b (start) -->
-## Done: slice 2b, 2026-11-26 (branch `claude/mod-employers-413367`, not merged)
-- Employers and jobs: CPDC employer directory, jobs and internships with skill levels, applicants per job, one
-  application with profile, note and CV, status changes (audited). Students and alumni: open jobs with search,
-  type and location filters, apply with note and optional CV PDF, withdraw, "My applications".
-- Skills: self-rating 1-5 in 8 areas, kept over time (progress table), gap view against an open job.
-- Learning: courses and certificates with link or PDF proof; CPDC "Learning checks" verify or decline with a note.
-- Screens: `/jobs`, `/skills`, `/learning`, `/employers`, `/learning-checks`; checked on desktop and phone.
-- Checks: 143 PHPUnit tests (39 new), PHPStan level 8, ESLint, PHPCS clean, build, `e2e/jobs-skills-learning.spec.ts`.
-
-## Open (slice 2b)
-- Render's disk is lost on restart: uploaded CVs and certificate PDFs vanish there. Exabytes keeps them. Before
-  real users on Render: a persistent disk or object storage.
-- `api/bin/seed.php` does not clear the slice 2b tables (outside this slice's files): add them at merge.
-- No screen to edit skill areas; no employer self-service; no email when an application status changes.
-<!-- slice 2b (end) -->
-
-<!-- slice 3a (workshops, CV, career path): begin -->
-## Done: slice 3a, 2026-11-26 (branch claude/mod-workshops-acffda, not merged)
-- Workshops: CPDC creates, edits, cancels (Malaysia time in, UTC stored); RSVP with seats and waitlist under a row
-  lock; no RSVP or cancel after the start; check-in by code (30 minutes before to the end) or CPDC's tick list;
-  attendance CSV (formula-escaped). Screens: /workshops (list, form, check-in desk).
-- CV builder: /cv, built on the career profile plus extra sections, saved on the server, A4 print styles.
-- Career path: /career-path, paths per programme written by CPDC, skills matched to the profile, ticked steps.
-- Migrations 0300-0303. Checks: 31 new PHPUnit tests (135 total), PHPStan level 8, ESLint, TypeScript,
-  e2e `e2e/workshops-cv-careerpath.spec.ts`.
-- Open (slice 3a): `api/bin/seed.php` does not clear the slice 3a tables (they keep rows of deleted fake users
-  locally); the top navigation no longer fits on desktop once all slices add items (needs a grouped nav);
-  PHPStan's parallel workers hang on this laptop while other sessions run (`--debug` runs it serially).
-<!-- slice 3a: end -->
