@@ -1,0 +1,10 @@
+{
+  "$comment": "GET /api/workshops: upcoming (default) or past, paged.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "when": { "enum": ["upcoming", "past"] },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

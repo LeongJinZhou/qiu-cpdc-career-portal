@@ -25,6 +25,10 @@ import { LearningPage } from './learning/LearningPage';
 import { LearningReview } from './learning/LearningReview';
 import { SkillsPage } from './skills/SkillsPage';
 // --- slice 2b (end) ---
+// slice 3a (workshops, CV, career path)
+import { CareerPathPage } from './careerpath/CareerPathPage';
+import { CvPage } from './cv/CvPage';
+import { WorkshopsPage } from './workshops/WorkshopsPage';
 
 type State = { kind: 'loading' } | { kind: 'error'; error: unknown } | { kind: 'out' } | { kind: 'in'; me: Me };
 
@@ -42,6 +46,10 @@ const TITLES: Record<string, string> = {
   '/employers': 'Employers and jobs',
   '/learning-checks': 'Learning checks',
   // --- slice 2b (end) ---
+  // slice 3a (workshops, CV, career path)
+  '/workshops': 'Workshops',
+  '/cv': 'CV builder',
+  '/career-path': 'Career path',
 };
 
 export function App() {
@@ -155,6 +163,10 @@ export function App() {
       {page === '/employers' && <ManageJobs me={me} />}
       {page === '/learning-checks' && <LearningReview me={me} />}
       {/* --- slice 2b (end) --- */}
+      {/* slice 3a (workshops, CV, career path) */}
+      {page === '/workshops' && <WorkshopsPage me={me} />}
+      {page === '/cv' && <CvPage me={me} go={go} />}
+      {page === '/career-path' && <CareerPathPage me={me} go={go} />}
     </Shell>
   );
 }

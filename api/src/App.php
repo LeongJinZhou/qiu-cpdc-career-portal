@@ -30,6 +30,10 @@ use Cpdc\Profile\ProfileController;
 use Cpdc\Settings\Settings;
 use Cpdc\Skills\SkillsController;
 use PDO;
+// slice 3a (workshops, CV, career path)
+use Cpdc\CareerPath\CareerPathController;
+use Cpdc\Cv\CvController;
+use Cpdc\Workshops\WorkshopController;
 
 /**
  * Request pipeline: SecurityHeaders, ErrorHandler, Session, per-IP or per-user limit, route match, Auth (401),
@@ -121,7 +125,29 @@ final class App
             ->add('GET', '/api/registrations', AlumniController::registrations(...))
             ->add('POST', '/api/registrations/{id}/approve', AlumniController::approve(...))
             ->add('POST', '/api/registrations/{id}/refuse', AlumniController::refuse(...))
-            ->add('GET', '/api/audit', AuditController::list(...));
+            ->add('GET', '/api/audit', AuditController::list(...))
+            // --- slice 3a (workshops, CV, career path): begin ---
+            ->add('GET', '/api/workshops', WorkshopController::list(...))
+            ->add('POST', '/api/workshops', WorkshopController::create(...))
+            ->add('GET', '/api/workshops/{id}', WorkshopController::show(...))
+            ->add('PUT', '/api/workshops/{id}', WorkshopController::update(...))
+            ->add('POST', '/api/workshops/{id}/cancel', WorkshopController::cancel(...))
+            ->add('POST', '/api/workshops/{id}/rsvp', WorkshopController::rsvp(...))
+            ->add('DELETE', '/api/workshops/{id}/rsvp', WorkshopController::cancelRsvp(...))
+            ->add('POST', '/api/workshops/{id}/check-in', WorkshopController::checkIn(...), rate: [
+                'name' => 'workshop-checkin', 'setting' => 'rate_checkin_per_user_per_min', 'by' => 'user',
+            ])
+            ->add('GET', '/api/workshops/{id}/attendees', WorkshopController::attendees(...))
+            ->add('PUT', '/api/workshops/{id}/attendance', WorkshopController::attendance(...))
+            ->add('GET', '/api/workshops/{id}/export', WorkshopController::export(...), rate: $export)
+            ->add('GET', '/api/cv', CvController::show(...))
+            ->add('PUT', '/api/cv', CvController::save(...))
+            ->add('GET', '/api/career-paths', CareerPathController::overview(...))
+            ->add('POST', '/api/career-paths', CareerPathController::create(...))
+            ->add('PUT', '/api/career-paths/{id}', CareerPathController::update(...))
+            ->add('DELETE', '/api/career-paths/{id}', CareerPathController::delete(...))
+            ->add('PUT', '/api/career-paths/steps/{id}', CareerPathController::progress(...));
+            // --- slice 3a: end ---
 
         // --- slice 2b: employers and jobs, skills diagnostics, learning (start) ---
         $upload = ['name' => 'pdf-upload', 'setting' => 'rate_upload_per_user_per_min', 'by' => 'user'];

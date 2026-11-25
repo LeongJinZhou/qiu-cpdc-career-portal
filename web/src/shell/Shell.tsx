@@ -2,6 +2,8 @@
 import { ClipboardList, GraduationCap, LogOut, ScrollText, UserRound, Users, type LucideIcon } from 'lucide-react';
 import type { MouseEvent, ReactNode } from 'react';
 import { BadgeCheck, BookOpenCheck, BriefcaseBusiness, Building2, Gauge } from 'lucide-react'; // slice 2b
+// slice 3a (workshops, CV, career path)
+import { CalendarDays, FileText, Route } from 'lucide-react';
 import { can, ROLE_LABEL, type Me } from '../auth';
 import { Avatar } from '../ui/parts';
 import { NAV_2A } from '../logbook/nav2a'; // slice 2a
@@ -28,6 +30,10 @@ export const NAV: NavItem[] = [
   { path: '/employers', label: 'Employers', icon: Building2, permission: 'jobs.manage' },
   { path: '/learning-checks', label: 'Learning checks', icon: BadgeCheck, permission: 'learning.verify' },
   // --- slice 2b (end) ---
+  // slice 3a (workshops, CV, career path)
+  { path: '/workshops', label: 'Workshops', icon: CalendarDays, permission: 'workshops.view' },
+  { path: '/cv', label: 'CV builder', icon: FileText, permission: 'cv.own' },
+  { path: '/career-path', label: 'Career path', icon: Route, permission: 'careerpath.view' },
 ];
 
 export function Shell({

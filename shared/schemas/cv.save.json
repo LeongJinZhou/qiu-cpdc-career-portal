@@ -1,0 +1,51 @@
+{
+  "$comment": "PUT /api/cv: what the CV adds to the career profile. Jobs, education and skills come from the profile; hidden_* name the profile entries the CV leaves out.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contact", "headline", "summary", "hidden_experience", "hidden_education", "show_skills", "sections"],
+  "properties": {
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["email", "phone", "location", "website"],
+      "properties": {
+        "email": { "anyOf": [{ "const": "" }, { "type": "string", "format": "email", "maxLength": 254 }] },
+        "phone": { "type": "string", "maxLength": 40, "pattern": "^[0-9+() -]*$" },
+        "location": { "type": "string", "maxLength": 200 },
+        "website": { "anyOf": [{ "const": "" }, { "type": "string", "maxLength": 300, "pattern": "^https://[^\\s]+$" }] }
+      }
+    },
+    "headline": { "type": "string", "maxLength": 300 },
+    "summary": { "type": "string", "maxLength": 3000 },
+    "hidden_experience": { "type": "array", "maxItems": 30, "items": { "type": "integer", "minimum": 1 } },
+    "hidden_education": { "type": "array", "maxItems": 20, "items": { "type": "integer", "minimum": 1 } },
+    "show_skills": { "type": "boolean" },
+    "sections": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "items"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "items": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["heading"],
+              "properties": {
+                "heading": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "sub": { "type": "string", "maxLength": 200 },
+                "period": { "type": "string", "maxLength": 60 },
+                "detail": { "type": "string", "maxLength": 1500 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -227,3 +227,26 @@ Decisions:
   later, as a permission, if the founder wants employers to post themselves).
 - 2026-11-26: skill areas are a fixed list per organisation in the database (8 to start); no edit screen yet.
 <!-- slice 2b (end) -->
+
+<!-- slice 3a (workshops, CV, career path): begin -->
+## 11. Slice 3a: workshops, CV builder, career path
+Permissions (migration 0303): workshops.view, workshops.rsvp and cv.own, careerpath.view for student, staff,
+alumni, admin, superadmin; workshops.manage and careerpath.manage for admin and superadmin. Pending: none.
+- Workshops (`workshop`, `workshop_rsvp`): title, description, start and end (typed in Malaysia time, stored UTC),
+  in person (venue) or online (https link, shown only to people with a seat and to CPDC), seats 1-5000, audience
+  any of students / staff / alumni (admins count as staff). RSVP gives a seat while there is one, else the
+  waitlist; capacity is checked under a row lock on the workshop. A freed seat (cancel, or a raised capacity) goes
+  to the first on the waitlist. Capacity cannot drop below the number going. No RSVP and no cancel once the
+  workshop has started (server clock). Cancelled workshops vanish for people and take no RSVP.
+- Check-in: each workshop has a 6-character code (no look-alike characters) that CPDC shows at the venue; a person
+  with a seat types it from `workshop_checkin_opens_minutes` (30) before the start to the end, rate-limited by
+  `rate_checkin_per_user_per_min`. CPDC can also tick anyone with a seat or on the waitlist. Attendance CSV
+  (formula-escaped, times in Malaysia time) and every create, edit, cancel, tick and export are audited.
+- CV builder (`cv_document`, one per person): jobs, education and skills are read live from the career profile;
+  the CV adds contact line, headline, summary, extra titled sections, and which profile entries to leave out.
+  Stored as schema-validated JSON, shown as text only. Print or "Save as PDF" through the browser (A4 print styles);
+  no paid service. Only the person reads or writes their CV.
+- Career path (`career_path`, `career_path_step`, `career_path_progress`): CPDC writes target roles per programme
+  with skills and ordered steps; editing keeps step ids, so ticks survive. A person sees their own programme first
+  (any case), can look at others, sees which path skills their profile lists, and ticks steps (own progress only).
+<!-- slice 3a: end -->
