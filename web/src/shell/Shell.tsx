@@ -1,6 +1,8 @@
 // The signed-in frame: brand, navigation by permission, the person and sign-out.
 import { ClipboardList, GraduationCap, LogOut, ScrollText, UserRound, Users, type LucideIcon } from 'lucide-react';
 import type { MouseEvent, ReactNode } from 'react';
+// slice 3b icons
+import { BookOpenCheck, HandHelping, MessagesSquare, Network } from 'lucide-react';
 import { can, ROLE_LABEL, type Me } from '../auth';
 import { Avatar } from '../ui/parts';
 import './shell.css';
@@ -18,6 +20,12 @@ export const NAV: NavItem[] = [
   { path: '/people', label: 'People', icon: Users, permission: 'people.view' },
   { path: '/registrations', label: 'Graduate sign-ups', icon: ClipboardList, permission: 'registrations.decide' },
   { path: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.view' },
+  // --- slice 3b: alumni network, mentoring, interview practice (begin) ---
+  { path: '/network', label: 'Alumni network', icon: Network, permission: 'network.view' },
+  { path: '/interview', label: 'Interview practice', icon: MessagesSquare, permission: 'interview.practice' },
+  { path: '/mentoring', label: 'Mentoring activity', icon: HandHelping, permission: 'mentoring.activity' },
+  { path: '/questions', label: 'Interview questions', icon: BookOpenCheck, permission: 'interview.bank' },
+  // --- slice 3b (end) ---
 ];
 
 export function Shell({

@@ -14,6 +14,12 @@ import { RegisterGraduate } from './auth/RegisterGraduate';
 import { ProfilePage } from './profile/ProfilePage';
 import { NAV, Shell } from './shell/Shell';
 import { LoadError, SkeletonLines } from './ui/parts';
+// --- slice 3b (begin) ---
+import { InterviewPage } from './interview/InterviewPage';
+import { QuestionBank } from './interview/QuestionBank';
+import { MentoringActivity } from './network/MentoringActivity';
+import { NetworkPage } from './network/NetworkPage';
+// --- slice 3b (end) ---
 
 type State = { kind: 'loading' } | { kind: 'error'; error: unknown } | { kind: 'out' } | { kind: 'in'; me: Me };
 
@@ -23,6 +29,12 @@ const TITLES: Record<string, string> = {
   '/people': 'People',
   '/registrations': 'Graduate sign-ups',
   '/audit': 'Audit log',
+  // --- slice 3b (begin) ---
+  '/network': 'Alumni network',
+  '/interview': 'Interview practice',
+  '/mentoring': 'Mentoring activity',
+  '/questions': 'Interview questions',
+  // --- slice 3b (end) ---
 };
 
 export function App() {
@@ -113,6 +125,12 @@ export function App() {
       {page === '/people/:id' && personId && <PersonDetail me={me} id={Number(personId)} go={go} />}
       {page === '/registrations' && <Registrations me={me} />}
       {page === '/audit' && <AuditLog />}
+      {/* --- slice 3b (begin) --- */}
+      {page === '/network' && <NetworkPage me={me} />}
+      {page === '/interview' && <InterviewPage me={me} />}
+      {page === '/mentoring' && <MentoringActivity />}
+      {page === '/questions' && <QuestionBank me={me} />}
+      {/* --- slice 3b (end) --- */}
     </Shell>
   );
 }

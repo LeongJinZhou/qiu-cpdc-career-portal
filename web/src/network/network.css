@@ -1,0 +1,215 @@
+/* Alumni network and mentoring. Paints only with the tokens of app.css. */
+.net-page {
+  display: grid;
+  gap: 20px;
+}
+
+.net-own {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.net-fields {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0 0 0 32px;
+  border: 0;
+}
+
+.net-fields:disabled {
+  opacity: 0.5;
+}
+
+.net-fields legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+
+.chip button {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chip button:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.chip button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+.net-toggle {
+  align-self: end;
+  align-items: center;
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.net-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.net-card {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.net-where {
+  font-weight: 550;
+}
+
+.net-mentor {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.net-mentor-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.net-mentor-head > :first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.net-mentor-head svg {
+  color: var(--crimson);
+}
+
+.net-mentor .btn {
+  justify-self: start;
+}
+
+.net-ask {
+  gap: 10px;
+}
+
+.net-requests {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.net-request {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.net-request.is-matched {
+  border-color: var(--ok);
+  background: var(--ok-tint);
+  animation: net-matched 420ms var(--ease-out) both;
+}
+
+@keyframes net-matched {
+  from {
+    transform: translateY(4px);
+    opacity: 0.6;
+  }
+}
+
+.net-message {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--line-strong);
+  color: var(--ink);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.net-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.net-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin: 0 0 20px;
+}
+
+.net-stat {
+  padding: 16px 18px;
+}
+
+.net-stat dt {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.net-stat dd {
+  margin: 0;
+}
+
+.net-stat dd.num:first-of-type {
+  font-family: var(--font-heading);
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .net-request.is-matched {
+    animation: none;
+  }
+}

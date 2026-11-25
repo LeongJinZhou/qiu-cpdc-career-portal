@@ -1,0 +1,13 @@
+{
+  "$comment": "PUT /api/network/me: an alumnus's directory choices. Nothing is shown until visible is true.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["visible", "show_title", "show_company", "show_faculty", "show_year"],
+  "properties": {
+    "visible": { "type": "boolean" },
+    "show_title": { "type": "boolean" },
+    "show_company": { "type": "boolean" },
+    "show_faculty": { "type": "boolean" },
+    "show_year": { "type": "boolean" }
+  }
+}

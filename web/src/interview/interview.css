@@ -1,0 +1,193 @@
+/* Interview practice and the question bank. Paints only with the tokens of app.css. */
+.iv-home,
+.iv-bank {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .iv-home,
+  .iv-bank {
+    grid-template-columns: 1fr;
+  }
+}
+
+.iv-past,
+.iv-items,
+.iv-bank-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.iv-past-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 16px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.iv-past-row:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+
+.iv-past-row:active {
+  background: var(--canvas);
+}
+
+.iv-past-row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+.iv-session {
+  display: grid;
+  gap: 16px;
+}
+
+.iv-items {
+  gap: 16px;
+}
+
+.iv-item {
+  display: grid;
+  gap: 10px;
+}
+
+.iv-number {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.iv-question {
+  font-size: 1.15rem;
+}
+
+.iv-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iv-over {
+  color: var(--crimson);
+}
+
+.iv-answer summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.iv-answer p {
+  margin-top: 8px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* The product's moment: the feedback arrives with a short reveal. */
+.iv-feedback {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--info-tint);
+  animation: iv-reveal 380ms var(--ease-out) both;
+}
+
+@keyframes iv-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.iv-score {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-width: 56px;
+}
+
+.iv-score .num {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.iv-label {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.iv-points {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.iv-bank-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.iv-bank-row .btn {
+  white-space: nowrap;
+}
+
+.iv-bank-list > :first-child {
+  border-top: 0;
+}
+
+.iv-bank-row.is-off strong {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.iv-bank-edit {
+  padding: 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+@media (max-width: 560px) {
+  .iv-feedback {
+    grid-template-columns: 1fr;
+  }
+
+  .iv-bank-row {
+    flex-direction: column;
+  }
+
+  .iv-score {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-feedback {
+    animation: none;
+  }
+}

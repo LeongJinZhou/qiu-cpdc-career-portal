@@ -68,6 +68,11 @@ final class App
         $export = ['name' => 'export', 'setting' => 'rate_export_per_user_per_min', 'by' => 'user'];
         $pdf = ['name' => 'pdf-import', 'setting' => 'rate_pdf_import_per_user_per_min', 'by' => 'user'];
 
+        // --- slice 3b: alumni network, mentoring, interview practice (begin) ---
+        \Cpdc\Network\NetworkRoutes::add($router);
+        \Cpdc\Interview\InterviewRoutes::add($router);
+        // --- slice 3b (end) ---
+
         return $router
             ->add('GET', '/api/health', fn () => Response::json(['status' => 'ok']), public: true)
             ->add('GET', '/api/auth/google/start', AuthController::start(...), true, $login('google-start'))
