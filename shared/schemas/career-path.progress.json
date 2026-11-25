@@ -1,0 +1,9 @@
+{
+  "$comment": "PUT /api/career-paths/steps/{id}: the person marks a step done or not done.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["done"],
+  "properties": {
+    "done": { "type": "boolean" }
+  }
+}

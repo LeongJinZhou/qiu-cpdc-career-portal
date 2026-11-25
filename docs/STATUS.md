@@ -30,3 +30,17 @@
 ## Next step
 Founder sets up the Render database and keys; then the lead checks sign-in live. Slices 2 and 3 can run as
 parallel sessions, one module group each, on top of `main`.
+
+<!-- slice 3a (workshops, CV, career path): begin -->
+## Done: slice 3a, 2026-11-26 (branch claude/mod-workshops-acffda, not merged)
+- Workshops: CPDC creates, edits, cancels (Malaysia time in, UTC stored); RSVP with seats and waitlist under a row
+  lock; no RSVP or cancel after the start; check-in by code (30 minutes before to the end) or CPDC's tick list;
+  attendance CSV (formula-escaped). Screens: /workshops (list, form, check-in desk).
+- CV builder: /cv, built on the career profile plus extra sections, saved on the server, A4 print styles.
+- Career path: /career-path, paths per programme written by CPDC, skills matched to the profile, ticked steps.
+- Migrations 0300-0303. Checks: 31 new PHPUnit tests (135 total), PHPStan level 8, ESLint, TypeScript,
+  e2e `e2e/workshops-cv-careerpath.spec.ts`.
+- Open (slice 3a): `api/bin/seed.php` does not clear the slice 3a tables (they keep rows of deleted fake users
+  locally); the top navigation no longer fits on desktop once all slices add items (needs a grouped nav);
+  PHPStan's parallel workers hang on this laptop while other sessions run (`--debug` runs it serially).
+<!-- slice 3a: end -->

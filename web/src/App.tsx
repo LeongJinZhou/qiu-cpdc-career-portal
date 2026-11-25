@@ -14,6 +14,10 @@ import { RegisterGraduate } from './auth/RegisterGraduate';
 import { ProfilePage } from './profile/ProfilePage';
 import { NAV, Shell } from './shell/Shell';
 import { LoadError, SkeletonLines } from './ui/parts';
+// slice 3a (workshops, CV, career path)
+import { CareerPathPage } from './careerpath/CareerPathPage';
+import { CvPage } from './cv/CvPage';
+import { WorkshopsPage } from './workshops/WorkshopsPage';
 
 type State = { kind: 'loading' } | { kind: 'error'; error: unknown } | { kind: 'out' } | { kind: 'in'; me: Me };
 
@@ -23,6 +27,10 @@ const TITLES: Record<string, string> = {
   '/people': 'People',
   '/registrations': 'Graduate sign-ups',
   '/audit': 'Audit log',
+  // slice 3a (workshops, CV, career path)
+  '/workshops': 'Workshops',
+  '/cv': 'CV builder',
+  '/career-path': 'Career path',
 };
 
 export function App() {
@@ -113,6 +121,10 @@ export function App() {
       {page === '/people/:id' && personId && <PersonDetail me={me} id={Number(personId)} go={go} />}
       {page === '/registrations' && <Registrations me={me} />}
       {page === '/audit' && <AuditLog />}
+      {/* slice 3a (workshops, CV, career path) */}
+      {page === '/workshops' && <WorkshopsPage me={me} />}
+      {page === '/cv' && <CvPage me={me} go={go} />}
+      {page === '/career-path' && <CareerPathPage me={me} go={go} />}
     </Shell>
   );
 }

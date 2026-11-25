@@ -1,0 +1,10 @@
+{
+  "$comment": "PUT /api/workshops/{id}/attendance: CPDC ticks a person on the check-in list, or takes the tick away.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["user_id", "present"],
+  "properties": {
+    "user_id": { "type": "integer", "minimum": 1 },
+    "present": { "type": "boolean" }
+  }
+}
