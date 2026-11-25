@@ -1,0 +1,237 @@
+/* Self-assessments: list, taking one, the result moment, the CPDC editor. Tokens from app.css only. */
+
+.as-page {
+  max-width: 820px;
+}
+
+.as-list {
+  display: grid;
+  gap: 14px;
+}
+
+.as-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.as-item h2 {
+  font-size: 1.08rem;
+  margin: 0;
+}
+
+.as-item p {
+  margin: 0;
+}
+
+.as-item-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+@media (max-width: 600px) {
+  .as-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .as-item-side {
+    justify-content: space-between;
+  }
+}
+
+.as-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--ok-tint);
+  color: var(--ok);
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
+.as-chip strong {
+  font-weight: 650;
+}
+
+.as-question {
+  border: 1px solid var(--line);
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.as-question legend {
+  float: left;
+  width: 100%;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.as-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.as-option:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+.as-option:has(input:checked) {
+  border-color: var(--crimson);
+  background: var(--crimson-tint);
+}
+
+.as-option:has(input:focus-visible) {
+  box-shadow: var(--focus);
+}
+
+.as-option input {
+  accent-color: var(--crimson);
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.as-submit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* The result: the product's own moment here. A ring fills to the score once. */
+.as-result {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+@media (max-width: 560px) {
+  .as-result {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.as-ring {
+  --p: 0;
+  flex: none;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--ok) calc(var(--fill, var(--p)) * 1%), var(--canvas) 0);
+  animation: as-fill 900ms var(--ease-out) both;
+}
+
+.as-ring::before {
+  content: '';
+  grid-area: 1 / 1;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.as-ring strong {
+  grid-area: 1 / 1;
+  position: relative;
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+@property --fill {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes as-fill {
+  from {
+    --fill: 0;
+  }
+  to {
+    --fill: var(--p);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-ring {
+    animation: none;
+    --fill: var(--p);
+  }
+}
+
+.as-side-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.as-results {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.as-results li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.as-results li div {
+  display: grid;
+  min-width: 0;
+}
+
+.as-fieldset {
+  margin: 0;
+  min-width: 0;
+}
+
+.as-fieldset:disabled {
+  opacity: 0.75;
+}
+
+.as-legend {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.02rem;
+  padding: 0;
+}
+
+.as-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px auto;
+  gap: 10px;
+  align-items: end;
+}
+
+@media (max-width: 520px) {
+  .as-band {
+    grid-template-columns: minmax(0, 1fr) 80px auto;
+  }
+}

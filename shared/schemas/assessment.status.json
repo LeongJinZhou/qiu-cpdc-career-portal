@@ -1,0 +1,9 @@
+{
+  "$comment": "PATCH /api/assessments/manage/{id}/status: publish, take back to draft, or archive.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status"],
+  "properties": {
+    "status": { "enum": ["draft", "published", "archived"] }
+  }
+}

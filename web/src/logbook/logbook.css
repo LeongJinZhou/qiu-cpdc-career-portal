@@ -1,0 +1,209 @@
+/* Internship logbook: student weeks, CPDC progress, the supervisor's review page. Tokens from app.css only. */
+
+.lb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .lb-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lb-week {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+  padding: 20px 22px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .lb-week {
+    padding: 16px;
+  }
+}
+
+/* Feedback only: the week just saved or sent settles in. */
+.lb-week-fresh {
+  animation: lb-settle 700ms var(--ease-out) both;
+}
+
+@keyframes lb-settle {
+  from {
+    border-color: var(--ok);
+    box-shadow: 0 0 0 4px var(--ok-tint), var(--shadow-panel);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-week-fresh {
+    animation: none;
+  }
+}
+
+.lb-week-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+
+.lb-week-head h3 {
+  font-size: 1.02rem;
+  margin: 0 0 2px;
+}
+
+.lb-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lb-comment {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.lb-comment svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--faint);
+}
+
+.lb-comment p {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lb-comment-returned {
+  background: var(--crimson-tint);
+  border-color: transparent;
+}
+
+.lb-comment-returned svg {
+  color: var(--crimson);
+}
+
+.lb-week footer {
+  padding-top: 4px;
+}
+
+.lb-week-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 520px) {
+  .lb-week-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lb-side-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.lb-progress {
+  display: grid;
+  gap: 10px;
+}
+
+.lb-progress-numbers {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.lb-progress-numbers strong {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.lb-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+.lb-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ok);
+  transition: width 500ms var(--ease-out);
+}
+
+.lb-mini {
+  display: grid;
+  grid-template-columns: auto minmax(60px, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 130px;
+}
+
+.lb-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+}
+
+.lb-facts dt {
+  color: var(--muted);
+}
+
+.lb-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The supervisor's confirmation: the one moment on that page. */
+.lb-done {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 8px;
+  text-align: center;
+  color: var(--muted);
+  animation: lb-rise 500ms var(--ease-out) both;
+}
+
+.lb-done h1 {
+  color: var(--ink);
+}
+
+.lb-done-ok svg {
+  color: var(--ok);
+}
+
+@keyframes lb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-done {
+    animation: none;
+  }
+}

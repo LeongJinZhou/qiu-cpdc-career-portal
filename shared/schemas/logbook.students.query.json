@@ -1,0 +1,11 @@
+{
+  "$comment": "GET /api/logbook/students: CPDC's list of interns. attention=1 keeps students with a returned week.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "q": { "type": "string", "maxLength": 100 },
+    "attention": { "enum": ["1"] },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

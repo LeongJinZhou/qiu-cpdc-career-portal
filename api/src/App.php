@@ -64,6 +64,9 @@ final class App
     /** Production routes. */
     public static function routes(Router $router): Router
     {
+        // ---- slice 2a (logbook, showcase, assessments): begin ----
+        \Cpdc\Logbook\Slice2aRoutes::add($router);
+        // ---- slice 2a: end ----
         $login = fn (string $name) => ['name' => $name, 'setting' => 'rate_login_per_ip_per_min', 'by' => 'ip'];
         $export = ['name' => 'export', 'setting' => 'rate_export_per_user_per_min', 'by' => 'user'];
         $pdf = ['name' => 'pdf-import', 'setting' => 'rate_pdf_import_per_user_per_min', 'by' => 'user'];

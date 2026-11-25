@@ -30,3 +30,16 @@
 ## Next step
 Founder sets up the Render database and keys; then the lead checks sign-in live. Slices 2 and 3 can run as
 parallel sessions, one module group each, on top of `main`.
+
+<!-- ---- slice 2a (logbook, showcase, assessments): begin ---- -->
+## Done: slice 2a, 2026-11-26 (branch `claude/mod-logbook-396638`, not merged)
+- Internship logbook with supervisor approval by single-use emailed link (no login), CPDC intern progress.
+- FYP showcase (project, technologies, links, checked picture upload) and talent feed for staff and CPDC.
+- Self-assessments: CPDC editor with points and result bands, students and alumni take them, server scoring,
+  latest results on the profile.
+- Checks: 148 PHPUnit tests (44 new), Vitest for the new screen logic, PHPStan, ESLint, PHPCS with no warnings,
+  build, 2 Playwright specs (new: `e2e/logbook-showcase-assessment.spec.ts`), gitleaks on history.
+- Open from 2a: production mail needs `MAIL_DRIVER=mail` and `MAIL_FROM` on Exabytes (Render has no sendmail: keep
+  `log` there or add SMTP later). `api/bin/seed.php` does not clear the 2a tables (orphan rows after a reseed are
+  hidden by joins). The shell nav overflows sideways once every module adds items: needs a grouped menu.
+<!-- ---- slice 2a: end ---- -->
