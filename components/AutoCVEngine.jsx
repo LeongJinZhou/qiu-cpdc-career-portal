@@ -43,7 +43,7 @@ export default function AutoCVEngine({ student, activeFaculty }) {
   const skills = (live?.skills?.length ? live.skills : (Array.isArray(student?.skills) ? student.skills : []));
   const loggedHours = live?.hours ?? logbookEntries.reduce((total, entry) => total + Number(entry?.hours || 0), 0);
   const certifications = live?.certifications ?? [];
-  const manualSections = live?.manualSections ?? { experience: [], volunteering: [], achievements: [] };
+  const manualSections = live?.manualSections ?? { experience: [], volunteering: [], achievements: [], education: [] };
   const uploadedResume = live?.uploadedResume ?? null;
   // The collapsed summary must stand alone -- a row reading only "Data sources"
   // would be worse than no collapsing at all, because the student could not

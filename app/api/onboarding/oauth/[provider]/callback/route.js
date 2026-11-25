@@ -4,6 +4,8 @@ import { resolveActor } from '@/lib/auth/actor';
 import { getRequestId } from '@/lib/auth/identity';
 import { OAUTH_PROVIDERS, fetchOAuthProfile, isConfigured, verifyState } from '@/lib/onboarding/oauth';
 import { connectAccountByOAuth } from '@/lib/onboarding/service';
+import { fetchProfilePhotoDataUrl } from '@/lib/onboarding/profile-photo';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/onboarding/oauth/:provider/callback
@@ -63,6 +65,30 @@ export async function GET(request, { params }) {
       actorUserId: actor.user.id,
       requestId: getRequestId(request),
     });
+
+    // The LinkedIn photo becomes the profile picture, stored as our own copy
+    // (LinkedIn's links expire). A photo the student uploaded themselves is
+    // never replaced, and a failed copy never fails the connection.
+    // The connection is already saved: a photo failure is logged, never shown
+    // to the student as a failed connection.
+    if (providerId === 'LINKEDIN' && profile.pictureUrl) {
+      try {
+        const current = await prisma.user.findUnique({
+          where: { id: actor.user.id },
+          select: { avatarSource: true },
+        });
+        const photo = current?.avatarSource === 'CUSTOM' ? null : await fetchProfilePhotoDataUrl(profile.pictureUrl);
+        if (photo) {
+          // Guarded write: a photo uploaded while LinkedIn was being fetched wins.
+          await prisma.user.updateMany({
+            where: { id: actor.user.id, avatarSource: { not: 'CUSTOM' } },
+            data: { avatarUrl: photo, avatarSource: 'LINKEDIN' },
+          });
+        }
+      } catch (photoError) {
+        console.warn('[oauth:LINKEDIN] photo copy failed', photoError?.name ?? 'Error');
+      }
+    }
 
     // LinkedIn verifies the person but cannot hand over the public URL, so the
     // flow tells the student exactly what is still needed rather than showing a

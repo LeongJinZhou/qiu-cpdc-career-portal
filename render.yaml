@@ -37,6 +37,9 @@ services:
       # Seed only reference data + first admin; never demo/test users.
       - key: SEED_PROFILE
         value: production
+      # Platform owner's Google account; made an active Super Admin each deploy.
+      - key: SUPERADMIN_EMAIL
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: MAGIC_LINK_SECRET

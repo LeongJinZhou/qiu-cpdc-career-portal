@@ -38,6 +38,9 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // pdfjs loads its worker file at runtime; bundled, that file goes missing
+  // ("Setting up fake worker failed"). Load it from node_modules as is.
+  serverExternalPackages: ['pdfjs-dist'],
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

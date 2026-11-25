@@ -6,6 +6,7 @@ import { Bell, FileText, LogOut, UserCircle } from 'lucide-react';
 import { usePortal } from '@/components/portal/PortalProvider';
 import PersonalDetailsForm from '@/components/settings/PersonalDetailsForm';
 import ResumeEditor from '@/components/settings/ResumeEditor';
+import LinkedInImport from '@/components/settings/LinkedInImport';
 
 const PREFS_KEY = 'qiu.portal.preferences';
 
@@ -24,6 +25,7 @@ const NOTIFICATION_LABELS = {
 export default function ProfileSettings() {
   const { student, activeFaculty } = usePortal();
   const [tab, setTab] = useState('details');
+  const [importVersion, setImportVersion] = useState(0);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -78,8 +80,14 @@ export default function ProfileSettings() {
         id={`settings-panel-${tab}`}
         aria-labelledby={`settings-tab-${tab}`}
       >
-        {tab === 'details' ? <PersonalDetailsForm /> : null}
-        {tab === 'resume' ? <ResumeEditor /> : null}
+        {tab === 'details' || tab === 'resume' ? (
+          <div className="mb-6">
+            <LinkedInImport onImported={() => setImportVersion((version) => version + 1)} />
+          </div>
+        ) : null}
+        {/* The key remounts the form so it reloads what the import saved. */}
+        {tab === 'details' ? <PersonalDetailsForm key={`details-${importVersion}`} /> : null}
+        {tab === 'resume' ? <ResumeEditor key={`resume-${importVersion}`} /> : null}
         {tab === 'notifications' ? <NotificationPreferences /> : null}
       </div>
 

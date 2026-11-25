@@ -176,6 +176,16 @@ model User {
   sessionRevokedAt DateTime?
   identitySource   IdentitySource @default(MANUAL)
 
+  // Read from the QIU Google Workspace directory at every sign-in, for every
+  // role (students also keep their Student.employeeId/courseCode copy). Only
+  // non-empty directory values overwrite. Phone, address and managers are
+  // never read.
+  directoryEmployeeId   String?
+  directoryEmployeeType String?
+  directoryDepartment   String?
+  directoryJobTitle     String?
+  directorySyncedAt     DateTime?
+
   student               Student?
   roleAssignments       RoleAssignment[]
   identitySnapshots     IdentitySnapshot[]

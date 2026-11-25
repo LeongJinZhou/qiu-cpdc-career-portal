@@ -1,5 +1,20 @@
 # Known Issues
 
+Added 2026-11-25 (Render deploy, LinkedIn import, super admin):
+- Hosting: Render (render.yaml). Super admin = env SUPERADMIN_EMAIL, made an
+  active SUPER_ADMIN by the deploy seed (SEED_PROFILE=production); a
+  SUSPENDED/DISABLED owner is left as is.
+- Google directory sync runs for every role: photo, department, job title,
+  Employee ID via people:searchDirectoryPeople (own email only).
+- LinkedIn sign-in gives only name/email/photo. Photo copied on connect
+  (avatarSource LINKEDIN, lib/auth/avatar.js). Headline/About/jobs/education/
+  skills come from the student's "Save to PDF" export: /settings import card,
+  parsed in a worker thread (lib/profile/), preview only, saved via existing
+  profile + CV endpoints. Manual CV gained an `education` section.
+- Open: parser tested on generated PDFs only - try a real LinkedIn export.
+  Rate limits are in-memory (one instance only). No Playwright test yet.
+  4 tests failed before this work (session cookie x2, tooling x2).
+
 Fixed 2026-08-02 (persistence pass 2 — software-testing feedback Modules 6-16):
 - Module 7 (Diagnostics): `DiagnosticResult` model + `/api/diagnostics`. Every
   attempt persisted (radar/gap survive refresh); first attempt = longitudinal

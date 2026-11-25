@@ -5,6 +5,8 @@ import crypto from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { FACULTIES, DEFAULT_STUDENT, WORKSHOPS } from '../lib/data/facultyData.js';
 import { formatStudentId } from '../lib/identity/student-id.js';
+import { isDeliberatelyBlocked, normalizeBootstrapAdminInput, superAdminPatchFor } from '../lib/admin/bootstrap.js';
+import { createAuditEntry } from '../lib/audit/index.js';
 
 const prisma = new PrismaClient();
 
@@ -426,9 +428,62 @@ async function seedProductionAdmin() {
   console.log('  ensured QIU admin admin@qiu.edu.my (created only if missing)');
 }
 
+// The platform owner. SUPERADMIN_EMAIL lives in the host's environment, not in
+// this public repo. Every deploy makes sure that account is an active Super
+// Admin; it only writes (and audits) when something actually changed.
+async function ensureSuperAdmin() {
+  if (!process.env.SUPERADMIN_EMAIL?.trim()) {
+    console.log('  SUPERADMIN_EMAIL not set; no super admin ensured');
+    return;
+  }
+  const input = normalizeBootstrapAdminInput({ email: process.env.SUPERADMIN_EMAIL });
+
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.user.findFirst({
+      where: { OR: [{ normalizedEmail: input.normalizedEmail }, { email: input.email }] },
+    });
+    if (isDeliberatelyBlocked(existing)) {
+      // Break-glass: an admin suspended the owner account. A deploy must not
+      // silently undo that. Reactivate by hand once it is safe.
+      console.warn(`  SUPERADMIN_EMAIL account is ${existing.accountStatus}; left as is`);
+      return;
+    }
+    const patch = existing ? superAdminPatchFor(existing, input.normalizedEmail) : null;
+    if (existing && !patch) return;
+
+    const user = existing
+      ? await tx.user.update({ where: { id: existing.id }, data: patch })
+      : await tx.user.create({
+        data: {
+          email: input.email,
+          normalizedEmail: input.normalizedEmail,
+          name: input.name,
+          role: 'SUPER_ADMIN',
+          loginAllowed: true,
+          accountStatus: 'ACTIVE',
+          identitySource: 'MANUAL',
+        },
+      });
+
+    await createAuditEntry({
+      tx,
+      action: 'BOOTSTRAP_SUPER_ADMIN',
+      resourceType: 'User',
+      resourceId: user.id,
+      before: existing
+        ? { role: existing.role, loginAllowed: existing.loginAllowed, accountStatus: existing.accountStatus }
+        : null,
+      after: { role: user.role, loginAllowed: user.loginAllowed, accountStatus: user.accountStatus },
+      metadata: { source: 'deploy-seed' },
+    });
+  });
+  console.log('  ensured super admin from SUPERADMIN_EMAIL');
+}
+
 async function main() {
   console.log(`Seeding CPDC platform (${PRODUCTION ? 'production' : 'development'})...`);
   await seedFaculties();
+  await ensureSuperAdmin();
   if (PRODUCTION) {
     await seedProductionAdmin();
   } else {

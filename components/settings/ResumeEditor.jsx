@@ -51,9 +51,19 @@ const SECTIONS = [
     orgPlaceholder: 'MDEC',
     addLabel: 'Add an achievement',
   },
+  {
+    key: 'education',
+    title: 'Education',
+    hint: 'Schools and qualifications before or outside QIU. Your QIU programme is added from the university record.',
+    titleLabel: 'Qualification',
+    titlePlaceholder: 'SPM',
+    orgLabel: 'School or institution',
+    orgPlaceholder: 'SMK Ipoh',
+    addLabel: 'Add education',
+  },
 ];
 
-const EMPTY_SECTIONS = { experience: [], volunteering: [], achievements: [] };
+const EMPTY_SECTIONS = { experience: [], volunteering: [], achievements: [], education: [] };
 
 async function readJson(response) {
   const payload = await response.json().catch(() => ({}));

@@ -159,6 +159,7 @@ const ResumeDocument = forwardRef(function ResumeDocument(
         { id: 'experience', label: 'Work experience' },
         { id: 'volunteering', label: 'Volunteering' },
         { id: 'achievements', label: 'Achievements' },
+        { id: 'education', label: 'Education' },
       ].map(({ id, label }) => {
         const items = manualBySection(id);
         if (!items.length) return null;

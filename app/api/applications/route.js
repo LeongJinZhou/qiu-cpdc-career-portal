@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
 import { resolveActor, requireStudentActor } from '@/lib/auth/actor';
-import { getRequestId, toIdentityRouteError, parseJsonBody } from '@/lib/auth/identity';
+import { effectiveAvatarUrl, getRequestId, toIdentityRouteError, parseJsonBody } from '@/lib/auth/identity';
 import { createNotification } from '@/lib/notifications';
 import { createAuditEntry } from '@/lib/audit';
 
@@ -73,9 +73,7 @@ export async function GET(request) {
         stage: a.stage,
         studentName: a.student.user.name,
         studentEmail: a.student.user.email,
-        studentAvatar: a.student.user.avatarSource === 'CUSTOM'
-          ? a.student.user.avatarUrl
-          : (a.student.user.googleAvatarUrl ?? a.student.user.avatarUrl ?? null),
+        studentAvatar: effectiveAvatarUrl(a.student.user),
         programme: a.student.programme?.name ?? null,
         skills: a.student.skillTags ?? [],
         createdAt: a.createdAt,

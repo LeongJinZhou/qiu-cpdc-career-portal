@@ -152,7 +152,7 @@ export function toVisibilityRecord(student, { studentProfile = null, manualCv = 
       stage: application.stage,
       updatedAt: application.updatedAt,
     })),
-    manualSections: manualCv ?? { experience: [], volunteering: [], achievements: [] },
+    manualSections: manualCv ?? { experience: [], volunteering: [], achievements: [], education: [] },
     verifiedSkills: student.skillTags ?? [],
     certifications: verifiedCourses.map((course) => ({
       id: course.id,
