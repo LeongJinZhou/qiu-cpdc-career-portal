@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { publicOrigin } from '@/lib/http/public-origin';
+
 export const LINKEDIN_LOGIN_CALLBACK = '/api/auth/linkedin/callback';
 export const LINKEDIN_LOGIN_STATE_COOKIE = 'qiu_linkedin_login_state';
 
@@ -20,7 +22,7 @@ export function loginStateSubject(nonce) {
 /** Back to /login with a fixed error code; the page maps codes to wording,
  *  so nothing from the URL is ever shown as text. */
 export function loginErrorRedirect(request, code) {
-  const url = new URL('/login', new URL(request.url).origin);
+  const url = new URL('/login', publicOrigin(request));
   url.searchParams.set('error', code);
   return NextResponse.redirect(url);
 }

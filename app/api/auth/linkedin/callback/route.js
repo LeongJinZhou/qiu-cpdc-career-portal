@@ -8,6 +8,7 @@ import { authorizeAlumniLinkedIn } from '@/lib/auth/linkedin-signin';
 import { issueSessionCookie } from '@/lib/auth/session';
 import { fetchOAuthProfile, isConfigured, verifyState } from '@/lib/onboarding/oauth';
 import { createRateLimiter } from '@/lib/rate-limit';
+import { publicOrigin } from '@/lib/http/public-origin';
 import {
   clientKey, LINKEDIN_LOGIN_CALLBACK, LINKEDIN_LOGIN_STATE_COOKIE, loginErrorRedirect, loginStateSubject,
 } from '../shared';
@@ -77,7 +78,7 @@ export async function GET(request) {
     });
 
     const session = issueSessionCookie(user, { source: 'LINKEDIN' });
-    const response = NextResponse.redirect(new URL('/network', new URL(request.url).origin));
+    const response = NextResponse.redirect(new URL('/network', publicOrigin(request)));
     response.cookies.set(session.name, session.value, session.options);
     return finish(response);
   } catch (error) {

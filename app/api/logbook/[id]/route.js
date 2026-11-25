@@ -8,6 +8,7 @@ import { createAuditEntry } from '@/lib/audit';
 import { requireCapability } from '@/lib/auth/permissions';
 import { createMagicToken } from '@/lib/magic-link';
 import { sendSupervisorApprovalEmail } from '@/lib/email';
+import { publicOrigin } from '@/lib/http/public-origin';
 
 const supervisorSchema = z.object({
   supervisor: z.object({
@@ -119,8 +120,7 @@ export async function PATCH(request, { params }) {
       });
     });
 
-    const origin = new URL(request.url).origin;
-    const approvalUrl = `${origin}/approve/${token}`;
+    const approvalUrl = `${publicOrigin(request)}/approve/${token}`;
 
     const delivery = await sendSupervisorApprovalEmail({
       to: supervisor.email ? supervisor.email.trim() : null,

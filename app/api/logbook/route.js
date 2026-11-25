@@ -12,6 +12,7 @@ import { requireCapability } from '@/lib/auth/permissions';
 import { createMagicToken } from '@/lib/magic-link';
 import { sendSupervisorApprovalEmail } from '@/lib/email';
 import { createNotifications, userIdsForScopedStaff } from '@/lib/notifications';
+import { publicOrigin } from '@/lib/http/public-origin';
 
 /**
  * Submit a logbook entry and mint the supervisor's approval link.
@@ -152,8 +153,7 @@ export async function POST(request) {
     return createdEntry;
   });
 
-  const origin = new URL(request.url).origin;
-  const approvalUrl = `${origin}/approve/${token}`;
+  const approvalUrl = `${publicOrigin(request)}/approve/${token}`;
   const delivery = await sendSupervisorApprovalEmail({
     to: supervisor.email ? supervisor.email.trim() : null,
     supervisorName: supervisor.name.trim(),

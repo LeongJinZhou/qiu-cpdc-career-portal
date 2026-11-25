@@ -7,6 +7,7 @@ import { connectAccountByOAuth } from '@/lib/onboarding/service';
 import { fetchProfilePhotoDataUrl } from '@/lib/onboarding/profile-photo';
 import { prisma } from '@/lib/prisma';
 import { createAuditEntry } from '@/lib/audit/index.js';
+import { publicOrigin } from '@/lib/http/public-origin';
 
 /**
  * GET /api/onboarding/oauth/:provider/callback
@@ -16,7 +17,7 @@ import { createAuditEntry } from '@/lib/audit/index.js';
  * back in the flow with an explanation, never on a JSON error page.
  */
 function back(request, params) {
-  const url = new URL('/onboarding', new URL(request.url).origin);
+  const url = new URL('/onboarding', publicOrigin(request));
   Object.entries(params).forEach(([key, value]) => {
     if (value != null) url.searchParams.set(key, String(value));
   });
