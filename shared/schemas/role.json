@@ -1,0 +1,9 @@
+{
+  "$comment": "PATCH /api/people/{id}/role. Alumni go through POST /api/people/{id}/alumni; superadmin comes only from SUPERADMIN_EMAIL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["role"],
+  "properties": {
+    "role": { "enum": ["admin", "staff", "student"] }
+  }
+}

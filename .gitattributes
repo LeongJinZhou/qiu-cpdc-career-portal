@@ -1,0 +1,6 @@
+# LF everywhere (the Docker image runs deploy/start.sh); binaries are never converted.
+* text=auto eol=lf
+*.pdf binary
+*.png binary
+*.jpg binary
+*.woff2 binary

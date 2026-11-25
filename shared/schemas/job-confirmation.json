@@ -1,0 +1,11 @@
+{
+  "$comment": "POST /api/profile/job-confirmation (alumni, docs/SPEC.md rule 11).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["employment_status"],
+  "properties": {
+    "employment_status": { "enum": ["employed", "self_employed", "further_study", "seeking", "not_seeking"] },
+    "title": { "type": "string", "maxLength": 200 },
+    "company": { "type": "string", "maxLength": 200 }
+  }
+}

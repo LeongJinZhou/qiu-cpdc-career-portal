@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Cpdc\Db;
+
+use PDO;
+use Cpdc\Env;
+
+final class Connection
+{
+    public static function fromEnv(): PDO
+    {
+        $dsn = sprintf(
+            'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+            Env::get('DB_HOST'),
+            Env::get('DB_PORT'),
+            Env::get('DB_NAME')
+        );
+        $ca = getenv('DB_SSL_CA');
+
+        $options = self::options($ca === false ? null : $ca, getenv('APP_ENV') === 'production');
+
+        return new PDO($dsn, Env::get('DB_USER'), Env::get('DB_PASSWORD'), $options);
+    }
+
+    /**
+     * PDO options. With a CA file (DB_SSL_CA, a hosted database such as Aiven) the connection is TLS and the server
+     * certificate is verified against that CA; without one (local MySQL) no TLS options are set. Production never
+     * connects without TLS.
+     *
+     * @return array<int, mixed>
+     */
+    public static function options(?string $sslCa, bool $requireTls = false): array
+    {
+        if ($requireTls && ($sslCa === null || trim($sslCa) === '')) {
+            throw new \RuntimeException('DB_SSL_CA must be set in production');
+        }
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            // All DATETIME values are UTC (ARCHITECTURE section 13).
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+00:00'",
+        ];
+        if ($sslCa !== null && trim($sslCa) !== '') {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        }
+
+        return $options;
+    }
+}

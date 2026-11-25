@@ -1,0 +1,22 @@
+{
+  "$comment": "POST /api/people/{id}/alumni (one) and POST /api/alumni/convert (a list by matric number).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "graduation_year": { "type": "integer", "minimum": 1990, "maximum": 2100 },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["matric_no", "graduation_year"],
+        "properties": {
+          "matric_no": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "graduation_year": { "type": "integer", "minimum": 1990, "maximum": 2100 }
+        }
+      }
+    }
+  }
+}

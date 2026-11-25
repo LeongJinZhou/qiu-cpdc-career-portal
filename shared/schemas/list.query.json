@@ -1,0 +1,15 @@
+{
+  "$comment": "Query of the admin lists: GET /api/people, /api/alumni, /api/registrations, /api/audit.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "q": { "type": "string", "maxLength": 100 },
+    "role": { "enum": ["superadmin", "admin", "staff", "student", "alumni", "pending"] },
+    "faculty": { "type": "string", "maxLength": 200 },
+    "year": { "type": "integer", "minimum": 1990, "maximum": 2100 },
+    "status": { "enum": ["employed", "self_employed", "further_study", "seeking", "not_seeking", "unknown", "waiting", "approved", "refused"] },
+    "linkedin": { "enum": ["linked", "missing"] },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

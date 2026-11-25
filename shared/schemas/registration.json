@@ -1,0 +1,11 @@
+{
+  "$comment": "POST /api/graduates/registration (docs/SPEC.md rule 9) and POST /api/registrations/{id}/approve (faculty only).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "matric_no": { "type": "string", "minLength": 3, "maxLength": 64, "pattern": "^[A-Za-z0-9][A-Za-z0-9/ -]*$" },
+    "programme": { "type": "string", "minLength": 2, "maxLength": 200 },
+    "faculty": { "type": "string", "maxLength": 200 },
+    "graduation_year": { "type": "integer", "minimum": 1990, "maximum": 2100 }
+  }
+}

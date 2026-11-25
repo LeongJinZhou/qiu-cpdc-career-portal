@@ -1,0 +1,27 @@
+node_modules/
+vendor/
+.next/
+# Runtime files: sessions, logs, the fake identity server's key. Never in git.
+storage/
+api/.phpunit.cache/
+api/.phpunit.result.cache
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.claude/
+# Database dumps and exports stay out of git. Migrations and test fixtures are code:
+# keep schema and seed SQL in a migrations/ folder, and only fake data in fixtures/.
+*.sql
+!**/migrations/**/*.sql
+!**/fixtures/**/*.sql
+*.dump
+*.csv
+transcripts/
+prompts/

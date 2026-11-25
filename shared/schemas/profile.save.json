@@ -1,0 +1,58 @@
+{
+  "$comment": "PUT /api/profile: any of fields, experience, education, skills. A list given replaces the stored list. source 'pdf' marks a LinkedIn PDF import.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "source": { "enum": ["pdf", "manual"] },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "headline": { "type": "string", "maxLength": 300 },
+        "about": { "type": "string", "maxLength": 5000 },
+        "location": { "type": "string", "maxLength": 200 },
+        "industry": { "type": "string", "maxLength": 200 },
+        "personal_email": { "anyOf": [{ "const": "" }, { "type": "string", "format": "email", "maxLength": 254 }] },
+        "programme": { "type": "string", "maxLength": 200 },
+        "graduation_year": { "anyOf": [{ "type": "null" }, { "type": "integer", "minimum": 1990, "maximum": 2100 }] },
+        "employment_status": { "enum": ["employed", "self_employed", "further_study", "seeking", "not_seeking", "unknown"] },
+        "current_title": { "type": "string", "maxLength": 200 },
+        "current_company": { "type": "string", "maxLength": 200 },
+        "current_since": { "type": "string", "pattern": "^(|\\d{4}-(0[1-9]|1[0-2]))$" }
+      }
+    },
+    "experience": { "type": "array", "maxItems": 30, "items": { "$ref": "#/$defs/job" } },
+    "education": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/school" } },
+    "skills": { "type": "array", "maxItems": 50, "items": { "type": "string", "minLength": 1, "maxLength": 80 } }
+  },
+  "$defs": {
+    "month": { "anyOf": [{ "type": "null" }, { "type": "string", "pattern": "^\\d{4}-(0[1-9]|1[0-2])$" }] },
+    "year": { "anyOf": [{ "type": "null" }, { "type": "integer", "minimum": 1950, "maximum": 2100 }] },
+    "text": { "anyOf": [{ "type": "null" }, { "type": "string", "maxLength": 200 }] },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "company"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "company": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "location": { "$ref": "#/$defs/text" },
+        "start": { "$ref": "#/$defs/month" },
+        "end": { "$ref": "#/$defs/month" },
+        "description": { "anyOf": [{ "type": "null" }, { "type": "string", "maxLength": 2000 }] }
+      }
+    },
+    "school": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["school"],
+      "properties": {
+        "school": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "degree": { "$ref": "#/$defs/text" },
+        "field": { "$ref": "#/$defs/text" },
+        "start_year": { "$ref": "#/$defs/year" },
+        "end_year": { "$ref": "#/$defs/year" }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$comment": "POST /api/onboarding/complete (docs/SPEC.md rule 6).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile_url", "follow_confirmed", "consent"],
+  "properties": {
+    "profile_url": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "follow_confirmed": { "const": true },
+    "consent": { "const": true }
+  }
+}

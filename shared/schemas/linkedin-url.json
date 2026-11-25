@@ -1,0 +1,9 @@
+{
+  "$comment": "PATCH /api/profile/linkedin-url.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile_url"],
+  "properties": {
+    "profile_url": { "type": "string", "minLength": 1, "maxLength": 300 }
+  }
+}
