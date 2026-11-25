@@ -91,7 +91,8 @@ final class LogbookTest extends HttpTestCase
         )->fetch(\PDO::FETCH_ASSOC);
         $this->assertIsArray($audit, 'the supervisor decision is audited');
         $this->assertNull($audit['actor_id']);
-        $this->assertStringContainsString('supervisor@company.example', (string) $audit['meta_json']);
+        $this->assertStringContainsString('link_id', (string) $audit['meta_json']);
+        $this->assertStringNotContainsString('@', (string) $audit['meta_json'], 'no email address in the audit log');
 
         $this->signInAs('student');
         $this->assertSame('approved', $this->body($this->send('GET', '/api/logbook'))['entries'][0]['status']);

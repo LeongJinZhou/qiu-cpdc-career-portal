@@ -75,7 +75,10 @@ final class AnthropicCoach implements Coach
     public function body(string $field, string $question, string $answer): array
     {
         // The answer is the student's own text: it must not close the fence it sits in.
-        $answer = str_ireplace(['<answer>', '</answer>'], '', $answer);
+        do {
+            $before = $answer;
+            $answer = (string) preg_replace('#<\s*/?\s*answer\s*>#i', '', $answer);
+        } while ($answer !== $before); // "<ans<answer>wer>" must not rebuild a tag
 
         return [
             'model' => $this->model,

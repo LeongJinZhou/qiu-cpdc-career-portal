@@ -244,13 +244,13 @@ final class LogbookService
                 "UPDATE logbook_entry SET status = ?, supervisor_comment = ?, decided_at = ?,"
                 . " updated_at = UTC_TIMESTAMP(3) WHERE id = ? AND status = 'submitted'"
             )->execute([$status, $comment === '' ? null : $comment, $at, $entryId]);
-            // The supervisor has no account: the row names the link and the address it was sent to.
+            // The supervisor has no account: the row names the link, which holds the address it was sent to.
             Audit::log(
                 $this->pdo,
                 ['id' => null, 'organisation_id' => (int) $link['organisation_id']],
                 'logbook.supervisor_' . ($status === 'approved' ? 'approve' : 'return'),
                 "logbook_entry:$entryId",
-                ['link_id' => (int) $link['id'], 'supervisor_email' => $link['supervisor_email']]
+                ['link_id' => (int) $link['id']]
             );
             $student = $this->pdo->prepare(
                 'SELECT u.email FROM logbook_entry e JOIN `user` u ON u.id = e.student_id WHERE e.id = ?'
@@ -432,7 +432,7 @@ final class LogbookService
     private function link(string $token, bool $lock): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT l.id, l.organisation_id, l.entry_id, l.supervisor_email, l.expires_at, l.used_at, e.status'
+            'SELECT l.id, l.organisation_id, l.entry_id, l.expires_at, l.used_at, e.status'
             . ' FROM logbook_review_link l'
             . ' JOIN logbook_entry e ON e.id = l.entry_id WHERE l.token_hash = ?' . ($lock ? ' FOR UPDATE' : '')
         );
