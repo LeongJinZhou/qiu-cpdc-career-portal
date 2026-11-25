@@ -57,7 +57,7 @@ export function EmployerDirectory({ me }: { me: Me }) {
         )}
         {list.data && list.data.items.length > 0 && (
           <div className="table-wrap" aria-busy={list.loading}>
-            <table className="table">
+            <table className="table table-cards">
               <thead>
                 <tr>
                   <th>Employer</th>
@@ -79,8 +79,8 @@ export function EmployerDirectory({ me }: { me: Me }) {
                       )}
                     </td>
                     <td className="small">{[e.industry, e.location].filter(Boolean).join(' · ') || <span className="muted">Not set</span>}</td>
-                    <td className="num">{e.jobs}</td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td className="num" data-label="Jobs">{e.jobs}</td>
+                    <td className="cell-actions">
                       <button type="button" className="btn btn-quiet btn-small" onClick={() => { setSaved(null); setEditing({ kind: 'edit', employer: e }); }}>Edit</button>
                     </td>
                   </tr>

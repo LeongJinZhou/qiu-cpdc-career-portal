@@ -1,5 +1,9 @@
 /* Jobs, applications and the employer directory (slice 2b). Built on ui.css and the shell tokens. */
 
+.cell-actions {
+  text-align: right;
+}
+
 .tabs {
   display: inline-flex;
   gap: 4px;
