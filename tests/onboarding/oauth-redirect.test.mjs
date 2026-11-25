@@ -20,15 +20,19 @@ test('the alumni contact email is a LinkedIn-verified, non-QIU address', () => {
 
 const request = { url: 'https://cpdc.onrender.com/api/onboarding/oauth/github/start' };
 
+// RENDER_EXTERNAL_URL is cleared too, so the test means the same on a Render
+// or CI shell as on a laptop.
 function withAppBaseUrl(value, fn) {
-  const saved = process.env.APP_BASE_URL;
+  const saved = { app: process.env.APP_BASE_URL, render: process.env.RENDER_EXTERNAL_URL };
+  delete process.env.RENDER_EXTERNAL_URL;
   if (value === undefined) delete process.env.APP_BASE_URL;
   else process.env.APP_BASE_URL = value;
   try {
     fn();
   } finally {
-    if (saved === undefined) delete process.env.APP_BASE_URL;
-    else process.env.APP_BASE_URL = saved;
+    if (saved.app === undefined) delete process.env.APP_BASE_URL;
+    else process.env.APP_BASE_URL = saved.app;
+    if (saved.render !== undefined) process.env.RENDER_EXTERNAL_URL = saved.render;
   }
 }
 

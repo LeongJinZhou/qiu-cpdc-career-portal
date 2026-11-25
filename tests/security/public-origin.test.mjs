@@ -38,6 +38,21 @@ test('on Render, the public onrender.com address replaces the internal one', () 
   });
 });
 
+test('a setting with a path is cut to its origin', () => {
+  withEnv({ APP_BASE_URL: 'https://careers.qiu.edu.my/portal/' }, () => {
+    assert.equal(publicOrigin(internal), 'https://careers.qiu.edu.my');
+  });
+});
+
+test('a mistyped setting (no https://) is skipped, not turned into broken links', () => {
+  withEnv({ APP_BASE_URL: 'careers.qiu.edu.my', RENDER_EXTERNAL_URL: 'https://x.onrender.com' }, () => {
+    assert.equal(publicOrigin(internal), 'https://x.onrender.com');
+  });
+  withEnv({ APP_BASE_URL: 'not a url' }, () => {
+    assert.equal(publicOrigin({ url: 'http://localhost:3000/a' }), 'http://localhost:3000');
+  });
+});
+
 test('local development falls back to the request origin', () => {
   withEnv({}, () => {
     assert.equal(publicOrigin({ url: 'http://localhost:3000/login' }), 'http://localhost:3000');
