@@ -43,3 +43,20 @@ parallel sessions, one module group each, on top of `main`.
   `log` there or add SMTP later). `api/bin/seed.php` does not clear the 2a tables (orphan rows after a reseed are
   hidden by joins). The shell nav overflows sideways once every module adds items: needs a grouped menu.
 <!-- ---- slice 2a: end ---- -->
+
+<!-- slice 2b (start) -->
+## Done: slice 2b, 2026-11-26 (branch `claude/mod-employers-413367`, not merged)
+- Employers and jobs: CPDC employer directory, jobs and internships with skill levels, applicants per job, one
+  application with profile, note and CV, status changes (audited). Students and alumni: open jobs with search,
+  type and location filters, apply with note and optional CV PDF, withdraw, "My applications".
+- Skills: self-rating 1-5 in 8 areas, kept over time (progress table), gap view against an open job.
+- Learning: courses and certificates with link or PDF proof; CPDC "Learning checks" verify or decline with a note.
+- Screens: `/jobs`, `/skills`, `/learning`, `/employers`, `/learning-checks`; checked on desktop and phone.
+- Checks: 143 PHPUnit tests (39 new), PHPStan level 8, ESLint, PHPCS clean, build, `e2e/jobs-skills-learning.spec.ts`.
+
+## Open (slice 2b)
+- Render's disk is lost on restart: uploaded CVs and certificate PDFs vanish there. Exabytes keeps them. Before
+  real users on Render: a persistent disk or object storage.
+- `api/bin/seed.php` does not clear the slice 2b tables (outside this slice's files): add them at merge.
+- No screen to edit skill areas; no employer self-service; no email when an application status changes.
+<!-- slice 2b (end) -->

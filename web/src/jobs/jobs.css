@@ -1,0 +1,366 @@
+/* Jobs, applications and the employer directory (slice 2b). Built on ui.css and the shell tokens. */
+
+.tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(29, 29, 31, 0.05);
+}
+
+.tabs button {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 550;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+
+.tabs button:hover {
+  color: var(--ink);
+}
+
+.tabs button[aria-selected='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(29, 29, 31, 0.08);
+}
+
+/* List beside detail on a desk; one at a time on a phone. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.split-detail {
+  position: sticky;
+  top: 84px;
+}
+
+.split-back {
+  display: none;
+  justify-self: start;
+  margin: -6px 0 6px -8px;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .split-detail {
+    position: static;
+  }
+
+  .split[data-detail='false'] .split-detail,
+  .split[data-detail='true'] .split-list {
+    display: none;
+  }
+
+  .split-back {
+    display: inline-flex;
+  }
+}
+
+.job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.job-item {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out);
+}
+
+.job-item:hover {
+  background: var(--surface-2);
+}
+
+.job-item[aria-current='true'] {
+  background: var(--crimson-tint);
+  border-color: rgba(176, 0, 19, 0.18);
+}
+
+.job-item-title {
+  font-weight: 600;
+  font-family: var(--font-heading);
+  font-size: 1.02rem;
+  color: var(--ink);
+}
+
+.job-item-employer {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.job-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 4px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.job-item-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.closing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.closing-soon {
+  color: var(--warn);
+  font-weight: 550;
+}
+
+.job-view {
+  display: grid;
+  gap: 20px;
+}
+
+.job-view-head {
+  display: grid;
+  gap: 6px;
+}
+
+.job-view-head h2 {
+  font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.6rem);
+}
+
+.job-view-employer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-weight: 520;
+}
+
+.job-section {
+  display: grid;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.job-section .section-head {
+  flex-wrap: wrap;
+}
+
+.prose {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  max-width: 68ch;
+}
+
+.need-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.need-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.apply {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.applied {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--ok-tint);
+  animation: applied-in 420ms var(--ease-out) both;
+}
+
+.applied > svg {
+  color: var(--ok);
+  margin-top: 2px;
+}
+
+@keyframes applied-in {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+
+.pick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  font-weight: 550;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: border-color 140ms var(--ease-out), background 140ms var(--ease-out);
+}
+
+.pick:hover,
+.pick:focus-within {
+  border-color: var(--crimson);
+  background: var(--crimson-tint);
+}
+
+.pick:focus-within {
+  box-shadow: var(--focus);
+}
+
+.pick svg {
+  color: var(--crimson);
+}
+
+.pick input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.picked {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.picked > svg {
+  color: var(--crimson);
+  flex: none;
+}
+
+.picked-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 520;
+}
+
+.cell-title {
+  font-weight: 600;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--crimson);
+  text-decoration: underline;
+}
+
+.levels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.levels legend {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  padding: 0;
+}
+
+.levels > .hint {
+  grid-column: 1 / -1;
+  margin-top: -4px;
+}
+
+.level-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 640px) {
+  .levels {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Skill level pips, shared with the skills page. */
+.pips {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.pips span {
+  width: 14px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.pips-ink span[data-on='true'] {
+  background: var(--ink);
+}
+
+.pips-need span[data-on='true'] {
+  background: var(--crimson);
+}

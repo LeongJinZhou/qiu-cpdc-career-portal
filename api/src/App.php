@@ -21,10 +21,14 @@ use Cpdc\Http\Request;
 use Cpdc\Http\Response;
 use Cpdc\Http\Router;
 use Cpdc\Http\SecurityHeaders;
+use Cpdc\Jobs\JobsController;
+use Cpdc\Jobs\ManageController;
+use Cpdc\Learning\LearningController;
 use Cpdc\People\PeopleController;
 use Cpdc\Profile\Onboarding;
 use Cpdc\Profile\ProfileController;
 use Cpdc\Settings\Settings;
+use Cpdc\Skills\SkillsController;
 use PDO;
 
 /**
@@ -71,7 +75,7 @@ final class App
         $export = ['name' => 'export', 'setting' => 'rate_export_per_user_per_min', 'by' => 'user'];
         $pdf = ['name' => 'pdf-import', 'setting' => 'rate_pdf_import_per_user_per_min', 'by' => 'user'];
 
-        return $router
+        $router
             ->add('GET', '/api/health', fn () => Response::json(['status' => 'ok']), public: true)
             ->add('GET', '/api/auth/google/start', AuthController::start(...), true, $login('google-start'))
             ->add('GET', '/api/auth/google/callback', AuthController::callback(...), true, $login('google-callback'))
@@ -118,6 +122,39 @@ final class App
             ->add('POST', '/api/registrations/{id}/approve', AlumniController::approve(...))
             ->add('POST', '/api/registrations/{id}/refuse', AlumniController::refuse(...))
             ->add('GET', '/api/audit', AuditController::list(...));
+
+        // --- slice 2b: employers and jobs, skills diagnostics, learning (start) ---
+        $upload = ['name' => 'pdf-upload', 'setting' => 'rate_upload_per_user_per_min', 'by' => 'user'];
+        $router
+            ->add('GET', '/api/jobs', JobsController::list(...))
+            ->add('GET', '/api/jobs/{id}', JobsController::show(...))
+            ->add('POST', '/api/jobs/{id}/apply', JobsController::apply(...), rate: $upload)
+            ->add('GET', '/api/applications/mine', JobsController::mine(...))
+            ->add('POST', '/api/applications/{id}/withdraw', JobsController::withdraw(...))
+            ->add('GET', '/api/applications/{id}/cv', JobsController::cv(...))
+            ->add('GET', '/api/applications/{id}', ManageController::application(...))
+            ->add('PATCH', '/api/applications/{id}/status', ManageController::status(...))
+            ->add('GET', '/api/employers', ManageController::employers(...))
+            ->add('POST', '/api/employers', ManageController::createEmployer(...))
+            ->add('PUT', '/api/employers/{id}', ManageController::updateEmployer(...))
+            ->add('GET', '/api/jobs/manage', ManageController::jobs(...))
+            ->add('POST', '/api/jobs/manage', ManageController::createJob(...))
+            ->add('GET', '/api/jobs/manage/{id}', ManageController::job(...))
+            ->add('PUT', '/api/jobs/manage/{id}', ManageController::updateJob(...))
+            ->add('GET', '/api/jobs/manage/{id}/applications', ManageController::applications(...))
+            ->add('GET', '/api/skills', SkillsController::show(...))
+            ->add('GET', '/api/skills/areas', SkillsController::areas(...))
+            ->add('POST', '/api/skills/assessments', SkillsController::rate(...))
+            ->add('GET', '/api/skills/gap/{id}', SkillsController::gap(...))
+            ->add('GET', '/api/learning', LearningController::mine(...))
+            ->add('POST', '/api/learning', LearningController::add(...), rate: $upload)
+            ->add('GET', '/api/learning/review', LearningController::review(...))
+            ->add('DELETE', '/api/learning/{id}', LearningController::delete(...))
+            ->add('GET', '/api/learning/{id}/proof', LearningController::proof(...))
+            ->add('POST', '/api/learning/{id}/decision', LearningController::decide(...));
+        // --- slice 2b (end) ---
+
+        return $router;
     }
 
     public function handle(Request $req): Response

@@ -1,0 +1,13 @@
+{
+  "$comment": "Query of GET /api/jobs (open jobs), /api/jobs/manage, /api/employers and /api/jobs/manage/{id}/applications.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "q": { "type": "string", "maxLength": 100 },
+    "type": { "enum": ["full_time", "part_time", "internship", "contract"] },
+    "location": { "type": "string", "maxLength": 100 },
+    "status": { "enum": ["draft", "open", "closed", "submitted", "reviewing", "shortlisted", "interview", "offered", "hired", "rejected", "withdrawn"] },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

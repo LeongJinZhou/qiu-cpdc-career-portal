@@ -1,0 +1,154 @@
+/* Skills self-rating and gap view (slice 2b). The level pips live in jobs.css. */
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .skills-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rate-list {
+  display: grid;
+}
+
+.rate-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.rate-row:first-child {
+  border-top: 0;
+}
+
+.rate-row legend {
+  float: left; /* lets the legend sit in the grid like a normal cell */
+  display: grid;
+  gap: 2px;
+  padding: 0;
+}
+
+@media (max-width: 560px) {
+  .rate-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scale {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.scale-step {
+  position: relative;
+  cursor: pointer;
+}
+
+.scale-step input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.scale-step > span:not(.visually-hidden) {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+
+.scale-step:hover > span:not(.visually-hidden) {
+  border-color: var(--faint);
+  color: var(--ink);
+}
+
+.scale-step input:checked + span {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.scale-step input:focus-visible + span {
+  box-shadow: var(--focus);
+}
+
+.gap-summary {
+  font-size: 1rem;
+}
+
+.gap-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.gap-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.gap-list li:first-child {
+  border-top: 0;
+}
+
+.gap-name {
+  font-weight: 550;
+}
+
+.gap-bars {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.gap-bars > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gap-text {
+  grid-column: 1 / -1;
+  font-size: 0.84rem;
+  color: var(--ok);
+  font-weight: 550;
+}
+
+.gap-list li[data-gap='true'] .gap-text {
+  color: var(--warn);
+}
+
+.saved-pop {
+  animation: saved-in 380ms var(--ease-out) both;
+}
+
+@keyframes saved-in {
+  from {
+    opacity: 0.3;
+    transform: translateY(-4px);
+  }
+}

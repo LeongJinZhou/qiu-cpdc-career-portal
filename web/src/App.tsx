@@ -18,6 +18,13 @@ import { LoadError, SkeletonLines } from './ui/parts';
 import { TITLES_2A } from './logbook/nav2a';
 import { publicPage2a, signedInPage2a } from './logbook/pages2a';
 // ---- slice 2a: end ----
+// --- slice 2b (start) ---
+import { JobsPage } from './jobs/JobsPage';
+import { ManageJobs } from './jobs/ManageJobs';
+import { LearningPage } from './learning/LearningPage';
+import { LearningReview } from './learning/LearningReview';
+import { SkillsPage } from './skills/SkillsPage';
+// --- slice 2b (end) ---
 
 type State = { kind: 'loading' } | { kind: 'error'; error: unknown } | { kind: 'out' } | { kind: 'in'; me: Me };
 
@@ -28,6 +35,13 @@ const TITLES: Record<string, string> = {
   '/registrations': 'Graduate sign-ups',
   '/audit': 'Audit log',
   ...TITLES_2A, // slice 2a
+  // --- slice 2b (start) ---
+  '/jobs': 'Jobs',
+  '/skills': 'Skills',
+  '/learning': 'Learning',
+  '/employers': 'Employers and jobs',
+  '/learning-checks': 'Learning checks',
+  // --- slice 2b (end) ---
 };
 
 export function App() {
@@ -134,6 +148,13 @@ export function App() {
       {page === '/people/:id' && personId && <PersonDetail me={me} id={Number(personId)} go={go} />}
       {page === '/registrations' && <Registrations me={me} />}
       {page === '/audit' && <AuditLog />}
+      {/* --- slice 2b (start) --- */}
+      {page === '/jobs' && <JobsPage me={me} go={go} />}
+      {page === '/skills' && <SkillsPage me={me} />}
+      {page === '/learning' && <LearningPage me={me} />}
+      {page === '/employers' && <ManageJobs me={me} />}
+      {page === '/learning-checks' && <LearningReview me={me} />}
+      {/* --- slice 2b (end) --- */}
     </Shell>
   );
 }

@@ -1,0 +1,70 @@
+/* Learning records and CPDC checks (slice 2b). The PDF picker styles live in jobs.css. */
+
+.record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.record {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.record:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.record-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--muted);
+}
+
+.record-body {
+  display: grid;
+  gap: 4px;
+}
+
+.record-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.record-note {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--crimson-tint);
+}
+
+.record-links {
+  gap: 14px;
+  margin-top: 2px;
+}
+
+.record-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 560px) {
+  .record {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .record-actions {
+    grid-column: 2;
+  }
+}

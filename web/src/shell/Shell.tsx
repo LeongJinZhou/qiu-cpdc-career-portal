@@ -1,6 +1,7 @@
 // The signed-in frame: brand, navigation by permission, the person and sign-out.
 import { ClipboardList, GraduationCap, LogOut, ScrollText, UserRound, Users, type LucideIcon } from 'lucide-react';
 import type { MouseEvent, ReactNode } from 'react';
+import { BadgeCheck, BookOpenCheck, BriefcaseBusiness, Building2, Gauge } from 'lucide-react'; // slice 2b
 import { can, ROLE_LABEL, type Me } from '../auth';
 import { Avatar } from '../ui/parts';
 import { NAV_2A } from '../logbook/nav2a'; // slice 2a
@@ -20,6 +21,13 @@ export const NAV: NavItem[] = [
   { path: '/registrations', label: 'Graduate sign-ups', icon: ClipboardList, permission: 'registrations.decide' },
   { path: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.view' },
   ...NAV_2A, // slice 2a
+  // --- slice 2b (start) ---
+  { path: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, permission: 'jobs.browse' },
+  { path: '/skills', label: 'Skills', icon: Gauge, permission: 'skills.own' },
+  { path: '/learning', label: 'Learning', icon: BookOpenCheck, permission: 'learning.own' },
+  { path: '/employers', label: 'Employers', icon: Building2, permission: 'jobs.manage' },
+  { path: '/learning-checks', label: 'Learning checks', icon: BadgeCheck, permission: 'learning.verify' },
+  // --- slice 2b (end) ---
 ];
 
 export function Shell({
