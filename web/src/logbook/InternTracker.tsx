@@ -1,5 +1,5 @@
 // CPDC: every intern's logbook progress, and one intern's weeks (read only).
-import { ArrowLeft, BookOpen, Search } from 'lucide-react';
+import { ArrowLeft, BookOpen, Search, TriangleAlert } from 'lucide-react';
 import { useState, type FormEvent, type MouseEvent } from 'react';
 import { apiGet, useLoad, type Paged } from '../api';
 import { Pager } from '../admin/Pager';
@@ -76,6 +76,12 @@ export function InternTracker({ go }: { go: (to: string) => void }) {
                     <td className="small">
                       {r.company}
                       <div className="muted">{r.supervisor_name}</div>
+                      <div className="muted">{r.supervisor_email}</div>
+                      {r.supervisor_email_personal && (
+                        <span className="badge badge-warn" title="Not a company address: check this is really the supervisor">
+                          <TriangleAlert size={12} aria-hidden="true" /> Personal email: check
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div className="lb-mini">

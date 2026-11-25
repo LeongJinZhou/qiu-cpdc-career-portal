@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cpdc\Logbook;
 
+use Cpdc\Audit\Audit;
 use Cpdc\Db\Transaction;
 use Cpdc\Http\ApiError;
 use Cpdc\Logbook\Mail\Mailer;
@@ -232,7 +233,7 @@ final class LogbookService
             throw ApiError::validation('comment', 'Tell the student what to change.');
         }
 
-        return Transaction::run($this->pdo, function () use ($token, $decision, $comment): array {
+        [$view, $email, $status] = Transaction::run($this->pdo, function () use ($token, $decision, $comment): array {
             $link = $this->link($token, true);
             $entryId = (int) $link['entry_id'];
             $status = $decision === 'approve' ? 'approved' : 'returned';
@@ -243,19 +244,32 @@ final class LogbookService
                 "UPDATE logbook_entry SET status = ?, supervisor_comment = ?, decided_at = ?,"
                 . " updated_at = UTC_TIMESTAMP(3) WHERE id = ? AND status = 'submitted'"
             )->execute([$status, $comment === '' ? null : $comment, $at, $entryId]);
-            $view = $this->reviewView($entryId, (string) $link['expires_at']);
+            // The supervisor has no account: the row names the link and the address it was sent to.
+            Audit::log(
+                $this->pdo,
+                ['id' => null, 'organisation_id' => (int) $link['organisation_id']],
+                'logbook.supervisor_' . ($status === 'approved' ? 'approve' : 'return'),
+                "logbook_entry:$entryId",
+                ['link_id' => (int) $link['id'], 'supervisor_email' => $link['supervisor_email']]
+            );
             $student = $this->pdo->prepare(
                 'SELECT u.email FROM logbook_entry e JOIN `user` u ON u.id = e.student_id WHERE e.id = ?'
             );
             $student->execute([$entryId]);
-            $email = $student->fetchColumn();
-            if (is_string($email) && $email !== '') {
+
+            return [$this->reviewView($entryId, (string) $link['expires_at']), $student->fetchColumn(), $status];
+        });
+        // After the commit: a failed notice must not undo the supervisor's decision.
+        if (is_string($email) && $email !== '') {
+            try {
                 $this->mailer->send($email, 'Your logbook week of ' . self::dateText((string) $view['week_start'])
                     . ' was ' . ($status === 'approved' ? 'approved' : 'returned'), $this->studentText($view));
+            } catch (\Throwable $e) {
+                error_log('logbook: student notice not sent: ' . $e->getMessage());
             }
+        }
 
-            return $view;
-        });
+        return $view;
     }
 
     /**
@@ -275,7 +289,8 @@ final class LogbookService
         }
         $having = ($query['attention'] ?? null) === '1' ? ' HAVING returned > 0' : '';
         $select = 'SELECT i.id AS internship_id, u.id AS student_id, u.display_name, u.matric_no, u.department,'
-            . ' u.picture_url, l.profile_url AS linkedin_url, i.company, i.supervisor_name, i.start_date, i.end_date,'
+            . ' u.picture_url, l.profile_url AS linkedin_url, i.company, i.supervisor_name, i.supervisor_email,'
+            . ' i.start_date, i.end_date,'
             . " COALESCE(SUM(e.status = 'approved'), 0) AS approved,"
             . " COALESCE(SUM(e.status = 'submitted'), 0) AS submitted,"
             . " COALESCE(SUM(e.status = 'returned'), 0) AS returned,"
@@ -298,6 +313,8 @@ final class LogbookService
                 $r[$k] = (int) $r[$k];
             }
             $r['weeks_expected'] = Weeks::expected((string) $r['start_date'], (string) $r['end_date'], $today);
+            // A student could name a second mailbox of their own as supervisor: CPDC checks these first.
+            $r['supervisor_email_personal'] = SupervisorEmail::isPersonal((string) $r['supervisor_email']);
 
             return $r;
         }, $stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -415,7 +432,8 @@ final class LogbookService
     private function link(string $token, bool $lock): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT l.id, l.entry_id, l.expires_at, l.used_at, e.status FROM logbook_review_link l'
+            'SELECT l.id, l.organisation_id, l.entry_id, l.supervisor_email, l.expires_at, l.used_at, e.status'
+            . ' FROM logbook_review_link l'
             . ' JOIN logbook_entry e ON e.id = l.entry_id WHERE l.token_hash = ?' . ($lock ? ' FOR UPDATE' : '')
         );
         $stmt->execute([ReviewLink::hash($token)]);

@@ -35,7 +35,14 @@ export function MyProject({ me }: { me: Me }) {
   const [fresh, setFresh] = useState<Project | null | undefined>(undefined);
   const project = fresh !== undefined ? fresh : load.data?.project;
 
-  if (load.error && project === undefined) return <LoadError error={load.error} onRetry={load.reload} />;
+  if (load.error && project === undefined) {
+    return (
+      <>
+        <PageHead title="My final-year project" />
+        <LoadError error={load.error} onRetry={load.reload} />
+      </>
+    );
+  }
   if (project === undefined) return <SkeletonLines lines={6} />;
   return <Editor me={me} project={project} onSaved={setFresh} />;
 }

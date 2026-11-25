@@ -95,7 +95,7 @@ function JobTable({ onEdit, onApplicants }: { onEdit: (id: number) => void; onAp
       )}
       {list.data && list.data.items.length > 0 && (
         <div className="table-wrap" aria-busy={list.loading}>
-          <table className="table">
+          <table className="table table-cards">
             <thead>
               <tr>
                 <th>Job</th>
@@ -113,8 +113,8 @@ function JobTable({ onEdit, onApplicants }: { onEdit: (id: number) => void; onAp
                     <div className="small muted">{job.employer_name} · {TYPE_LABEL[job.job_type]} · {job.location}</div>
                   </td>
                   <td><span className={job.status === 'open' ? 'badge badge-ok' : 'badge'}>{JOB_STATUS_LABEL[job.status]}</span></td>
-                  <td className="small"><Closing date={job.closing_date} /></td>
-                  <td className="num">
+                  <td className="small" data-label="Closing"><Closing date={job.closing_date} /></td>
+                  <td className="num" data-label="Applications">
                     {job.applications}
                     {job.new_applications > 0 && <span className="badge badge-red" style={{ marginLeft: 6 }}>{job.new_applications} new</span>}
                   </td>

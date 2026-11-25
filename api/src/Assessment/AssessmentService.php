@@ -182,7 +182,8 @@ final class AssessmentService
         $org = $user['organisation_id'];
 
         return Transaction::run($this->pdo, function () use ($user, $org, $id, $answers): array {
-            $a = $this->assessment($org, $id);
+            // Locked like replace(): an edit cannot swap the questions while this attempt is scored and stored.
+            $a = $this->assessment($org, $id, true);
             if ($a['status'] !== 'published') {
                 throw new ApiError(404, 'NOT_FOUND', 'Not found.');
             }

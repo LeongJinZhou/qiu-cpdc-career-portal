@@ -74,6 +74,9 @@ final class AnthropicCoach implements Coach
     /** @return array<string, mixed> */
     public function body(string $field, string $question, string $answer): array
     {
+        // The answer is the student's own text: it must not close the fence it sits in.
+        $answer = str_ireplace(['<answer>', '</answer>'], '', $answer);
+
         return [
             'model' => $this->model,
             'max_tokens' => 4000,

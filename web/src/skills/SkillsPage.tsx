@@ -23,7 +23,14 @@ export function SkillsPage({ me }: { me: Me }) {
   // A job chosen on the Jobs page ("Compare with my skills") arrives as ?job=<id>.
   const [jobId, setJobId] = useState(() => new URLSearchParams(window.location.search).get('job') ?? '');
 
-  if (load.error && !load.data) return <LoadError error={load.error} onRetry={load.reload} />;
+  if (load.error && !load.data) {
+    return (
+      <>
+        <PageHead title="Skills" />
+        <LoadError error={load.error} onRetry={load.reload} />
+      </>
+    );
+  }
   if (!load.data) return <SkeletonLines lines={8} />;
   const { areas, jobs } = load.data;
   const past = history ?? load.data.history;

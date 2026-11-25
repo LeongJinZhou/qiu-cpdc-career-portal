@@ -1,5 +1,5 @@
 // Navigation of slice 2a (logbook, showcase, assessments), added to the shell's NAV by permission.
-import { BookOpen, Briefcase, ClipboardCheck, Presentation, Sparkles, type LucideIcon } from 'lucide-react';
+import { BookOpen, Briefcase, ClipboardCheck, ClipboardPen, Presentation, Sparkles, type LucideIcon } from 'lucide-react';
 
 export const NAV_2A: { path: string; label: string; icon: LucideIcon; permission: string }[] = [
   { path: '/logbook', label: 'Logbook', icon: BookOpen, permission: 'logbook.own' },
@@ -7,7 +7,7 @@ export const NAV_2A: { path: string; label: string; icon: LucideIcon; permission
   { path: '/assessments', label: 'Assessments', icon: ClipboardCheck, permission: 'assessment.take' },
   { path: '/internships', label: 'Internships', icon: Briefcase, permission: 'logbook.track' },
   { path: '/showcase', label: 'Talent feed', icon: Sparkles, permission: 'showcase.browse' },
-  { path: '/assessment-builder', label: 'Assessments', icon: ClipboardCheck, permission: 'assessment.manage' },
+  { path: '/assessment-builder', label: 'Assessment builder', icon: ClipboardPen, permission: 'assessment.manage' },
 ];
 
 export const TITLES_2A: Record<string, string> = {
@@ -16,6 +16,6 @@ export const TITLES_2A: Record<string, string> = {
   '/assessments': 'Self-assessments',
   '/internships': 'Internships',
   '/showcase': 'Talent feed',
-  '/assessment-builder': 'Assessments',
+  '/assessment-builder': 'Assessment builder',
   '/review': 'Logbook review',
 };

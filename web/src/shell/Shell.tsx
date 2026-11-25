@@ -1,11 +1,11 @@
 // The signed-in frame: brand, navigation by permission, the person and sign-out.
 import { ClipboardList, GraduationCap, LogOut, Menu, ScrollText, UserRound, Users, X, type LucideIcon } from 'lucide-react';
-import { useState, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { BadgeCheck, BookOpenCheck, BriefcaseBusiness, Building2, Gauge } from 'lucide-react'; // slice 2b
 // slice 3a (workshops, CV, career path)
 import { CalendarDays, FileText, Route } from 'lucide-react';
-// slice 3b icons (BookOpenCheck comes from the slice 2b line)
-import { HandHelping, MessagesSquare, Network } from 'lucide-react';
+// slice 3b icons
+import { HandHelping, ListChecks, MessagesSquare, Network } from 'lucide-react';
 import { can, ROLE_LABEL, type Me } from '../auth';
 import { Avatar } from '../ui/parts';
 import { NAV_2A } from '../logbook/nav2a'; // slice 2a
@@ -40,7 +40,7 @@ export const NAV: NavItem[] = [
   { path: '/network', label: 'Alumni network', icon: Network, permission: 'network.view' },
   { path: '/interview', label: 'Interview practice', icon: MessagesSquare, permission: 'interview.practice' },
   { path: '/mentoring', label: 'Mentoring activity', icon: HandHelping, permission: 'mentoring.activity' },
-  { path: '/questions', label: 'Interview questions', icon: BookOpenCheck, permission: 'interview.bank' },
+  { path: '/questions', label: 'Interview questions', icon: ListChecks, permission: 'interview.bank' },
   // --- slice 3b (end) ---
 ];
 
@@ -82,7 +82,30 @@ export function Shell({
   children: ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const nav = useRef<HTMLElement>(null);
   const groups = navGroups(NAV.filter((item) => can(me, item.permission)));
+
+  // The phone drawer: opens at the top with focus on the first item, the page behind does not scroll, and Escape
+  // closes it and returns focus to the Menu button.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const drawer = nav.current;
+    drawer?.scrollTo(0, 0);
+    drawer?.querySelector<HTMLElement>('a')?.focus();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButton.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
   const follow = (to: string) => (event: MouseEvent) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
     event.preventDefault();
@@ -94,6 +117,7 @@ export function Shell({
       <header className="shell-top">
         <div className="shell-bar">
           <button
+            ref={menuButton}
             type="button"
             className="btn btn-quiet btn-small shell-menu-button"
             aria-expanded={menuOpen}
@@ -120,12 +144,12 @@ export function Shell({
         </div>
       </header>
       <div className="shell-body">
-        <nav id="shell-nav" className="shell-nav" data-open={menuOpen} aria-label="Main">
+        <nav ref={nav} id="shell-nav" className="shell-nav" data-open={menuOpen} aria-label="Main">
           {groups.map((group) => (
             <div key={group.label} className="shell-nav-group">
               <h2>{group.label}</h2>
               {group.items.map(({ path: to, label, icon: Icon }) => (
-                <a key={to} href={to} onClick={follow(to)} aria-current={path.startsWith(to) ? 'page' : undefined}>
+                <a key={to} href={to} onClick={follow(to)} aria-current={path === to || path.startsWith(`${to}/`) ? 'page' : undefined}>
                   <Icon size={16} aria-hidden="true" />
                   {label}
                 </a>

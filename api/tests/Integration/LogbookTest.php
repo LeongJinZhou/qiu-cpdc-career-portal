@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Cpdc\Tests\Integration;
 
+use Cpdc\Logbook\LogbookService;
 use Cpdc\Logbook\Mail\LogMailer;
+use Cpdc\Logbook\Mail\Mailer;
 use Cpdc\Logbook\Mail\Mailers;
 
 /**
@@ -83,9 +85,40 @@ final class LogbookTest extends HttpTestCase
         $this->refused('POST', "/api/logbook/review/$token", ['decision' => 'approve'], 410, 'LINK_USED');
         $this->assertError($this->send('GET', "/api/logbook/review/$token"), 410, 'LINK_USED');
         $this->assertSame('student@example.test', $this->mails()[1]['to'], 'the student hears the decision');
+        $audit = $this->sql(
+            "SELECT actor_id, meta_json FROM audit_log WHERE action = 'logbook.supervisor_approve' AND target = "
+            . "'logbook_entry:$id'"
+        )->fetch(\PDO::FETCH_ASSOC);
+        $this->assertIsArray($audit, 'the supervisor decision is audited');
+        $this->assertNull($audit['actor_id']);
+        $this->assertStringContainsString('supervisor@company.example', (string) $audit['meta_json']);
 
         $this->signInAs('student');
         $this->assertSame('approved', $this->body($this->send('GET', '/api/logbook'))['entries'][0]['status']);
+    }
+
+    public function testAFailedNoticeToTheStudentDoesNotUndoTheSupervisorsDecision(): void
+    {
+        $id = $this->studentWithWeek();
+        $this->json('POST', "/api/logbook/entries/$id/submit");
+        $token = $this->lastToken();
+        $broken = new class implements Mailer {
+            public function send(string $to, string $subject, string $text): void
+            {
+                throw new \RuntimeException('mail server down');
+            }
+        };
+        $service = new LogbookService($this->pdo, $broken, self::APP_URL, $this->now, 'Asia/Kuala_Lumpur');
+        $logged = ini_set('error_log', $this->storage . '/php-error.log');
+        try {
+            $view = $service->decide($token, 'approve', '');
+        } finally {
+            ini_set('error_log', (string) $logged);
+        }
+
+        $this->assertSame('approved', $view['status']);
+        $this->assertSame('approved', $this->sql("SELECT status FROM logbook_entry WHERE id = $id")->fetchColumn());
+        $this->assertNotNull($this->sql('SELECT used_at FROM logbook_review_link')->fetchColumn(), 'link spent');
     }
 
     public function testAReturnedWeekNeedsACommentAndCanBeFixedAndSentAgain(): void
@@ -234,6 +267,8 @@ final class LogbookTest extends HttpTestCase
         $counts = [$row['submitted'], $row['approved'], $row['returned'], $row['weeks_expected']];
         $this->assertSame([1, 0, 0, 2], $counts);
         $this->assertSame('Fake Engineering Sdn Bhd', $row['company']);
+        $this->assertSame('supervisor@company.example', $row['supervisor_email']);
+        $this->assertFalse($row['supervisor_email_personal']);
         $attention = $this->send('GET', '/api/logbook/students', '', ['attention' => '1']);
         $this->assertSame(0, $this->body($attention)['total']);
         $detail = $this->body($this->send('GET', "/api/logbook/students/$studentId"));

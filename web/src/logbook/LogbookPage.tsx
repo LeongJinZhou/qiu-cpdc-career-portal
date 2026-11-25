@@ -22,7 +22,14 @@ export function LogbookPage({ me }: { me: Me }) {
   const [busy, setBusy] = useState<number | null>(null);
   const logbook = fresh ?? load.data;
 
-  if (load.error && !logbook) return <LoadError error={load.error} onRetry={load.reload} />;
+  if (load.error && !logbook) {
+    return (
+      <>
+        <PageHead title="Internship logbook" />
+        <LoadError error={load.error} onRetry={load.reload} />
+      </>
+    );
+  }
   if (!logbook) return <SkeletonLines lines={6} />;
 
   const { internship } = logbook;

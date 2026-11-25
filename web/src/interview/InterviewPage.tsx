@@ -15,7 +15,14 @@ export function InterviewPage({ me }: { me: Me }) {
   const sessions = useLoad('interview-sessions', () => apiGet<{ items: SessionSummary[] }>('/api/interview/sessions'));
   const [open, setOpen] = useState<number | null>(null);
 
-  if (status.error && !status.data) return <LoadError error={status.error} onRetry={status.reload} />;
+  if (status.error && !status.data) {
+    return (
+      <>
+        <PageHead title="Interview practice" />
+        <LoadError error={status.error} onRetry={status.reload} />
+      </>
+    );
+  }
   if (!status.data) return <SkeletonLines lines={5} />;
 
   const back = () => { setOpen(null); sessions.reload(); };

@@ -43,6 +43,9 @@ export interface InternRow {
   linkedin_url: string | null;
   company: string;
   supervisor_name: string;
+  supervisor_email: string;
+  /** Free-mail or QIU address: CPDC checks it is really the supervisor's. */
+  supervisor_email_personal: boolean;
   start_date: string;
   end_date: string;
   approved: number;

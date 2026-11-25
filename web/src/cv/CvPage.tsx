@@ -18,7 +18,14 @@ export function CvPage({ me, go }: { me: Me; go: (to: string) => void }) {
     return () => document.body.classList.remove('cv-page');
   }, []);
 
-  if (load.error && !load.data) return <LoadError error={load.error} onRetry={load.reload} />;
+  if (load.error && !load.data) {
+    return (
+      <>
+        <PageHead title="CV builder" />
+        <LoadError error={load.error} onRetry={load.reload} />
+      </>
+    );
+  }
   if (!load.data) return <SkeletonLines lines={6} />;
   return <CvEditor key={load.data.saved_at ?? 'new'} data={load.data} csrf={me.csrf_token} go={go} />;
 }

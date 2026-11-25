@@ -341,6 +341,44 @@
   .levels {
     grid-template-columns: 1fr;
   }
+
+  /* CPDC's job list on a phone: one card per job instead of squeezed columns. */
+  .table-cards thead {
+    display: none;
+  }
+
+  .table-cards,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-cards tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .table-cards td {
+    padding: 3px 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .table-cards td.num {
+    text-align: left;
+  }
+
+  .table-cards td[data-label]::before {
+    content: attr(data-label) ': ';
+    color: var(--muted);
+  }
+
+  .table-cards td .row {
+    justify-content: flex-start !important;
+    margin-top: 6px;
+  }
 }
 
 /* Skill level pips, shared with the skills page. */

@@ -10,7 +10,7 @@ use PDO;
 final class Audit
 {
     /**
-     * @param array{id: int, organisation_id: int, ...} $actor
+     * @param array{id: int|null, organisation_id: int, ...} $actor null id: no account (a supervisor's link)
      * @param array<string, mixed>|null $meta ids and before/after values only, no personal data
      */
     public static function log(PDO $pdo, array $actor, string $action, string $target, ?array $meta = null): void

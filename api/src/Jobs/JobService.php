@@ -128,7 +128,7 @@ final class JobService
                     $cv['size'] ?? null,
                 ]);
             } catch (\PDOException $e) {
-                if (($e->errorInfo[0] ?? null) === '23000') {
+                if (($e->errorInfo[1] ?? null) === 1062) { // duplicate key only, not other constraint errors
                     throw new ApiError(409, 'ALREADY_APPLIED', 'You have already applied for this job.');
                 }
                 throw $e;
