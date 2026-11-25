@@ -24,6 +24,23 @@ function student(overrides = {}) {
   };
 }
 
+test('when LinkedIn sign-in is required, a pasted link does not count and a real sign-in does', () => {
+  const pasted = { provider: 'LINKEDIN', method: 'VERIFIED_URL', brokenAt: null };
+  const signedIn = { provider: 'LINKEDIN', method: 'OAUTH', providerUserId: 'abc', brokenAt: null };
+  const options = { signInRequired: ['LINKEDIN'] };
+
+  const withPaste = evaluateOnboarding(student({ connectedAccounts: [pasted], onboardingCompletedAt: null }), options);
+  assert.deepEqual(withPaste.missingProviders, ['LINKEDIN']);
+  assert.equal(canCompleteOnboarding(student({ connectedAccounts: [pasted] }), options), false);
+
+  const withSignIn = evaluateOnboarding(student({ connectedAccounts: [signedIn], onboardingCompletedAt: null }), options);
+  assert.deepEqual(withSignIn.missingProviders, []);
+  assert.equal(canCompleteOnboarding(student({ connectedAccounts: [signedIn] }), options), true);
+
+  // Without the requirement (LinkedIn keys not set), a pasted link still counts.
+  assert.deepEqual(evaluateOnboarding(student({ connectedAccounts: [pasted] })).missingProviders, []);
+});
+
 test('LinkedIn is required for every faculty', () => {
   for (const facultyId of [
     'business', 'medicine', 'pharmacy', 'education',

@@ -57,14 +57,32 @@ export async function GET(request, { params }) {
       return back(request, { connectError: `${providerId} did not return an account id.` });
     }
 
-    await connectAccountByOAuth(actor.student.id, providerId, {
-      profileUrl: profile.profileUrl,
-      handle: profile.handle,
-      providerUserId: profile.providerUserId,
-      rawProfile: profile.raw,
-      actorUserId: actor.user.id,
-      requestId: getRequestId(request),
-    });
+    try {
+      await connectAccountByOAuth(actor.student.id, providerId, {
+        profileUrl: profile.profileUrl,
+        handle: profile.handle,
+        providerUserId: profile.providerUserId,
+        rawProfile: profile.raw,
+        actorUserId: actor.user.id,
+        requestId: getRequestId(request),
+      });
+    } catch (connectError) {
+      if (connectError?.code === 'OAUTH_ACCOUNT_IN_USE') {
+        return back(request, { connectError: `That ${providerId === 'LINKEDIN' ? 'LinkedIn' : 'GitHub'} account is already linked to another QIU student. Sign in with your own account.` });
+      }
+      throw connectError;
+    }
+
+    // Alumni contact: the address LinkedIn verified, kept after the QIU email closes.
+    if (providerId === 'LINKEDIN') {
+      await prisma.user.update({
+        where: { id: actor.user.id },
+        data: {
+          linkedinLastSeenAt: new Date(),
+          ...(profile.verifiedEmail ? { personalEmail: profile.verifiedEmail } : {}),
+        },
+      });
+    }
 
     // The LinkedIn photo becomes the profile picture, stored as our own copy
     // (LinkedIn's links expire). A photo the student uploaded themselves is

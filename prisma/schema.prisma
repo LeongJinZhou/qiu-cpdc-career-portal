@@ -186,6 +186,12 @@ model User {
   directoryJobTitle     String?
   directorySyncedAt     DateTime?
 
+  // Alumni contact, kept after the QIU email closes. personalEmail is the
+  // address LinkedIn verified, refreshed at each LinkedIn connect or sign-in.
+  // Visible to CPDC admins and super admins only.
+  personalEmail      String?
+  linkedinLastSeenAt DateTime?
+
   student               Student?
   roleAssignments       RoleAssignment[]
   identitySnapshots     IdentitySnapshot[]

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowRight, CheckCircle2, FlaskConical, LoaderCircle, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, FlaskConical, Linkedin, LoaderCircle, ShieldCheck } from 'lucide-react';
 import QiuLogo from '@/components/portal/QiuLogo';
 import { getPublicAuthMode, hasFirebaseClientConfig } from '@/lib/auth/config';
 import { completeGoogleRedirectSignIn, signInWithGoogle } from '@/lib/auth/firebase-client';
@@ -51,6 +51,19 @@ const DEMO_SESSION_KEY = 'qiu.portal.session';
 const AUTH_MODE = getPublicAuthMode();
 const FIREBASE_CONFIGURED = hasFirebaseClientConfig();
 const DEMO_MODE_ENABLED = AUTH_MODE === 'demo' && process.env.NODE_ENV !== 'production';
+
+// Codes sent back by /api/auth/linkedin/callback.
+const LINKEDIN_ERRORS = {
+  'linkedin-off': 'LinkedIn sign-in is not switched on yet. Please contact CPDC.',
+  'linkedin-busy': 'Too many sign-in attempts. Wait a few minutes and try again.',
+  'linkedin-cancelled': 'LinkedIn sign-in was cancelled.',
+  'linkedin-expired': 'That LinkedIn sign-in expired. Please try again.',
+  'linkedin-not-linked': 'This LinkedIn account is not linked to QIU Career Hub. Use the LinkedIn you linked as a student, or contact CPDC.',
+  'linkedin-not-alumni': 'LinkedIn sign-in is for alumni. Current students and staff, please continue with your QIU Google account.',
+  'linkedin-blocked': 'This account is not active. Please contact CPDC.',
+  'linkedin-ambiguous': 'This LinkedIn account is linked to more than one QIU record. Please contact CPDC.',
+  'linkedin-failed': 'We could not finish signing you in with LinkedIn. Please try again.',
+};
 
 function demoRoute(pathname, role = 'STUDENT') {
   return `${pathname}?demoRole=${encodeURIComponent(role)}`;
@@ -136,6 +149,9 @@ export default function LoginPage() {
     try {
       const params = new URLSearchParams(window.location.search);
       setSignedOutNotice(params.get('signedOut') === '1');
+      // Fixed codes only: text from the URL is never shown on the page.
+      const linkedinError = LINKEDIN_ERRORS[params.get('error')];
+      if (linkedinError) setError(linkedinError);
       setNextPath(safeNextPath(params.get('next')));
     } catch {
       // A blocked location read just means no banner and no return path.
@@ -320,9 +336,25 @@ export default function LoginPage() {
             </span>
           </button>
           <p id="google-signin-hint" className="text-center text-xs leading-relaxed text-muted">
-            Your QIU Google account is the only way in. We never ask for your QIU password on this
-            page — access is granted by the server after Google confirms who you are.
+            Students and staff sign in with their QIU Google account. We never ask for your QIU password
+            on this page — access is granted by the server after Google confirms who you are.
           </p>
+
+          {!DEMO_MODE_ENABLED ? (
+            <div className="space-y-2 border-t border-black/[0.06] pt-5">
+              <a
+                href="/api/auth/linkedin/start"
+                aria-describedby="linkedin-signin-hint"
+                className="secondary-btn flex min-h-[48px] w-full items-center justify-center gap-2"
+              >
+                <Linkedin className="h-5 w-5 text-[#0a66c2]" aria-hidden="true" />
+                <span>Graduated? Sign in with LinkedIn</span>
+              </a>
+              <p id="linkedin-signin-hint" className="text-center text-xs leading-relaxed text-muted">
+                For alumni whose QIU email has closed. Works only with the LinkedIn you linked while you were a student.
+              </p>
+            </div>
+          ) : null}
 
           {error ? (
             <div className="flex items-start gap-2 rounded-[18px] border border-red-200 bg-red-50 p-3 text-left text-sm text-red-700" role="alert">

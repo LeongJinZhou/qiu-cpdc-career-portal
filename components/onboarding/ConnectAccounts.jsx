@@ -39,10 +39,14 @@ const ICONS = {
  *     are collapsed by default so they cannot be mistaken for more homework.
  *     Meaning is never carried by colour alone.
  */
-function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvailable }) {
+function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvailable, signInOnly = false }) {
   const Icon = ICONS[provider.id] ?? Globe;
   const connected = provider.connected;
-  const isConnected = Boolean(connected) && !connected.broken;
+  // When sign-in is required, only a real sign-in counts: a pasted link alone
+  // cannot be used to sign in as an alumnus later.
+  const signedIn = connected?.method === 'OAUTH';
+  const isConnected = Boolean(connected) && !connected.broken && (!signInOnly || signedIn);
+  const showPasteForm = !signInOnly || signedIn;
 
   const [open, setOpen] = useState(required && !isConnected);
   const [value, setValue] = useState(connected?.profileUrl ?? '');
@@ -159,7 +163,7 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
 
       {open ? (
         <div className="mt-4 space-y-3 border-t border-black/10 pt-4">
-          {oauthAvailable ? (
+          {oauthAvailable && !signedIn ? (
             <>
               <a
                 href={`/api/onboarding/oauth/${provider.id.toLowerCase()}/start`}
@@ -168,13 +172,20 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 Sign in with {provider.label}
               </a>
-              <p className="text-center text-[11px] text-muted">or paste your profile link</p>
+              <p className="text-center text-[11px] text-muted">
+                {signInOnly
+                  ? `This links ${provider.label} to your QIU account, so you can still sign in after you graduate and your QIU email closes.`
+                  : 'or paste your profile link'}
+              </p>
             </>
           ) : null}
 
+          {showPasteForm ? (
           <form onSubmit={submit} className="space-y-2">
             <label htmlFor={`url-${provider.id}`} className="block text-xs font-semibold text-muted">
-              Your {provider.label} profile link
+              {signedIn && !connected?.profileUrl
+                ? `Add your public ${provider.label} link (${provider.label} does not share it with us)`
+                : `Your ${provider.label} profile link`}
             </label>
             <input
               id={`url-${provider.id}`}
@@ -203,6 +214,7 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
               {busy ? 'Checking the link…' : 'Save link'}
             </button>
           </form>
+          ) : null}
 
           {provider.signUpUrl ? (
             <div className="rounded-[14px] bg-black/[0.04] p-3">
@@ -291,6 +303,7 @@ export default function ConnectAccounts({ state, onConnect, onDisconnect, oauthP
             onConnect={onConnect}
             onDisconnect={onDisconnect}
             oauthAvailable={oauthProviders.includes(provider.id)}
+            signInOnly={(state?.signInRequired ?? []).includes(provider.id)}
           />
         ))}
       </div>

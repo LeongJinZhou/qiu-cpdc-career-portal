@@ -101,7 +101,7 @@ export const ROLE_CONSOLES = {
     title: 'University-wide operations',
     purpose: 'Keep the whole employability pipeline moving: approvals, at-risk students and cohort health across every faculty.',
     defaultTab: 'overview',
-    tabOrder: ['overview', 'records', 'students', 'approvals', 'analytics', 'people', 'audit', 'data'],
+    tabOrder: ['overview', 'records', 'students', 'approvals', 'alumni', 'analytics', 'people', 'audit', 'data'],
     tasks: [
       { label: 'Clear anything sitting in the approvals queues.', href: '/admin?tab=approvals' },
       { label: 'Search the full student directory.', href: '/admin?tab=records' },
@@ -113,7 +113,7 @@ export const ROLE_CONSOLES = {
     title: 'Platform governance',
     purpose: 'Oversee accounts, roles and the audit trail — and read any student record when an escalation needs it.',
     defaultTab: 'people',
-    tabOrder: ['people', 'audit', 'records', 'overview', 'students', 'approvals', 'analytics', 'data'],
+    tabOrder: ['people', 'audit', 'records', 'alumni', 'overview', 'students', 'approvals', 'analytics', 'data'],
     tasks: [
       { label: 'Review recent role changes in the audit trail.', href: '/admin?tab=audit' },
       { label: 'Check for accounts still waiting on an invitation.', href: '/admin?tab=people' },

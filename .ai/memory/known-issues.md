@@ -1,5 +1,17 @@
 # Known Issues
 
+Added 2026-11-25 (LinkedIn alumni sign-in, branch feat/linkedin-alumni-signin):
+- Onboarding v2: when LinkedIn keys are set, LinkedIn counts only if linked
+  by LinkedIn sign-in (OAUTH); students who pasted a link are asked once more.
+  One LinkedIn account can be linked to one student only.
+- Login page "Graduated? Sign in with LinkedIn" (/api/auth/linkedin/start,
+  /callback): only Alumni role, only via the stored LinkedIn id; never
+  creates accounts. Needs the extra LinkedIn redirect URL
+  <site>/api/auth/linkedin/callback.
+- User.personalEmail (LinkedIn-verified) + linkedinLastSeenAt, refreshed at
+  connect and alumni sign-in. Admin > Alumni tab (CPDC admin, super admin)
+  with CSV export; every list read is audited (ALUMNI_LIST_VIEWED).
+
 Added 2026-11-25 (Render deploy, LinkedIn import, super admin):
 - Hosting: Render (render.yaml). Super admin = env SUPERADMIN_EMAIL, made an
   active SUPER_ADMIN by the deploy seed (SEED_PROFILE=production); a

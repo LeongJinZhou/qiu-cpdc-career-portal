@@ -31,6 +31,7 @@ import LogbookReviewQueue from '@/components/admin/LogbookReviewQueue';
 import StudentDirectory from '@/components/admin/StudentDirectory';
 import WorkshopRequestQueue from '@/components/admin/WorkshopRequestQueue';
 import DataExplorer from '@/components/admin/DataExplorer';
+import AlumniTracker from '@/components/admin/AlumniTracker';
 import { DIRECTORY_ROLES, consoleForRole, orderTabsForRole } from '@/components/admin/roleConsole';
 import { FACULTIES } from '@/lib/data/facultyData';
 import { fetchAdminOverview } from '@/lib/api';
@@ -43,6 +44,7 @@ const TABS = [
   { id: 'students', label: 'Cohort health', icon: Users },
   { id: 'approvals', label: 'Approvals', icon: FileCheck2 },
   { id: 'analytics', label: 'Analytics', icon: Activity },
+  { id: 'alumni', label: 'Alumni', icon: GraduationCap },
   { id: 'people', label: 'People & access', icon: BadgeCheck },
   { id: 'audit', label: 'Audit', icon: LockKeyhole },
   { id: 'data', label: 'Data explorer', icon: Database },
@@ -80,6 +82,7 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
   // Registrar being handed a Faculty Coordinator's screen.
   const visibleTabs = useMemo(() => orderTabsForRole(currentRole, TABS.filter((item) => (
     (item.id !== 'people' || PEOPLE_ROLES.has(currentRole))
+      && (item.id !== 'alumni' || PEOPLE_ROLES.has(currentRole))
       && (item.id !== 'audit' || PEOPLE_ROLES.has(currentRole))
       && (item.id !== 'data' || DATA_ROLES.has(currentRole))
       && (item.id !== 'records' || DIRECTORY_ROLES.has(currentRole))
@@ -202,6 +205,8 @@ export default function AdminControlCenter({ activeFaculty, currentRole, student
       {tab === 'people' && PEOPLE_ROLES.has(currentRole) && <IdentityManagement activeFaculty={activeFaculty} currentRole={currentRole} />}
 
       {tab === 'audit' && PEOPLE_ROLES.has(currentRole) && <AuditLogPanel currentRole={currentRole} />}
+
+      {tab === 'alumni' && PEOPLE_ROLES.has(currentRole) && <AlumniTracker currentRole={currentRole} />}
 
       {tab === 'data' && DATA_ROLES.has(currentRole) && <DataExplorer currentRole={currentRole} />}
       </div>
