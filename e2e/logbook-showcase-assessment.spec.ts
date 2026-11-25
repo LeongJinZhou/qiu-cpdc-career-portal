@@ -5,6 +5,7 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { onboardIfAsked } from './onboarding';
 
 const MAIL_LOG = fileURLToPath(new URL('../storage/logs/mail.log', import.meta.url));
 const SUPERVISOR = `fake.supervisor.${Date.now()}@company.example`;
@@ -43,13 +44,7 @@ test('logbook with supervisor approval, project showcase and a self-assessment',
   test.setTimeout(90_000);
   // A student finishes onboarding (LinkedIn persona "staff" is free in the seeded data).
   await signIn(page, 'student-b');
-  await page.getByRole('link', { name: 'Sign in with LinkedIn' }).click();
-  await page.getByRole('link', { name: /\(staff\)$/ }).click();
-  await page.getByLabel('I follow Quest International University on LinkedIn.').check();
-  await page.getByLabel('Profile link').fill('linkedin.com/in/fake-other-student');
-  await page.getByLabel('I agree that CPDC keeps and uses my career profile as described.').check();
-  await page.getByRole('button', { name: 'Finish and open my profile' }).click();
-  await expect(page).toHaveURL(/\/profile$/);
+  await onboardIfAsked(page, 'staff', 'linkedin.com/in/fake-other-student');
 
   // Internship and one week, sent to the supervisor.
   await page.getByRole('link', { name: 'Logbook' }).click();
@@ -86,7 +81,7 @@ test('logbook with supervisor approval, project showcase and a self-assessment',
   // CPDC: a self-assessment, the intern's progress, the talent feed.
   await page.getByRole('button', { name: 'Sign out' }).click();
   await signIn(page, 'superadmin');
-  await page.getByRole('link', { name: 'Assessments' }).click();
+  await page.getByRole('link', { name: 'Assessment builder' }).click();
   await page.getByRole('link', { name: 'New assessment' }).click();
   await page.getByLabel('Title').fill(ASSESSMENT);
   await page.getByLabel('Question', { exact: true }).fill('Have you practised common interview questions?');
