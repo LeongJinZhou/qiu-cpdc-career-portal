@@ -116,8 +116,14 @@ final class ProfileService
      * @param list<string>|null $skills
      * @param 'pdf'|'manual' $source
      */
-    public function save(array $user, array $fields, ?array $jobs, ?array $schools, ?array $skills, string $source): void
-    {
+    public function save(
+        array $user,
+        array $fields,
+        ?array $jobs,
+        ?array $schools,
+        ?array $skills,
+        string $source
+    ): void {
         Transaction::run($this->pdo, function () use ($user, $fields, $jobs, $schools, $skills, $source): void {
             $this->update($user, $fields);
             $this->ensureRow($user);
@@ -160,7 +166,8 @@ final class ProfileService
                 . ' job_confirmed_at = UTC_TIMESTAMP(3), updated_at = UTC_TIMESTAMP(3) WHERE user_id = ?'
             )->execute([$status, $title, $company, $user['id']]);
             $this->pdo->prepare(
-                'INSERT INTO job_confirmation (organisation_id, user_id, employment_status, title, company, confirmed_at)'
+                'INSERT INTO job_confirmation'
+                . ' (organisation_id, user_id, employment_status, title, company, confirmed_at)'
                 . ' VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(3))'
             )->execute([$user['organisation_id'], $user['id'], $status, $title, $company]);
         });
@@ -266,7 +273,9 @@ final class ProfileService
     private function replaceSkills(array $user, array $skills): void
     {
         $this->pdo->prepare('DELETE FROM career_skill WHERE user_id = ?')->execute([$user['id']]);
-        $insert = $this->pdo->prepare('INSERT IGNORE INTO career_skill (organisation_id, user_id, skill) VALUES (?, ?, ?)');
+        $insert = $this->pdo->prepare(
+            'INSERT IGNORE INTO career_skill (organisation_id, user_id, skill) VALUES (?, ?, ?)'
+        );
         foreach ($skills as $skill) {
             $name = self::text($skill, 80);
             if ($name !== null) {

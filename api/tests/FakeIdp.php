@@ -60,8 +60,13 @@ final class FakeIdp
      * @param array<string, string> $headers
      * @return array{status: int, body: string, headers: array<string, string>}
      */
-    public static function handle(string $method, string $path, array $query = [], string $body = '', array $headers = []): array
-    {
+    public static function handle(
+        string $method,
+        string $path,
+        array $query = [],
+        string $body = '',
+        array $headers = []
+    ): array {
         $handler = require __DIR__ . '/fakes/handler.php';
 
         return $handler($method, $path, $query, $body, $headers);
@@ -122,7 +127,8 @@ final class FakeIdp
         $parts = parse_url($authorizationUrl);
         parse_str((string) ($parts['query'] ?? ''), $query);
         $result = self::handle('GET', (string) ($parts['path'] ?? ''), ['persona' => $persona] + $query);
-        $location = $result['headers']['Location'] ?? throw new \RuntimeException('fake did not redirect: ' . $result['body']);
+        $location = $result['headers']['Location']
+            ?? throw new \RuntimeException('fake did not redirect: ' . $result['body']);
         parse_str((string) parse_url($location, PHP_URL_QUERY), $back);
 
         /** @var array<string, string> $back */

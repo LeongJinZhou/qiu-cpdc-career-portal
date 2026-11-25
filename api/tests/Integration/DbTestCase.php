@@ -27,6 +27,12 @@ abstract class DbTestCase extends TestCase
         unset($this->pdo); // PHPUnit keeps every test object alive: free the connection or the server runs out
     }
 
+    /** Runs a fixed test query (no input) and returns its statement. */
+    protected function sql(string $query): \PDOStatement
+    {
+        return $this->pdo->query($query) ?: throw new \RuntimeException('query failed: ' . $query);
+    }
+
     /** @return int new user id */
     protected function insertUser(string $email, string $role, int $org = 1, bool $active = true): int
     {

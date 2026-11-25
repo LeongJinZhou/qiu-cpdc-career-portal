@@ -73,12 +73,29 @@ final class App
             ->add('GET', '/api/auth/google/start', AuthController::start(...), true, $login('google-start'))
             ->add('GET', '/api/auth/google/callback', AuthController::callback(...), true, $login('google-callback'))
             ->add('GET', '/api/auth/linkedin/start', LinkedInController::start(...), true, $login('linkedin-start'))
-            ->add('GET', LinkedInOidc::CALLBACK_PATH, LinkedInController::callback(...), true, $login('linkedin-callback'))
+            ->add(
+                'GET',
+                LinkedInOidc::CALLBACK_PATH,
+                LinkedInController::callback(...),
+                true,
+                $login('linkedin-callback')
+            )
             ->add('GET', '/api/auth/github/start', GitHubController::start(...), true, $login('github-start'))
-            ->add('GET', GitHubController::CALLBACK_PATH, GitHubController::callback(...), true, $login('github-callback'))
+            ->add(
+                'GET',
+                GitHubController::CALLBACK_PATH,
+                GitHubController::callback(...),
+                true,
+                $login('github-callback')
+            )
             ->add('POST', '/api/auth/logout', AuthController::logout(...), beforeOnboarding: true)
             ->add('GET', '/api/me', AuthController::me(...), beforeOnboarding: true)
-            ->add('POST', '/api/onboarding/complete', ProfileController::completeOnboarding(...), beforeOnboarding: true)
+            ->add(
+                'POST',
+                '/api/onboarding/complete',
+                ProfileController::completeOnboarding(...),
+                beforeOnboarding: true
+            )
             ->add('GET', '/api/graduates/registration', AlumniController::pendingRegistration(...), public: true)
             ->add('POST', '/api/graduates/registration', AlumniController::register(...), true, $login('register'))
             ->add('GET', '/api/profile', ProfileController::show(...))
@@ -185,7 +202,8 @@ final class App
     public function linkedInConfigured(): bool
     {
         return $this->linkedIn === null
-            ? trim((string) getenv('LINKEDIN_CLIENT_ID')) !== '' && trim((string) getenv('LINKEDIN_CLIENT_SECRET')) !== ''
+            ? trim((string) getenv('LINKEDIN_CLIENT_ID')) !== ''
+                && trim((string) getenv('LINKEDIN_CLIENT_SECRET')) !== ''
             : ($this->linkedIn)() !== null;
     }
 
@@ -214,6 +232,7 @@ final class App
         $subject = $byUser ? 'user:' . $req->user['id'] : 'ip:' . $req->remoteAddr;
         $org = $byUser ? $req->user['organisation_id'] : $this->defaultOrganisationId;
         $limit = $this->settings($org)->int($rate['setting']);
-        (new RateLimit($this->pdo(), $this->clock))->hit($rate['name'], $subject, $limit, $rate['window'] ?? RateLimit::MINUTE);
+        (new RateLimit($this->pdo(), $this->clock))
+            ->hit($rate['name'], $subject, $limit, $rate['window'] ?? RateLimit::MINUTE);
     }
 }

@@ -25,12 +25,15 @@ final class EnvTest extends TestCase
 
     private const PROD = [
         'APP_ENV' => 'production',
-        'APP_URL' => 'https://orientation.example.test',
+        'APP_URL' => 'https://portal.example.test',
         'GOOGLE_CLIENT_ID' => 'client-id',
         'GOOGLE_CLIENT_SECRET' => 'client-secret',
         'GOOGLE_OIDC_BASE' => 'https://accounts.google.com',
         'GOOGLE_PEOPLE_BASE' => 'https://people.googleapis.com',
-        'OPENAI_BASE' => 'https://api.openai.com',
+        'LINKEDIN_OAUTH_BASE' => 'https://www.linkedin.com',
+        'LINKEDIN_API_BASE' => 'https://api.linkedin.com',
+        'GITHUB_OAUTH_BASE' => 'https://github.com',
+        'GITHUB_API_BASE' => 'https://api.github.com',
     ];
 
     /** @param array<string, string|null> $vars null = unset */
@@ -63,10 +66,13 @@ final class EnvTest extends TestCase
         $this->assertStringContainsString($key, $error->getMessage());
     }
 
-    public function testProdUrlsAcceptHttpsPublicHostsAndOptionalOpenai(): void
+    public function testProdUrlsAcceptHttpsPublicHostsAndOptionalGitHub(): void
     {
         $this->withEnv(self::PROD, fn () => Env::assertProdUrls());
-        $this->withEnv(['OPENAI_BASE' => null] + self::PROD, fn () => Env::assertProdUrls());
+        $this->withEnv(
+            ['GITHUB_OAUTH_BASE' => null, 'GITHUB_API_BASE' => null] + self::PROD,
+            fn () => Env::assertProdUrls()
+        );
         $this->addToAssertionCount(2);
     }
 
@@ -116,21 +122,21 @@ final class EnvTest extends TestCase
         yield 'people 127.x' => ['GOOGLE_PEOPLE_BASE', 'https://127.10.0.1:8081'];
         yield 'people ::1' => ['GOOGLE_PEOPLE_BASE', 'https://[::1]/people'];
         yield 'people mapped' => ['GOOGLE_PEOPLE_BASE', 'https://[::ffff:127.0.0.1]/people'];
-        yield 'openai 0.0.0.0' => ['OPENAI_BASE', 'https://0.0.0.0'];
-        yield 'openai decimal ip' => ['OPENAI_BASE', 'https://2130706433'];
-        yield 'openai http' => ['OPENAI_BASE', 'http://api.openai.com'];
-        yield 'gmail http' => ['GOOGLE_GMAIL_BASE', 'http://gmail.googleapis.com'];
-        yield 'gmail fake' => ['GOOGLE_GMAIL_BASE', 'http://127.0.0.1:8081/google/gmail'];
-        yield 'app url http' => ['APP_URL', 'http://orientation.example.test'];
+        yield 'linkedin api 0.0.0.0' => ['LINKEDIN_API_BASE', 'https://0.0.0.0'];
+        yield 'linkedin api decimal ip' => ['LINKEDIN_API_BASE', 'https://2130706433'];
+        yield 'linkedin oauth http' => ['LINKEDIN_OAUTH_BASE', 'http://www.linkedin.com'];
+        yield 'linkedin oauth fake' => ['LINKEDIN_OAUTH_BASE', 'http://127.0.0.1:8091/linkedin'];
+        yield 'github http' => ['GITHUB_API_BASE', 'http://api.github.com'];
+        yield 'app url http' => ['APP_URL', 'http://portal.example.test'];
         yield 'app url localhost' => ['APP_URL', 'https://LOCALHOST:5173'];
         yield 'oidc 10.x' => ['GOOGLE_OIDC_BASE', 'https://10.0.0.5/google'];
         yield 'oidc 172.16.x' => ['GOOGLE_OIDC_BASE', 'https://172.16.4.1'];
         yield 'oidc 192.168.x' => ['GOOGLE_OIDC_BASE', 'https://192.168.1.10'];
         yield 'people cgnat' => ['GOOGLE_PEOPLE_BASE', 'https://100.64.0.1'];
         yield 'people link-local' => ['GOOGLE_PEOPLE_BASE', 'https://169.254.169.254/latest'];
-        yield 'openai ula' => ['OPENAI_BASE', 'https://[fd12:3456::1]'];
-        yield 'openai ula fc' => ['OPENAI_BASE', 'https://[fc00::1]'];
-        yield 'openai ipv6 link-local' => ['OPENAI_BASE', 'https://[fe80::1]'];
+        yield 'linkedin ula' => ['LINKEDIN_API_BASE', 'https://[fd12:3456::1]'];
+        yield 'linkedin ula fc' => ['LINKEDIN_API_BASE', 'https://[fc00::1]'];
+        yield 'github ipv6 link-local' => ['GITHUB_OAUTH_BASE', 'https://[fe80::1]'];
         yield 'app url mapped private' => ['APP_URL', 'https://[::ffff:10.0.0.1]'];
         yield 'no scheme' => ['GOOGLE_OIDC_BASE', 'accounts.google.com'];
         yield 'missing oidc' => ['GOOGLE_OIDC_BASE', null];

@@ -1,0 +1,64 @@
+# Render Blueprint for the test copy (docs/RELEASE.md "Render"). Free plan: sleeps after 15 minutes idle and keeps
+# no files between restarts. The database is an external MySQL reached over TLS (Render has no managed MySQL).
+# Values marked sync: false are typed into the Render dashboard, never committed.
+services:
+  - type: web
+    name: qiu-cpdc-portal
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      # The public address, e.g. https://qiu-cpdc-portal.onrender.com (no trailing slash).
+      - key: APP_URL
+        sync: false
+      - key: SUPERADMIN_EMAIL
+        sync: false
+      - key: DEFAULT_ORGANISATION_ID
+        value: "1"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_OIDC_BASE
+        value: https://accounts.google.com
+      - key: GOOGLE_PEOPLE_BASE
+        value: https://people.googleapis.com
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: LINKEDIN_OAUTH_BASE
+        value: https://www.linkedin.com
+      - key: LINKEDIN_API_BASE
+        value: https://api.linkedin.com
+      # GitHub link is optional: leave both empty to hide it.
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_OAUTH_BASE
+        value: https://github.com
+      - key: GITHUB_API_BASE
+        value: https://api.github.com
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Secret file "db-ca.pem" (the database's CA certificate), added under the service's Secret Files.
+      - key: DB_SSL_CA
+        value: /etc/secrets/db-ca.pem
+      # Error and security log lines also go to Render's log view (the disk is lost on restart).
+      - key: LOG_MIRROR
+        value: php://stderr

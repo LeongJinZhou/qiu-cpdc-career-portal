@@ -60,7 +60,11 @@ final class ProfileController
         try {
             $parsed = LinkedInPdf::parseLines(LinkedInPdf::extractLines($bytes));
         } catch (\InvalidArgumentException) {
-            throw new ApiError(422, 'PDF_UNREADABLE', 'This file could not be read. Download the PDF from your LinkedIn profile again.');
+            throw new ApiError(
+                422,
+                'PDF_UNREADABLE',
+                'This file could not be read. Download the PDF from your LinkedIn profile again.'
+            );
         }
         if (!$parsed['looks_like_linkedin']) {
             throw new ApiError(422, 'NOT_LINKEDIN_PDF', 'This does not look like a LinkedIn profile PDF.');
@@ -86,7 +90,9 @@ final class ProfileController
         $user = self::user($req, $app);
         $body = (new Validator())->validate(self::SCHEMAS . 'linkedin-url.json', $req->json());
 
-        return Response::json(['profile_url' => Onboarding::changeUrl($app->pdo(), $user, (string) $body['profile_url'])]);
+        return Response::json([
+            'profile_url' => Onboarding::changeUrl($app->pdo(), $user, (string) $body['profile_url']),
+        ]);
     }
 
     /** @param array<string, string> $params */

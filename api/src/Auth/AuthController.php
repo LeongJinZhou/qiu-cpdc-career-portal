@@ -32,7 +32,8 @@ final class AuthController
         $challenge = JWT::urlsafeB64Encode(hash('sha256', $verifier, true));
         $domains = self::domains($app);
         try {
-            $url = $app->google()->authorizationUrl($state, $nonce, $challenge, count($domains) === 1 ? $domains[0] : '');
+            $url = $app->google()
+                ->authorizationUrl($state, $nonce, $challenge, count($domains) === 1 ? $domains[0] : '');
         } catch (LoginRefused $e) {
             return self::refuse($req, $app, $e->result); // discovery unreachable
         }
@@ -72,7 +73,8 @@ final class AuthController
             $profile = DirectoryProfile::fromPerson($person);
             unset($person);
             $types = $app->settings($org)->list('student_employee_types');
-            $user = (new LoginService($app->pdo(), Env::get('SUPERADMIN_EMAIL')))->login($org, $claims, $profile, $types);
+            $user = (new LoginService($app->pdo(), Env::get('SUPERADMIN_EMAIL')))
+                ->login($org, $claims, $profile, $types);
         } catch (LoginRefused $e) {
             return self::refuse($req, $app, $e->result, $e->email ?? $email, $e->userId);
         } catch (\Throwable $e) {
@@ -102,7 +104,15 @@ final class AuthController
         ?string $email = null,
         ?int $userId = null
     ): Response {
-        LoginService::log($app->pdo(), $app->defaultOrganisationId, $userId, 'google', $email, $result, $req->remoteAddr);
+        LoginService::log(
+            $app->pdo(),
+            $app->defaultOrganisationId,
+            $userId,
+            'google',
+            $email,
+            $result,
+            $req->remoteAddr
+        );
         $shown = match ($result) {
             'domain' => 'domain',
             'inactive' => 'inactive',
@@ -150,6 +160,7 @@ final class AuthController
                 'linkedin' => $app->linkedInConfigured(),
                 'github' => $app->gitHubConfigured(),
             ],
+            'qiu_linkedin_url' => $settings->string('qiu_linkedin_page_url'),
         ]);
     }
 

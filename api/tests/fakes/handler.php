@@ -134,10 +134,10 @@ static function (
             return $json(401, ['status' => 401, 'message' => 'Invalid access token']);
         }
         $p = $linkedin[$persona];
-        $parts = explode(' ', $p[1], 2);
+        [$given, $family] = explode(' ', $p[1], 2); // every fake name has two words
 
         return $json(200, array_filter([
-            'sub' => $p[0], 'name' => $p[1], 'given_name' => $parts[0], 'family_name' => $parts[1] ?? '',
+            'sub' => $p[0], 'name' => $p[1], 'given_name' => $given, 'family_name' => $family,
             'email' => $p[2], 'email_verified' => $p[3], 'picture' => $p[4], 'locale' => ['country' => 'MY',
                 'language' => 'en'],
         ], static fn ($v) => $v !== null));

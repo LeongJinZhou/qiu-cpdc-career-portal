@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+  pull-requests: read # the gitleaks step lists a pull request's commits
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-only
+          MYSQL_DATABASE: cpdc
+          MYSQL_USER: cpdc
+          MYSQL_PASSWORD: local-dev-only
+        ports: ["3306:3306"]
+        options: --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 24, cache: npm }
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with: { php-version: "8.3", extensions: pdo_mysql, coverage: none, tools: "composer:v2" }
+      - name: Test database and fake .env
+        run: |
+          cp .env.example .env
+          mysql -h 127.0.0.1 -uroot -pci-root-only -e "CREATE DATABASE cpdc_test; GRANT ALL ON cpdc_test.* TO 'cpdc'@'%';"
+      - run: composer install --working-dir=api --no-interaction --no-progress && composer audit --working-dir=api
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:api
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium && npm run test:e2e
+      - run: npm audit --audit-level=high
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }

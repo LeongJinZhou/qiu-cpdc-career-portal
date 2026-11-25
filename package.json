@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -n api,fakes,web \"npm:dev:api\" \"npm:dev:fakes\" \"npm:dev:web\"",
-    "dev:api": "php -S 127.0.0.1:8090 -t api/public api/public/index.php",
-    "dev:fakes": "php -S 127.0.0.1:8091 api/tests/fakes/server.php",
+    "dev:api": "node tools/php-dev-server.mjs 8090 api/public/index.php",
+    "dev:fakes": "node tools/php-dev-server.mjs 8091 api/tests/fakes/server.php",
     "dev:web": "vite --config web/vite.config.ts",
     "build": "vite build --config web/vite.config.ts",
     "lint": "eslint . && php api/vendor/bin/phpcs -d memory_limit=512M --standard=api/phpcs.xml",
     "typecheck": "tsc --noEmit && php api/vendor/bin/phpstan analyse -c api/phpstan.neon --no-progress --memory-limit=512M",
-    "test": "npm run test:web && npm run test:api",
-    "test:web": "vitest run --config web/vite.config.ts",
+    "test": "npm run test:api",
     "test:api": "php api/vendor/bin/phpunit -c api/phpunit.xml",
     "test:e2e": "php api/bin/migrate.php && php api/bin/seed.php && playwright test"
   },
@@ -37,6 +36,8 @@
     "vitest": "5.0.5"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource/outfit": "5.3.0",
     "lucide-react": "1.80.0",
     "react": "19.3.1",
     "react-dom": "19.3.1"

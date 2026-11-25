@@ -77,7 +77,10 @@ final class GitHubController
                 Audit::log($pdo, $user, 'github.link', 'user:' . $user['id']);
             });
         } catch (LoginRefused $e) {
-            return Response::redirect('/profile?github=' . ($e->result === 'github_in_use' ? 'in-use' : 'failed'), $expire);
+            return Response::redirect(
+                '/profile?github=' . ($e->result === 'github_in_use' ? 'in-use' : 'failed'),
+                $expire
+            );
         } catch (\Throwable $e) {
             (new ErrorHandler($app->storageDir . '/logs'))->log($e);
 

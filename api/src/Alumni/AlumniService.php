@@ -124,7 +124,8 @@ final class AlumniService
         return Transaction::run($this->pdo, function () use ($admin, $userId, $graduationYear): array {
             $stmt = $this->pdo->prepare(
                 'SELECT u.role, u.department, (l.user_id IS NOT NULL) AS linked FROM `user` u'
-                . ' LEFT JOIN linkedin_account l ON l.user_id = u.id WHERE u.id = ? AND u.organisation_id = ? FOR UPDATE'
+                . ' LEFT JOIN linkedin_account l ON l.user_id = u.id'
+                . ' WHERE u.id = ? AND u.organisation_id = ? FOR UPDATE'
             );
             $stmt->execute([$userId, $admin['organisation_id']]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -175,9 +176,15 @@ final class AlumniService
             }
             try {
                 $done = $this->convert($admin, (int) $id, $row['graduation_year']);
-                $results[] = ['matric_no' => $matric, 'result' => $done['linkedin_linked'] ? 'converted' : 'no_linkedin'];
+                $results[] = [
+                    'matric_no' => $matric,
+                    'result' => $done['linkedin_linked'] ? 'converted' : 'no_linkedin',
+                ];
             } catch (ApiError $e) {
-                $results[] = ['matric_no' => $matric, 'result' => $e->errorCode === 'NOT_A_STUDENT' ? 'not_student' : 'failed'];
+                $results[] = [
+                    'matric_no' => $matric,
+                    'result' => $e->errorCode === 'NOT_A_STUDENT' ? 'not_student' : 'failed',
+                ];
             }
         }
 

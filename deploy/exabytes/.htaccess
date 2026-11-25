@@ -1,0 +1,20 @@
+# Exabytes public_html: /api/* runs the PHP app (index.php here hands over to ~/cpdc); everything else is the built
+# web app, and unknown paths fall back to index.html (client-side routes).
+Options -Indexes
+RewriteEngine On
+
+RewriteRule ^api(/.*)?$ index.php [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    <FilesMatch "\.html$">
+        Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data: https://*.googleusercontent.com https://media.licdn.com; font-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        Header always set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>

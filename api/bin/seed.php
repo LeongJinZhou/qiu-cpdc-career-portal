@@ -16,12 +16,16 @@ if (!in_array(getenv('APP_ENV'), ['local', 'development', 'test'], true)) {
     exit(1);
 }
 $pdo = Connection::fromEnv();
-$pdo->exec("UPDATE setting SET value = '[\"qiu.edu.my\", \"example.test\"]' WHERE setting_key = 'google_hosted_domains'");
+$pdo->exec(
+    "UPDATE setting SET value = '[\"qiu.edu.my\", \"example.test\"]' WHERE setting_key = 'google_hosted_domains'"
+);
 
 $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-foreach (['graduate_registration', 'career_skill', 'career_education', 'career_experience', 'job_confirmation',
+foreach (
+    ['graduate_registration', 'career_skill', 'career_education', 'career_experience', 'job_confirmation',
     'career_profile', 'github_account', 'linkedin_account', 'user_role_grant', 'login_log', 'audit_log', 'user',
-    'rate_limit'] as $table) {
+    'rate_limit'] as $table
+) {
     $pdo->exec("DELETE FROM `$table`");
 }
 $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
@@ -48,20 +52,21 @@ $linkedin->execute([$id, 'li-sub-alumni', 'Fake Alumna', 'https://www.linkedin.c
 $profile->execute([$id, 'Faculty of Fake Studies', 'Bachelor of Fake Studies', 2024, 'employed', 'Data Analyst',
     'Fake Analytics Sdn Bhd', $now]);
 
-// More fake alumni for the tracker: different faculties, years and statuses; one without LinkedIn.
+// More fake alumni for the tracker: different faculties, years and statuses; the last one has no LinkedIn and never
+// confirmed a job. Columns: name, matric no, faculty, year, status, job title, company, LinkedIn linked + confirmed.
 $fakeAlumni = [
     ['Fake Graduate Two', 'FAKE-S-1002', 'Faculty of Fake Studies', 2024, 'seeking', null, null, true],
     ['Fake Graduate Three', 'FAKE-S-1003', 'Faculty of Other Studies', 2025, 'further_study', 'Master student',
         'Fake University', true],
     ['Fake Graduate Four', 'FAKE-S-1004', 'Faculty of Other Studies', 2025, 'unknown', null, null, false],
 ];
-foreach ($fakeAlumni as $i => [$name, $matric, $faculty, $year, $status, $title, $company, $hasLinkedIn]) {
+foreach ($fakeAlumni as $i => [$name, $matric, $faculty, $year, $status, $title, $company, $active]) {
     $user->execute([null, $name, $matric, $faculty, 'alumni', $now, $now, '2026-11-25', $now]);
     $id = (int) $pdo->lastInsertId();
-    if ($hasLinkedIn) {
+    if ($active) {
         $linkedin->execute([$id, 'li-sub-fake-' . $i, $name, 'https://www.linkedin.com/in/fake-graduate-' . $i]);
     }
     $profile->execute([$id, $faculty, 'Bachelor of ' . substr($faculty, 11), $year, $status, $title, $company,
-        $status === 'unknown' ? null : $now]);
+        $active ? $now : null]);
 }
 echo "Seeded fake alumni; example.test sign-in allowed.\n";

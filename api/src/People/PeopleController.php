@@ -46,7 +46,9 @@ final class PeopleController
             $where .= ' AND l.user_id IS NULL';
         }
         $pdo = $app->pdo();
-        $count = $pdo->prepare("SELECT COUNT(*) FROM `user` u LEFT JOIN linkedin_account l ON l.user_id = u.id WHERE $where");
+        $count = $pdo->prepare(
+            "SELECT COUNT(*) FROM `user` u LEFT JOIN linkedin_account l ON l.user_id = u.id WHERE $where"
+        );
         $count->execute($args);
         $stmt = $pdo->prepare(
             'SELECT u.id, u.display_name, u.email, u.picture_url, u.role, u.matric_no, u.employee_id, u.department,'
@@ -101,13 +103,17 @@ final class PeopleController
                 throw new ApiError(403, 'FORBIDDEN', 'You cannot change your own role.');
             }
             $touchesAdmin = $current === 'admin' || $role === 'admin';
-            if (in_array($current, ['superadmin', 'pending'], true) || ($touchesAdmin && $admin['role'] !== 'superadmin')) {
+            if (
+                in_array($current, ['superadmin', 'pending'], true)
+                || ($touchesAdmin && $admin['role'] !== 'superadmin')
+            ) {
                 throw new ApiError(403, 'FORBIDDEN', 'You cannot change this role.');
             }
             if ($current === $role) {
                 return;
             }
-            $pdo->prepare('UPDATE `user` SET role = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?')->execute([$role, $target]);
+            $pdo->prepare('UPDATE `user` SET role = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?')
+                ->execute([$role, $target]);
             Audit::log($pdo, $admin, 'user.role', 'user:' . $target, ['from' => $current, 'to' => $role]);
         });
 

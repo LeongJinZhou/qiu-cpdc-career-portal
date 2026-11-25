@@ -21,7 +21,7 @@ final class SignInTest extends HttpTestCase
         $this->assertTrue($me['onboarding']['required']);
         $this->assertFalse($me['onboarding']['linkedin_linked']);
         // The phone number in the fake directory answer is never stored.
-        $stored = $this->pdo->query("SELECT * FROM `user` WHERE email = 'student@example.test'")->fetch();
+        $stored = $this->sql("SELECT * FROM `user` WHERE email = 'student@example.test'")->fetch();
         $this->assertStringNotContainsString('+60', (string) json_encode($stored));
     }
 
@@ -40,7 +40,7 @@ final class SignInTest extends HttpTestCase
         $this->assertSame('/login?error=domain', $this->location($this->signIn('google', 'nohd')));
         $this->assertSame('/login?error=failed', $this->location($this->signIn('google', 'unverified')));
         $this->assertArrayNotHasKey(Session::COOKIE, $this->jar);
-        $logged = $this->pdo->query("SELECT result FROM login_log WHERE provider = 'google' ORDER BY id")
+        $logged = $this->sql("SELECT result FROM login_log WHERE provider = 'google' ORDER BY id")
             ->fetchAll(\PDO::FETCH_COLUMN);
         $this->assertSame(['domain', 'domain', 'unverified'], $logged);
     }
@@ -162,7 +162,11 @@ final class SignInTest extends HttpTestCase
         $list = $this->body($this->send('GET', '/api/registrations'));
         $this->assertCount(1, $list['items']);
         $this->assertSame('OLD-2019-01', $list['items'][0]['matric_no']);
-        $approved = $this->json('POST', '/api/registrations/' . $list['items'][0]['id'] . '/approve', ['faculty' => 'Faculty of Old']);
+        $approved = $this->json(
+            'POST',
+            '/api/registrations/' . $list['items'][0]['id'] . '/approve',
+            ['faculty' => 'Faculty of Old']
+        );
         $this->assertSame(200, $approved->status, $approved->body);
         $this->jar = [];
         $this->assertSame('/', $this->location($this->signIn('linkedin', 'nolink', ['mode' => 'signin'])));
@@ -172,7 +176,7 @@ final class SignInTest extends HttpTestCase
     public function testApprovingAGraduateWithAKnownMatricNumberMergesIntoTheStudentRow(): void
     {
         $this->signIn('google', 'graduate'); // matric FAKE-S-0003, no LinkedIn yet
-        $studentId = (int) $this->pdo->query("SELECT id FROM `user` WHERE email = 'graduate@example.test'")->fetchColumn();
+        $studentId = (int) $this->sql("SELECT id FROM `user` WHERE email = 'graduate@example.test'")->fetchColumn();
         $this->jar = [];
         $this->signIn('linkedin', 'nolink', ['mode' => 'signin']);
         $this->json('POST', '/api/graduates/registration', [
@@ -186,7 +190,7 @@ final class SignInTest extends HttpTestCase
         $result = $this->body($approved);
         $this->assertTrue($result['merged']);
         $this->assertSame($studentId, $result['user_id']);
-        $this->assertSame(0, (int) $this->pdo->query("SELECT COUNT(*) FROM `user` WHERE role = 'pending'")->fetchColumn());
+        $this->assertSame(0, (int) $this->sql("SELECT COUNT(*) FROM `user` WHERE role = 'pending'")->fetchColumn());
     }
 
     public function testARefusedRegistrationFreesTheLinkedInAccount(): void
@@ -199,7 +203,10 @@ final class SignInTest extends HttpTestCase
         $reg = $this->body($this->send('GET', '/api/registrations'))['items'][0];
         $this->assertSame(204, $this->json('POST', '/api/registrations/' . $reg['id'] . '/refuse')->status);
         $this->jar = [];
-        $this->assertSame('/register-graduate', $this->location($this->signIn('linkedin', 'nolink', ['mode' => 'signin'])));
+        $this->assertSame(
+            '/register-graduate',
+            $this->location($this->signIn('linkedin', 'nolink', ['mode' => 'signin']))
+        );
     }
 
     public function testTheSuperadminComesFromTheEnvironmentAndIsNotHeldByOnboarding(): void
@@ -225,7 +232,10 @@ final class SignInTest extends HttpTestCase
         $this->signIn('google', 'student');
         $this->assertFalse($this->body($this->send('GET', '/api/me'))['onboarding']['required']);
         $this->assertSame(200, $this->send('GET', '/api/profile')->status);
-        $this->assertSame('/login?error=linkedin-off', $this->location($this->send('GET', '/api/auth/linkedin/start', '', ['mode' => 'signin'])));
+        $this->assertSame(
+            '/login?error=linkedin-off',
+            $this->location($this->send('GET', '/api/auth/linkedin/start', '', ['mode' => 'signin']))
+        );
     }
 
     /** A CPDC admin who finished onboarding, signed in through Google. */
@@ -233,7 +243,9 @@ final class SignInTest extends HttpTestCase
     {
         $this->jar = [];
         $this->signIn('google', 'admin');
-        $this->pdo->exec("UPDATE `user` SET role = 'admin', onboarded_at = UTC_TIMESTAMP(3) WHERE email = 'admin@example.test'");
+        $this->pdo->exec(
+            "UPDATE `user` SET role = 'admin', onboarded_at = UTC_TIMESTAMP(3) WHERE email = 'admin@example.test'"
+        );
         $this->refreshCsrf();
     }
 }

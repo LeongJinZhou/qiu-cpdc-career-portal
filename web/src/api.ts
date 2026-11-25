@@ -83,6 +83,13 @@ export function apiPatch<T>(path: string, body: unknown, csrfToken: string): Pro
   return apiWrite<T>('PATCH', path, body, csrfToken);
 }
 
+/** One file as multipart/form-data with the CSRF token (the browser sets the boundary). */
+export function apiUpload<T>(path: string, field: string, file: File, csrfToken: string): Promise<T> {
+  const form = new FormData();
+  form.append(field, file);
+  return send<T>(path, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-Token': csrfToken }, body: form });
+}
+
 interface Loaded<T> {
   id: string;
   group: string;

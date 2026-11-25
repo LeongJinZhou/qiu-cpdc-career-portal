@@ -101,7 +101,16 @@ final class LinkedInController
 
         Session::forget($req->cookies[Session::COOKIE] ?? '');
         $cookie = $app->session()->login($user, 'linkedin');
-        LoginService::log($app->pdo(), $org, $user['id'], 'linkedin', null, 'success', $req->remoteAddr, $identity['sub']);
+        LoginService::log(
+            $app->pdo(),
+            $org,
+            $user['id'],
+            'linkedin',
+            null,
+            'success',
+            $req->remoteAddr,
+            $identity['sub']
+        );
 
         return self::done(Response::redirect('/', ['Set-Cookie' => $cookie]));
     }

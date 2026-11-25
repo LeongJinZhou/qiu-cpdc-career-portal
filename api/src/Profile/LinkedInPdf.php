@@ -155,8 +155,14 @@ final class LinkedInPdf
                 'column' => ($raw['column'] ?? null) === 'side' ? 'side' : 'main',
             ];
         }
-        $side = self::sections(array_values(array_filter($lines, fn ($l) => $l['column'] === 'side')), self::SIDE_HEADINGS);
-        $main = self::sections(array_values(array_filter($lines, fn ($l) => $l['column'] === 'main')), self::MAIN_HEADINGS);
+        $side = self::sections(
+            array_values(array_filter($lines, fn ($l) => $l['column'] === 'side')),
+            self::SIDE_HEADINGS
+        );
+        $main = self::sections(
+            array_values(array_filter($lines, fn ($l) => $l['column'] === 'main')),
+            self::MAIN_HEADINGS
+        );
         $texts = static fn (?array $list): array => array_map(fn (array $l): string => $l['text'], $list ?? []);
 
         $header = self::parseHeader($main['_header'] ?? []);
@@ -186,7 +192,11 @@ final class LinkedInPdf
      */
     public static function profileUrl(string $contact): ?string
     {
-        $joined = preg_replace('#(linkedin\.com/in/[A-Za-z0-9\-_%]*)\s+([A-Za-z0-9\-_%]+)\s*\(LinkedIn\)#i', '$1$2', $contact);
+        $joined = preg_replace(
+            '#(linkedin\.com/in/[A-Za-z0-9\-_%]*)\s+([A-Za-z0-9\-_%]+)\s*\(LinkedIn\)#i',
+            '$1$2',
+            $contact
+        );
         if (preg_match('#(?:[a-z]{2,3}\.)?linkedin\.com/in/[A-Za-z0-9\-_%]+#i', (string) $joined, $m) !== 1) {
             return null;
         }
@@ -284,14 +294,25 @@ final class LinkedInPdf
             // roles at one company.
             $prev = $lines[$titleStart - 1] ?? null;
             $headerStart = $titleStart;
-            if ($prev !== null && preg_match(self::DURATION_ONLY, $prev['text']) === 1 && isset($lines[$titleStart - 2])) {
+            if (
+                $prev !== null
+                && preg_match(self::DURATION_ONLY, $prev['text']) === 1
+                && isset($lines[$titleStart - 2])
+            ) {
                 $lastCompany = $lines[$titleStart - 2]['text'];
                 $headerStart = $titleStart - 2;
-            } elseif ($prev !== null && $prev['size'] > $titleLine['size'] + 0.25 && preg_match($range, $prev['text']) !== 1) {
+            } elseif (
+                $prev !== null
+                && $prev['size'] > $titleLine['size'] + 0.25
+                && preg_match($range, $prev['text']) !== 1
+            ) {
                 $lastCompany = $prev['text'];
                 $headerStart = $titleStart - 1;
             }
-            $title = implode(' ', array_map(fn (array $l): string => $l['text'], array_slice($lines, $titleStart, $i - $titleStart)));
+            $title = implode(' ', array_map(
+                fn (array $l): string => $l['text'],
+                array_slice($lines, $titleStart, $i - $titleStart)
+            ));
             $entries[] = [
                 'headerStart' => $headerStart,
                 'dateIndex' => $i,
@@ -308,7 +329,11 @@ final class LinkedInPdf
             $body = array_slice($lines, $entry['dateIndex'] + 1, $end - $entry['dateIndex'] - 1);
             $location = null;
             // The line right after the dates is the job location when it reads like a place.
-            if (count($body) > 1 && mb_strlen($body[0]['text']) <= 60 && preg_match(self::PLACE, $body[0]['text']) === 1) {
+            if (
+                count($body) > 1
+                && mb_strlen($body[0]['text']) <= 60
+                && preg_match(self::PLACE, $body[0]['text']) === 1
+            ) {
                 $location = $body[0]['text'];
                 $body = array_slice($body, 1);
             }

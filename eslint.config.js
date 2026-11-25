@@ -4,7 +4,10 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['node_modules', 'dist', 'coverage', 'test-results', 'playwright-report', 'api', 'storage', 'tools', '.claude', 'prototype'] },
+  {
+    ignores: ['node_modules', 'web/dist', 'coverage', 'test-results', 'playwright-report', '.playwright-mcp', 'api',
+      'storage', '.claude'],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -14,9 +17,8 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
-    // Haraka plugins (deploy/haraka/plugins): CommonJS on Node, as Haraka loads them.
-    files: ['deploy/haraka/**/*.js'],
-    languageOptions: { sourceType: 'commonjs', globals: globals.node },
-    rules: { '@typescript-eslint/no-require-imports': 'off' },
+    // Local dev tooling run by Node.
+    files: ['tools/**/*.mjs'],
+    languageOptions: { globals: globals.node },
   },
 );

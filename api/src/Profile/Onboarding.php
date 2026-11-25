@@ -76,7 +76,13 @@ final class Onboarding
                 'UPDATE `user` SET consent_at = UTC_TIMESTAMP(3), consent_version = ?,'
                 . ' onboarded_at = COALESCE(onboarded_at, UTC_TIMESTAMP(3)), updated_at = UTC_TIMESTAMP(3) WHERE id = ?'
             )->execute([$consentVersion, $user['id']]);
-            Audit::log($pdo, $user, 'onboarding.complete', 'user:' . $user['id'], ['consent_version' => $consentVersion]);
+            Audit::log(
+                $pdo,
+                $user,
+                'onboarding.complete',
+                'user:' . $user['id'],
+                ['consent_version' => $consentVersion]
+            );
         });
     }
 
@@ -101,7 +107,9 @@ final class Onboarding
             }
             if ($old !== $url) {
                 self::assertUrlFree($pdo, $user, $url);
-                $pdo->prepare('UPDATE linkedin_account SET profile_url = ?, updated_at = UTC_TIMESTAMP(3) WHERE user_id = ?')
+                $pdo->prepare(
+                    'UPDATE linkedin_account SET profile_url = ?, updated_at = UTC_TIMESTAMP(3) WHERE user_id = ?'
+                )
                     ->execute([$url, $user['id']]);
                 Audit::log($pdo, $user, 'linkedin.url_change', 'user:' . $user['id'], ['from' => $old, 'to' => $url]);
             }
@@ -137,10 +145,16 @@ final class Onboarding
      */
     private static function assertUrlFree(PDO $pdo, array $user, string $url): void
     {
-        $stmt = $pdo->prepare('SELECT 1 FROM linkedin_account WHERE organisation_id = ? AND profile_url = ? AND user_id <> ?');
+        $stmt = $pdo->prepare(
+            'SELECT 1 FROM linkedin_account WHERE organisation_id = ? AND profile_url = ? AND user_id <> ?'
+        );
         $stmt->execute([$user['organisation_id'], $url, $user['id']]);
         if ($stmt->fetchColumn() !== false) {
-            throw new ApiError(409, 'LINKEDIN_URL_IN_USE', 'This LinkedIn profile is already linked to another person.');
+            throw new ApiError(
+                409,
+                'LINKEDIN_URL_IN_USE',
+                'This LinkedIn profile is already linked to another person.'
+            );
         }
     }
 }

@@ -37,7 +37,8 @@ abstract class HttpTestCase extends DbTestCase
         $this->storage = sys_get_temp_dir() . '/cpdc-test-' . bin2hex(random_bytes(4));
         $this->idp = new FakeIdp();
         $this->pdo->exec(
-            "UPDATE setting SET value = '[\"qiu.edu.my\", \"example.test\"]' WHERE setting_key = 'google_hosted_domains'"
+            "UPDATE setting SET value = '[\"qiu.edu.my\", \"example.test\"]'"
+            . " WHERE setting_key = 'google_hosted_domains'"
         );
         $this->app = new App(
             App::routes(new Router()),

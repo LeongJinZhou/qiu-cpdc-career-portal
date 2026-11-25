@@ -68,7 +68,10 @@ final class RegistrationService
             $pendingId = (int) $reg['user_id'];
             $faculty = $faculty !== null && trim($faculty) !== '' ? trim($faculty) : $reg['faculty'];
             $match = $reg['matched_user_id'] === null ? null : (int) $reg['matched_user_id'];
-            if ($match !== null && !$this->stillMatches($admin['organisation_id'], $match, (string) $reg['matric_no'])) {
+            if (
+                $match !== null
+                && !$this->stillMatches($admin['organisation_id'], $match, (string) $reg['matric_no'])
+            ) {
                 $match = null; // the student row changed since the registration: approve as a new alumnus
             }
             if ($match !== null) {
@@ -117,7 +120,8 @@ final class RegistrationService
     private function mergeInto(array $admin, int $pendingId, int $studentId, ?string $faculty): void
     {
         $this->pdo->prepare('DELETE FROM linkedin_account WHERE user_id = ?')->execute([$studentId]);
-        $this->pdo->prepare('UPDATE linkedin_account SET user_id = ? WHERE user_id = ?')->execute([$studentId, $pendingId]);
+        $this->pdo->prepare('UPDATE linkedin_account SET user_id = ? WHERE user_id = ?')
+            ->execute([$studentId, $pendingId]);
         $this->pdo->prepare(
             "UPDATE `user` SET role = 'alumni', alumni_since = COALESCE(alumni_since, UTC_TIMESTAMP(3)),"
             . ' updated_at = UTC_TIMESTAMP(3) WHERE id = ?'

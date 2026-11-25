@@ -47,7 +47,7 @@ final class Env
 
     /**
      * Boot check (fail closed): APP_ENV must be a known value. In production, Google settings are present and
-     * every outbound base URL plus APP_URL is https on a public host. OPENAI_BASE is checked only when set.
+     * every outbound base URL plus APP_URL is https on a public host. LinkedIn and GitHub bases are checked when set.
      */
     public static function assertProdUrls(): void
     {
@@ -64,7 +64,9 @@ final class Env
                 throw new \RuntimeException("Missing environment variable $key");
             }
         }
-        foreach (['APP_URL', 'GOOGLE_OIDC_BASE', 'GOOGLE_PEOPLE_BASE', 'OPENAI_BASE', 'GOOGLE_GMAIL_BASE'] as $key) {
+        $bases = ['APP_URL', 'GOOGLE_OIDC_BASE', 'GOOGLE_PEOPLE_BASE', 'LINKEDIN_OAUTH_BASE', 'LINKEDIN_API_BASE',
+            'GITHUB_OAUTH_BASE', 'GITHUB_API_BASE'];
+        foreach ($bases as $key) {
             $value = (string) getenv($key);
             if ($value !== '' && !self::isPublicHttps($value)) {
                 throw new \RuntimeException("$key must be an https URL on a non-local host in production");

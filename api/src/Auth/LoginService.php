@@ -137,7 +137,13 @@ final class LoginService
             throw new LoginRefused('inactive', $email, $rowId);
         }
 
-        $role = self::decideRole($row['role'] ?? null, $email, $this->superadminEmail, $profile['employee_type'], $studentTypes);
+        $role = self::decideRole(
+            $row['role'] ?? null,
+            $email,
+            $this->superadminEmail,
+            $profile['employee_type'],
+            $studentTypes
+        );
         $stored = [];
         foreach (self::PROFILE_FIELDS as $field) {
             $stored[$field] = $row[$field] ?? null;
