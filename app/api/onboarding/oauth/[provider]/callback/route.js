@@ -29,11 +29,12 @@ export async function GET(request, { params }) {
       return back(request, { connectError: 'That sign-in method is not available.' });
     }
 
-    // The student pressed "Cancel" on the provider's consent screen.
+    // The student pressed "Cancel" on the provider's consent screen. The
+    // provider's error_description is never echoed: anyone can craft this URL,
+    // so reflecting it would let a phishing link put their text on our page.
     if (query.get('error')) {
-      return back(request, {
-        connectError: query.get('error_description') || 'You cancelled the connection.',
-      });
+      console.warn(`[oauth:${providerId}] provider returned error`, query.get('error'));
+      return back(request, { connectError: 'You cancelled the connection.' });
     }
 
     const actor = await resolveActor(request);

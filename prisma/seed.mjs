@@ -8,6 +8,10 @@ import { formatStudentId } from '../lib/identity/student-id.js';
 
 const prisma = new PrismaClient();
 
+// Set SEED_PROFILE=production on the host (render.yaml does). NODE_ENV is not
+// used: Render builds without it so devDependencies (prisma) still install.
+const PRODUCTION = process.env.SEED_PROFILE === 'production';
+
 const LEVEL_MAP = {
   Foundation: 'FOUNDATION',
   Diploma: 'DIPLOMA',
@@ -238,13 +242,15 @@ async function seedWorkshops() {
     // The registry uses `faculty`; a workshop pointing at an unknown faculty is
     // treated as university-wide rather than failing the whole seed.
     const facultyId = facultyIds.has(workshop.faculty) ? workshop.faculty : null;
-    // Rotate the printed credential on each seed. Static demo content never
-    // carries a predictable QR secret into the browser bundle.
+    // A random QR secret is set once, on create. Re-seeding must never rotate
+    // it: printed QR codes would stop working after every deploy. Static demo
+    // content still never carries a predictable QR secret into the bundle.
     const qrSecret = crypto.randomBytes(32).toString('hex');
 
     await prisma.workshop.upsert({
       where: { id: workshop.id },
-      update: {
+      // Production keeps whatever admins edited; dev refreshes registry content.
+      update: PRODUCTION ? {} : {
         description: workshop.description ?? (workshop.tags ?? []).join(', '),
         speakerBio: workshop.speakerBio ?? null,
         hostOrganization: workshop.hostOrganization ?? null,
@@ -253,7 +259,6 @@ async function seedWorkshops() {
         prerequisites: workshop.prereqs ?? null,
         agenda: workshop.agenda ?? [],
         learningOutcomes: workshop.learningOutcomes ?? [],
-        qrSecret,
         category: workshop.category ?? 'CPDC Workshop',
         tags: workshop.tags ?? [],
         capacity: workshop.capacity ?? null,
@@ -401,11 +406,35 @@ async function seedOfficialSsoTestAccounts() {
   console.log('  seeded QIU admin admin@qiu.edu.my');
 }
 
+// Production seed: reference data (faculties, programmes, workshops) and the
+// first admin account only. No demo or test users, and nothing that re-enables
+// an account an admin has since disabled.
+async function seedProductionAdmin() {
+  await prisma.user.upsert({
+    where: { email: 'admin@qiu.edu.my' },
+    update: {},
+    create: {
+      email: 'admin@qiu.edu.my',
+      normalizedEmail: 'admin@qiu.edu.my',
+      name: 'QIU CPDC Administrator',
+      role: 'CPDC_ADMIN',
+      loginAllowed: true,
+      accountStatus: 'ACTIVE',
+      identitySource: 'SEEDED',
+    },
+  });
+  console.log('  ensured QIU admin admin@qiu.edu.my (created only if missing)');
+}
+
 async function main() {
-  console.log('Seeding CPDC platform...');
+  console.log(`Seeding CPDC platform (${PRODUCTION ? 'production' : 'development'})...`);
   await seedFaculties();
-  await seedDemoStudent();
-  await seedOfficialSsoTestAccounts();
+  if (PRODUCTION) {
+    await seedProductionAdmin();
+  } else {
+    await seedDemoStudent();
+    await seedOfficialSsoTestAccounts();
+  }
   await seedWorkshops();
   console.log('Seed complete.');
 }

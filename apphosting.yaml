@@ -58,13 +58,15 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  # Secrets come from Cloud Secret Manager, never plain values in this public
+  # repo. Create them once with:
+  #   firebase apphosting:secrets:set session-secret
+  #   firebase apphosting:secrets:set magic-link-secret
   - variable: SESSION_SECRET
-    value: "cpdc-career-portal-production-session-secret-key-2026-auth"
+    secret: session-secret
     availability:
-      - BUILD
       - RUNTIME
   - variable: MAGIC_LINK_SECRET
-    value: "cpdc-career-portal-production-magic-link-secret-key-2026-auth"
+    secret: magic-link-secret
     availability:
-      - BUILD
       - RUNTIME
