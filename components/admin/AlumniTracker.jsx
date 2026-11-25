@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Download, ExternalLink, Linkedin, LoaderCircle, RefreshCcw, Search } from 'lucide-react';
 
+import { downloadCsv, Metric } from '@/components/admin/AdminUI';
 import { alumniCsv } from '@/lib/admin/alumni';
 
 // Alumni tracking for CPDC: graduates keep their LinkedIn after the QIU email
@@ -13,29 +14,19 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function Stat({ label, value, hint }) {
-  return (
-    <div className="rounded-[18px] border border-black/10 bg-white p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 font-heading text-2xl font-semibold text-[#1d1d1f]">{value}</p>
-      {hint ? <p className="mt-0.5 text-xs text-muted">{hint}</p> : null}
-    </div>
-  );
-}
-
 function LinkedInStatus({ row }) {
   if (row.linkedinLinked) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+      <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-semibold text-emerald-700">
         <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Linked
       </span>
     );
   }
-  return <span className="text-xs font-semibold text-amber-800">Not linked</span>;
+  return <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-amber-800">Not linked</span>;
 }
 
-function ProfileLink({ url }) {
-  if (!url) return <span className="text-xs text-muted">—</span>;
+function ProfileLink({ url, hideWhenEmpty = false }) {
+  if (!url) return hideWhenEmpty ? null : <span className="text-xs text-muted">—</span>;
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-crimson underline">
       Profile <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -60,9 +51,15 @@ export default function AlumniTracker({ currentRole }) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || 'Could not load alumni.');
-      setState({ status: 'ready', rows: payload.rows ?? [], summary: payload.summary ?? null, error: '' });
+      setState({
+        status: 'ready',
+        rows: payload.rows ?? [],
+        summary: payload.summary ?? null,
+        truncatedFrom: payload.truncated ? payload.totalInDatabase : null,
+        error: '',
+      });
     } catch (error) {
-      setState({ status: 'error', rows: [], summary: null, error: error.message });
+      setState({ status: 'error', rows: [], summary: null, truncatedFrom: null, error: error.message });
     }
   }, [currentRole]);
 
@@ -77,15 +74,7 @@ export default function AlumniTracker({ currentRole }) {
     ));
   }, [state.rows, query, onlyUnlinked]);
 
-  const downloadCsv = () => {
-    const blob = new Blob([alumniCsv(visible)], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `qiu-alumni-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  const exportCsv = () => downloadCsv(`qiu-alumni-${new Date().toISOString().slice(0, 10)}.csv`, alumniCsv(visible));
 
   if (state.status === 'loading') {
     return (
@@ -113,7 +102,7 @@ export default function AlumniTracker({ currentRole }) {
   return (
     <section className="space-y-5" aria-labelledby="alumni-title">
       <div>
-        <h2 id="alumni-title" className="font-heading text-lg font-semibold text-[#1d1d1f]">Alumni</h2>
+        <h2 id="alumni-title" className="font-heading text-lg font-semibold text-[#1d1d1f]">Alumni tracker</h2>
         <p className="mt-1 max-w-2xl text-sm text-muted">
           Graduates and students ready to graduate. A linked LinkedIn lets them sign in after their QIU email closes,
           and keeps their personal email up to date each time they do.
@@ -122,11 +111,17 @@ export default function AlumniTracker({ currentRole }) {
 
       {summary ? (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label="In this list" value={summary.total} />
-          <Stat label="Alumni" value={summary.alumni} hint="Others are ready to graduate" />
-          <Stat label="LinkedIn linked" value={summary.linkedinLinked} hint={`${summary.total - summary.linkedinLinked} not linked`} />
-          <Stat label="Seen in 12 months" value={summary.seenLast12Months} hint="Signed in to LinkedIn here" />
+          <Metric label="In this list" value={summary.total} />
+          <Metric label="Alumni" value={summary.alumni} context="Others are ready to graduate" />
+          <Metric label="LinkedIn linked" value={summary.linkedinLinked} context={`${summary.total - summary.linkedinLinked} not linked`} tone={summary.linkedinLinked < summary.total ? 'amber' : 'crimson'} />
+          <Metric label="Seen in 12 months" value={summary.seenLast12Months} context="Signed in to LinkedIn here" />
         </div>
+      ) : null}
+
+      {state.truncatedFrom ? (
+        <p className="rounded-[14px] border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800" role="status">
+          Showing the newest {state.rows.length} of {state.truncatedFrom}. Counts and the CSV cover only these.
+        </p>
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -147,10 +142,12 @@ export default function AlumniTracker({ currentRole }) {
             Only LinkedIn not linked
           </label>
         </div>
-        <button type="button" onClick={downloadCsv} disabled={!visible.length} className="secondary-btn inline-flex min-h-[44px] items-center gap-2 disabled:opacity-60">
+        <button type="button" onClick={exportCsv} disabled={!visible.length} className="secondary-btn inline-flex min-h-[44px] items-center gap-2 disabled:opacity-60">
           <Download className="h-4 w-4" aria-hidden="true" /> Export CSV ({visible.length})
         </button>
       </div>
+
+      <p className="sr-only" aria-live="polite">{`${visible.length} of ${state.rows.length} shown`}</p>
 
       {!state.rows.length ? (
         <div className="surface flex items-start gap-3 p-6 text-sm text-muted">
@@ -173,9 +170,13 @@ export default function AlumniTracker({ currentRole }) {
                   <LinkedInStatus row={row} />
                 </div>
                 <p className="break-all text-xs text-[#1d1d1f]">{row.personalEmail ?? 'No personal email yet'}</p>
-                <div className="flex items-center justify-between text-xs text-muted">
-                  <span>{row.status} · seen {formatDate(row.linkedinLastSeenAt)}</span>
-                  <ProfileLink url={row.linkedinUrl} />
+                <div className="flex items-center justify-between gap-2 text-xs text-muted">
+                  <span>
+                    {row.status} · {row.linkedinLastSeenAt
+                      ? `last seen ${formatDate(row.linkedinLastSeenAt)}`
+                      : 'never signed in with LinkedIn'}
+                  </span>
+                  <ProfileLink url={row.linkedinUrl} hideWhenEmpty />
                 </div>
               </li>
             ))}

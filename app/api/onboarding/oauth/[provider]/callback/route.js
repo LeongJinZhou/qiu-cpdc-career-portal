@@ -6,6 +6,7 @@ import { OAUTH_PROVIDERS, fetchOAuthProfile, isConfigured, verifyState } from '@
 import { connectAccountByOAuth } from '@/lib/onboarding/service';
 import { fetchProfilePhotoDataUrl } from '@/lib/onboarding/profile-photo';
 import { prisma } from '@/lib/prisma';
+import { createAuditEntry } from '@/lib/audit/index.js';
 
 /**
  * GET /api/onboarding/oauth/:provider/callback
@@ -67,6 +68,9 @@ export async function GET(request, { params }) {
         requestId: getRequestId(request),
       });
     } catch (connectError) {
+      if (connectError?.code === 'OAUTH_RETRY') {
+        return back(request, { connectError: 'That took two tries at once. Please sign in again.' });
+      }
       if (connectError?.code === 'OAUTH_ACCOUNT_IN_USE') {
         return back(request, { connectError: `That ${providerId === 'LINKEDIN' ? 'LinkedIn' : 'GitHub'} account is already linked to another QIU student. Sign in with your own account.` });
       }
@@ -75,12 +79,27 @@ export async function GET(request, { params }) {
 
     // Alumni contact: the address LinkedIn verified, kept after the QIU email closes.
     if (providerId === 'LINKEDIN') {
-      await prisma.user.update({
-        where: { id: actor.user.id },
-        data: {
-          linkedinLastSeenAt: new Date(),
-          ...(profile.verifiedEmail ? { personalEmail: profile.verifiedEmail } : {}),
-        },
+      await prisma.$transaction(async (tx) => {
+        const before = await tx.user.findUnique({ where: { id: actor.user.id }, select: { personalEmail: true } });
+        await tx.user.update({
+          where: { id: actor.user.id },
+          data: {
+            linkedinLastSeenAt: new Date(),
+            ...(profile.verifiedEmail ? { personalEmail: profile.verifiedEmail } : {}),
+          },
+        });
+        if (profile.verifiedEmail && profile.verifiedEmail !== before?.personalEmail) {
+          // Audit that it changed, never the address itself.
+          await createAuditEntry({
+            tx,
+            actorUserId: actor.user.id,
+            action: 'PERSONAL_EMAIL_UPDATED',
+            resourceType: 'User',
+            resourceId: actor.user.id,
+            metadata: { source: 'LINKEDIN', hadPrevious: Boolean(before?.personalEmail) },
+            requestId: getRequestId(request),
+          });
+        }
       });
     }
 

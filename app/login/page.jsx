@@ -151,7 +151,13 @@ export default function LoginPage() {
       setSignedOutNotice(params.get('signedOut') === '1');
       // Fixed codes only: text from the URL is never shown on the page.
       const linkedinError = LINKEDIN_ERRORS[params.get('error')];
-      if (linkedinError) setError(linkedinError);
+      if (linkedinError) {
+        setError(linkedinError);
+        // Shown once: a reload should not bring the error back.
+        params.delete('error');
+        const query = params.toString();
+        window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+      }
       setNextPath(safeNextPath(params.get('next')));
     } catch {
       // A blocked location read just means no banner and no return path.

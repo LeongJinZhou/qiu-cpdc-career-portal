@@ -4,7 +4,9 @@ import { NextResponse } from 'next/server';
 import { getAuthMode, isProduction } from '@/lib/auth/config';
 import { authorizeUrl, createState, isConfigured } from '@/lib/onboarding/oauth';
 import { createRateLimiter } from '@/lib/rate-limit';
-import { clientKey, LINKEDIN_LOGIN_CALLBACK, LINKEDIN_LOGIN_STATE_COOKIE, loginErrorRedirect } from '../shared';
+import {
+  clientKey, LINKEDIN_LOGIN_CALLBACK, LINKEDIN_LOGIN_STATE_COOKIE, loginErrorRedirect, loginStateSubject,
+} from '../shared';
 
 export const runtime = 'nodejs';
 
@@ -27,7 +29,7 @@ export async function GET(request) {
 
   const nonce = crypto.randomBytes(16).toString('hex');
   const response = NextResponse.redirect(authorizeUrl('LINKEDIN', {
-    state: createState(nonce),
+    state: createState(loginStateSubject(nonce)),
     request,
     callbackPath: LINKEDIN_LOGIN_CALLBACK,
   }));

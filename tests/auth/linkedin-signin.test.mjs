@@ -2,6 +2,31 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { authorizeAlumniLinkedIn } from '../../lib/auth/linkedin-signin.js';
+import { issueSessionCookie, readSessionCookie } from '../../lib/auth/session.js';
+
+test('a LinkedIn session stops working if the person is no longer Alumni', async () => {
+  const secret = 'test-session-secret-at-least-32-characters';
+  const now = new Date('2026-11-25T10:00:00Z');
+  const safeUser = { id: 'u1', email: 'a@qiu.edu.my', name: 'A', role: 'ALUMNI', student: null };
+  const linkedin = issueSessionCookie(safeUser, { secret, now, source: 'LINKEDIN' });
+  const google = issueSessionCookie(safeUser, { secret, now });
+
+  const prismaWithRole = (role) => ({
+    user: {
+      findUnique: async () => ({
+        id: 'u1', email: 'a@qiu.edu.my', name: 'A', role, loginAllowed: true, accountStatus: 'ACTIVE', student: null,
+      }),
+    },
+  });
+  const read = (cookie, role) => readSessionCookie(cookie.value, { secret, now, prisma: prismaWithRole(role) });
+
+  assert.equal((await read(linkedin, 'ALUMNI')).user.role, 'ALUMNI');
+  // Promoted to staff after signing in with LinkedIn: that session ends.
+  assert.equal(await read(linkedin, 'CPDC_ADMIN'), null);
+  assert.equal(await read(linkedin, 'STUDENT'), null);
+  // A Google session is unaffected by the rule.
+  assert.equal((await read(google, 'CPDC_ADMIN')).user.role, 'CPDC_ADMIN');
+});
 
 // Alumni sign in with LinkedIn after their QIU Google account closes. The only
 // way in is a LinkedIn account that was linked by signing in to LinkedIn while

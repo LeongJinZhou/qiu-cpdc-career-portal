@@ -21,7 +21,9 @@ Added 2026-11-25 (Render deploy, LinkedIn import, super admin):
 - LinkedIn sign-in gives only name/email/photo. Photo copied on connect
   (avatarSource LINKEDIN, lib/auth/avatar.js). Headline/About/jobs/education/
   skills come from the student's "Save to PDF" export: /settings import card,
-  parsed in a worker thread (lib/profile/), preview only, saved via existing
+  parsed in a separate child process (lib/profile/; NOT worker_threads: pdfjs
+  loads native @napi-rs/canvas, which segfaulted Node on worker teardown),
+  no server secrets in its env, preview only, saved via existing
   profile + CV endpoints. Manual CV gained an `education` section.
 - Open: parser tested on generated PDFs only - try a real LinkedIn export.
   Rate limits are in-memory (one instance only). No Playwright test yet.

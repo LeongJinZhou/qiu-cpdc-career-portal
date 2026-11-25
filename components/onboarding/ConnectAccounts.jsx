@@ -47,8 +47,12 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
   const signedIn = connected?.method === 'OAUTH';
   const isConnected = Boolean(connected) && !connected.broken && (!signInOnly || signedIn);
   const showPasteForm = !signInOnly || signedIn;
+  // LinkedIn sign-in never returns the public link, so ask for it straight away.
+  const needsLink = signedIn && !connected?.profileUrl;
+  // Linked earlier by pasting: still needs one sign-in under the new rule.
+  const pastedOnly = signInOnly && Boolean(connected) && !signedIn;
 
-  const [open, setOpen] = useState(required && !isConnected);
+  const [open, setOpen] = useState(required && (!isConnected || needsLink));
   const [value, setValue] = useState(connected?.profileUrl ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -129,8 +133,12 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
         <div className="flex flex-shrink-0 items-center gap-2">
           {isConnected ? (
             <>
-              <button type="button" onClick={() => setOpen((o) => !o)} className="secondary-btn min-h-[36px] px-3 text-xs">
-                Change
+              <button
+                type="button"
+                onClick={() => setOpen((o) => !o)}
+                className={needsLink ? 'crimson-btn min-h-[36px] px-3 text-xs' : 'secondary-btn min-h-[36px] px-3 text-xs'}
+              >
+                {needsLink ? 'Add link' : 'Change'}
               </button>
               {!required ? (
                 <button
@@ -154,7 +162,14 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
         </div>
       </div>
 
-      {connected?.broken ? (
+      {pastedOnly ? (
+        <p className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800" role="status">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+          Your link is saved. Sign in with {provider.label} once, so you can still sign in here after you graduate and your QIU email closes.
+        </p>
+      ) : null}
+
+      {connected?.broken && !pastedOnly ? (
         <p className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800" role="status">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
           This link no longer opens. Please update it so CPDC can still reach you.
@@ -214,6 +229,15 @@ function ProviderCard({ provider, required, onConnect, onDisconnect, oauthAvaila
               {busy ? 'Checking the link…' : 'Save link'}
             </button>
           </form>
+          ) : null}
+
+          {oauthAvailable && signedIn ? (
+            <a
+              href={`/api/onboarding/oauth/${provider.id.toLowerCase()}/start`}
+              className="block text-center text-xs font-medium text-crimson underline"
+            >
+              Sign in with a different {provider.label} account
+            </a>
           ) : null}
 
           {provider.signUpUrl ? (

@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
+import { createAuditEntry } from '@/lib/audit/index.js';
 import { getAuthMode } from '@/lib/auth/config';
 import { getRequestId } from '@/lib/auth/identity';
 import { authorizeAlumniLinkedIn } from '@/lib/auth/linkedin-signin';
 import { issueSessionCookie } from '@/lib/auth/session';
 import { fetchOAuthProfile, isConfigured, verifyState } from '@/lib/onboarding/oauth';
 import { createRateLimiter } from '@/lib/rate-limit';
-import { clientKey, LINKEDIN_LOGIN_CALLBACK, LINKEDIN_LOGIN_STATE_COOKIE, loginErrorRedirect } from '../shared';
+import {
+  clientKey, LINKEDIN_LOGIN_CALLBACK, LINKEDIN_LOGIN_STATE_COOKIE, loginErrorRedirect, loginStateSubject,
+} from '../shared';
 
 export const runtime = 'nodejs';
 
@@ -19,6 +22,24 @@ const ERROR_CODES = {
   LINKEDIN_ACCOUNT_BLOCKED: 'linkedin-blocked',
   LINKEDIN_AMBIGUOUS: 'linkedin-ambiguous',
 };
+
+/** Refused sign-ins are audited with the reason only: no email, no LinkedIn id. */
+async function auditDenied(request, reason) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await createAuditEntry({
+        tx,
+        action: 'LOGIN_DENIED',
+        resourceType: 'Auth',
+        resourceId: 'linkedin',
+        metadata: { source: 'LINKEDIN', reason },
+        requestId: getRequestId(request),
+      });
+    });
+  } catch {
+    // An audit failure must not turn a refusal into a crash page.
+  }
+}
 
 /** GET /api/auth/linkedin/callback -- finishes alumni sign-in. */
 export async function GET(request) {
@@ -41,7 +62,8 @@ export async function GET(request) {
     return finish(loginErrorRedirect(request, 'linkedin-cancelled'));
   }
   const code = query.get('code');
-  if (!code || !nonce || !verifyState(query.get('state'), nonce)) {
+  if (!code || !nonce || !verifyState(query.get('state'), loginStateSubject(nonce))) {
+    await auditDenied(request, 'STATE_MISMATCH');
     return finish(loginErrorRedirect(request, 'linkedin-expired'));
   }
 
@@ -54,13 +76,15 @@ export async function GET(request) {
       requestId: getRequestId(request),
     });
 
-    const session = issueSessionCookie(user);
+    const session = issueSessionCookie(user, { source: 'LINKEDIN' });
     const response = NextResponse.redirect(new URL('/network', new URL(request.url).origin));
     response.cookies.set(session.name, session.value, session.options);
     return finish(response);
   } catch (error) {
     const known = ERROR_CODES[error?.code];
-    if (!known) console.warn('[linkedin-login] sign-in failed', error?.name ?? 'Error');
+    await auditDenied(request, error?.code ?? 'ERROR');
+    // The message only: token exchange errors carry no tokens.
+    if (!known) console.warn('[linkedin-login] sign-in failed:', error?.message ?? error?.name ?? 'Error');
     return finish(loginErrorRedirect(request, known ?? 'linkedin-failed'));
   }
 }

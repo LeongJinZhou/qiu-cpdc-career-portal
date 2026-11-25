@@ -44,7 +44,7 @@ const TABS = [
   { id: 'students', label: 'Cohort health', icon: Users },
   { id: 'approvals', label: 'Approvals', icon: FileCheck2 },
   { id: 'analytics', label: 'Analytics', icon: Activity },
-  { id: 'alumni', label: 'Alumni', icon: GraduationCap },
+  { id: 'alumni', label: 'Alumni tracker', icon: GraduationCap },
   { id: 'people', label: 'People & access', icon: BadgeCheck },
   { id: 'audit', label: 'Audit', icon: LockKeyhole },
   { id: 'data', label: 'Data explorer', icon: Database },

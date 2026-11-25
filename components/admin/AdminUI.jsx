@@ -216,7 +216,9 @@ export function downloadCsv(filename, contents) {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    // Released a moment later: revoking at once can cancel the download in
+    // some browsers.
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch {
     // Download blocked (sandboxed iframe) — nothing else in the view depends
     // on this succeeding, so fail quietly rather than throwing in a handler.

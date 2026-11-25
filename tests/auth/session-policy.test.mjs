@@ -366,9 +366,11 @@ test('readSessionCookie revalidates against the current database user and refres
   });
   state.user.role = 'CPDC_ADMIN';
 
+  // Fixed time inside the cookie's 5-day life (the real clock had expired it).
   const session = await readSessionCookie(cookie.value, {
     secret: 'test-session-secret',
     prisma,
+    now: new Date('2026-08-01T11:00:00.000Z'),
   });
 
   assert.deepEqual(session.user, {
@@ -503,8 +505,11 @@ test('createSessionCookie and readSessionCookie preserve the safe session payloa
     now: new Date('2026-08-01T10:00:00.000Z'),
   });
 
+  // Read at a fixed time inside the 5-day cookie life: with the real clock
+  // this fixed-date cookie had expired, so the test failed on dates, not code.
   const session = await readSessionCookie(cookie.value, {
     secret: 'test-session-secret',
+    now: new Date('2026-08-01T11:00:00.000Z'),
   });
 
   assert.deepEqual(session.user, {

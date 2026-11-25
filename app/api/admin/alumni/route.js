@@ -15,7 +15,7 @@ import { getAdminIdentity } from '@/lib/admin/route-auth';
 export async function GET(request) {
   try {
     const identity = await getAdminIdentity(request);
-    const rows = await listAlumni(prisma);
+    const { rows, totalInDatabase } = await listAlumni(prisma);
 
     await prisma.$transaction(async (tx) => {
       await createAuditEntry({
@@ -29,7 +29,12 @@ export async function GET(request) {
       });
     });
 
-    return NextResponse.json({ rows, summary: summarizeAlumni(rows) }, {
+    return NextResponse.json({
+      rows,
+      summary: summarizeAlumni(rows),
+      truncated: totalInDatabase > rows.length,
+      totalInDatabase,
+    }, {
       headers: { 'cache-control': 'no-store' },
     });
   } catch (error) {

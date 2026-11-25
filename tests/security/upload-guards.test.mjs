@@ -4,7 +4,15 @@ import { jsPDF } from 'jspdf';
 
 import { createRateLimiter } from '../../lib/rate-limit.js';
 import { readBodyWithLimit } from '../../lib/http/read-body.js';
-import { parseLinkedInPdfIsolated } from '../../lib/profile/linkedin-pdf-isolated.js';
+import { activeParses, parseLinkedInPdfIsolated } from '../../lib/profile/linkedin-pdf-isolated.js';
+
+/** Wait until earlier tests' reader processes have exited. */
+async function waitUntilIdle() {
+  for (let attempt = 0; attempt < 100 && activeParses() > 0; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  assert.equal(activeParses(), 0, 'reader processes never exited');
+}
 
 // ---- rate limiter -------------------------------------------------------
 
@@ -77,17 +85,21 @@ function tinyProfilePdf() {
   return Buffer.from(doc.output('arraybuffer'));
 }
 
-test('parses a PDF in a separate worker thread', async () => {
+test('parses a PDF in a separate reader process', async () => {
+  await waitUntilIdle();
   const parsed = await parseLinkedInPdfIsolated(tinyProfilePdf());
   assert.equal(parsed.name, 'Aina Rahman');
   assert.equal(parsed.summary, 'I build data tools.');
 });
 
-test('a parse that runs too long is stopped', async () => {
+test('a parse that runs too long is stopped, and its process is killed', async () => {
+  await waitUntilIdle();
   await assert.rejects(parseLinkedInPdfIsolated(tinyProfilePdf(), { timeoutMs: 1 }), /timed out/i);
+  await waitUntilIdle();
 });
 
 test('only two parses run at once across the server; a third is refused as busy', async () => {
+  await waitUntilIdle();
   const pdf = tinyProfilePdf();
   const results = await Promise.allSettled([
     parseLinkedInPdfIsolated(pdf),
@@ -96,10 +108,25 @@ test('only two parses run at once across the server; a third is refused as busy'
   ]);
   assert.deepEqual(results.map((result) => result.status), ['fulfilled', 'fulfilled', 'rejected']);
   assert.equal(results[2].reason.code, 'PARSER_BUSY');
-  // Slots are released afterwards.
-  assert.equal((await parseLinkedInPdfIsolated(pdf)).name, 'Aina Rahman');
+  // Slots are released once the reader processes have exited (a moment after
+  // they answer), and never stay taken.
+  let parsed = null;
+  for (let attempt = 0; attempt < 40 && !parsed; attempt += 1) {
+    try {
+      parsed = await parseLinkedInPdfIsolated(pdf);
+    } catch (error) {
+      if (error.code !== 'PARSER_BUSY') throw error;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+  assert.equal(parsed?.name, 'Aina Rahman');
 });
 
 test('garbage input is rejected, not crashed on', async () => {
-  await assert.rejects(parseLinkedInPdfIsolated(Buffer.from('%PDF-1.4 not really a pdf')));
+  await waitUntilIdle();
+  await assert.rejects(
+    parseLinkedInPdfIsolated(Buffer.from('%PDF-1.4 not really a pdf')),
+    (error) => error.code !== 'PARSER_BUSY',
+  );
+  await waitUntilIdle();
 });
