@@ -155,3 +155,41 @@ Each slice is shown to the founder before the next starts.
 - 2026-11-25: no "Verified on LinkedIn" partner tier (founder). Job history comes from the LinkedIn PDF only.
   The portal never scrapes LinkedIn (account-ban risk, against LinkedIn's terms).
 - 2026-11-25: "follow the QIU LinkedIn page" is a required tick, not a check: LinkedIn's API cannot tell.
+
+<!-- ---- slice 2a (logbook, showcase, assessments): begin ---- -->
+## 9. Slice 2a: internship logbook, FYP showcase, self-assessments
+Permissions (migration 0103): `logbook.own`, `showcase.own` (student); `assessment.take` (student, alumni);
+`logbook.track`, `assessment.manage` (admin, superadmin); `showcase.browse` (staff, admin, superadmin).
+
+Internship logbook
+- A student records one internship (company, supervisor name and work email, start and end date) and one entry per
+  week (Monday of the week, hours 0-80, what they did, what they learned). Only started weeks inside the internship.
+- Draft or returned weeks can be changed; "send" emails the supervisor a link and locks the week.
+- The supervisor has no account. The link holds a 256-bit random secret (43 characters); only its SHA-256 is stored
+  (`logbook_review_link`). It works once, for `logbook_review_link_days` (14), only while the week waits. Sending
+  again or changing the supervisor's email voids the old links. Returning a week needs a comment. The student gets
+  an email with the decision. The review page shows the student's name and company, never email or matric number.
+- Email: `Mailer` interface; `MAIL_DRIVER=log` writes to `STORAGE_DIR/logs/mail.log` (local, tests, Render test copy),
+  `MAIL_DRIVER=mail` uses the host's PHP mail() with `MAIL_FROM` (Exabytes). No paid service.
+- CPDC (`/internships`) sees every intern: weeks approved over weeks started, waiting, returned, approved hours; one
+  intern's weeks read-only (each view audited `logbook.view`).
+
+FYP showcase and talent feed
+- One project per student: title, summary, technologies (up to 12), year, https code and demo links, published flag.
+  Faculty comes from the directory. Picture: PNG, JPEG or WebP by its bytes (getimagesize), at most
+  `showcase_image_max_bytes` (2 MB) and 6000 px a side, stored under a random name in `STORAGE_DIR/showcase`, served
+  only through the API to its student or (when published) to `showcase.browse`.
+- Staff and CPDC (`/showcase`) browse published projects, filter by technology, faculty, year and text. Names link
+  to LinkedIn (rule 13).
+
+Self-assessments
+- CPDC writes an assessment: single-choice questions (2-6 answers, 0-10 points each) and result bands (start % and
+  name; one starts at 0). Draft, published, archived. Questions freeze once anyone has taken it (archive instead).
+- Students and alumni take published ones; the server checks every question is answered once and scores it
+  (score, best possible, percent, band). Points never reach the taker. The latest result per assessment shows on
+  the person's profile. CPDC sees attempts, people and average per assessment.
+
+Data (migrations 0100-0102): `internship` (unique student), `logbook_entry` (unique internship + week),
+`logbook_review_link`, `showcase_project` (unique student), `showcase_tech`, `assessment` (bands as JSON),
+`assessment_question`, `assessment_option`, `assessment_attempt`, `assessment_answer`.
+<!-- ---- slice 2a: end ---- -->

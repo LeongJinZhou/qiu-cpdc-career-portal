@@ -1,0 +1,10 @@
+{
+  "$comment": "POST /api/logbook/review/{token}: the supervisor's decision. A returned week needs a comment (checked on the server).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision"],
+  "properties": {
+    "decision": { "enum": ["approve", "return"] },
+    "comment": { "type": "string", "maxLength": 2000 }
+  }
+}

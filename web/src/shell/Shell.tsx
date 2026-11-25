@@ -3,6 +3,7 @@ import { ClipboardList, GraduationCap, LogOut, ScrollText, UserRound, Users, typ
 import type { MouseEvent, ReactNode } from 'react';
 import { can, ROLE_LABEL, type Me } from '../auth';
 import { Avatar } from '../ui/parts';
+import { NAV_2A } from '../logbook/nav2a'; // slice 2a
 import './shell.css';
 
 interface NavItem {
@@ -18,6 +19,7 @@ export const NAV: NavItem[] = [
   { path: '/people', label: 'People', icon: Users, permission: 'people.view' },
   { path: '/registrations', label: 'Graduate sign-ups', icon: ClipboardList, permission: 'registrations.decide' },
   { path: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.view' },
+  ...NAV_2A, // slice 2a
 ];
 
 export function Shell({

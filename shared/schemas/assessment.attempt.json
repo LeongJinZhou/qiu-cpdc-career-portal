@@ -1,0 +1,22 @@
+{
+  "$comment": "POST /api/assessments/{id}/attempts: one chosen option per question. The server checks every question is answered once and scores it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["answers"],
+  "properties": {
+    "answers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question_id", "option_id"],
+        "properties": {
+          "question_id": { "type": "integer", "minimum": 1 },
+          "option_id": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$comment": "GET /api/showcase: the talent feed of published projects.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "q": { "type": "string", "maxLength": 100 },
+    "tech": { "type": "string", "maxLength": 40 },
+    "faculty": { "type": "string", "maxLength": 200 },
+    "year": { "type": "integer", "minimum": 1990, "maximum": 2100 },
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" }
+  }
+}

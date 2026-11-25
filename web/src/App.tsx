@@ -14,6 +14,10 @@ import { RegisterGraduate } from './auth/RegisterGraduate';
 import { ProfilePage } from './profile/ProfilePage';
 import { NAV, Shell } from './shell/Shell';
 import { LoadError, SkeletonLines } from './ui/parts';
+// ---- slice 2a (logbook, showcase, assessments): imports ----
+import { TITLES_2A } from './logbook/nav2a';
+import { publicPage2a, signedInPage2a } from './logbook/pages2a';
+// ---- slice 2a: end ----
 
 type State = { kind: 'loading' } | { kind: 'error'; error: unknown } | { kind: 'out' } | { kind: 'in'; me: Me };
 
@@ -23,6 +27,7 @@ const TITLES: Record<string, string> = {
   '/people': 'People',
   '/registrations': 'Graduate sign-ups',
   '/audit': 'Audit log',
+  ...TITLES_2A, // slice 2a
 };
 
 export function App() {
@@ -67,6 +72,10 @@ export function App() {
   // Pages anyone can open, signed in or not.
   if (path === '/privacy') return <Privacy />;
   if (path === '/register-graduate') return <RegisterGraduate />;
+  // ---- slice 2a: the supervisor's review link (no sign-in) ----
+  const public2a = publicPage2a(path);
+  if (public2a) return public2a;
+  // ---- slice 2a: end ----
 
   if (state.kind === 'loading') {
     return <div style={{ maxWidth: 420, margin: '20vh auto', padding: 20 }}><SkeletonLines lines={3} /></div>;
@@ -88,6 +97,18 @@ export function App() {
   // The first page this person may open; unknown or forbidden paths land there.
   const allowed = NAV.filter((item) => can(me, item.permission)).map((item) => item.path);
   const home = allowed[0] ?? '/profile';
+  // ---- slice 2a (logbook, showcase, assessments): signed-in pages ----
+  const page2a = signedInPage2a(path, me, go);
+  if (page2a) {
+    const signOut2a = () =>
+      void signOut(me.csrf_token).finally(() => {
+        setState({ kind: 'out' });
+        window.history.replaceState({}, '', '/login');
+        setPath('/login');
+      });
+    return <Shell me={me} path={page2a.nav} go={go} onSignOut={signOut2a}>{page2a.element}</Shell>;
+  }
+  // ---- slice 2a: end ----
   const personId = /^\/people\/(\d+)$/.exec(path)?.[1];
   const page = personId && can(me, 'people.view') ? '/people/:id' : allowed.includes(base) && base === path ? base : null;
   if (page === null && path !== home) {

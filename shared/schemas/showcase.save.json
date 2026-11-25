@@ -1,0 +1,15 @@
+{
+  "$comment": "PUT /api/showcase/mine: the student's final-year project. Links are https only (also checked on the server).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "summary", "tech", "project_year", "published"],
+  "properties": {
+    "title": { "type": "string", "minLength": 3, "maxLength": 160 },
+    "summary": { "type": "string", "minLength": 20, "maxLength": 3000 },
+    "tech": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 1, "maxLength": 40 } },
+    "project_year": { "type": "integer", "minimum": 1990, "maximum": 2100 },
+    "repo_url": { "type": "string", "maxLength": 500, "pattern": "^(|https://\\S+)$" },
+    "demo_url": { "type": "string", "maxLength": 500, "pattern": "^(|https://\\S+)$" },
+    "published": { "type": "boolean" }
+  }
+}

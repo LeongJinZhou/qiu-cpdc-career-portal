@@ -10,6 +10,8 @@ import { JobConfirm } from './JobConfirm';
 import { LinkedAccounts } from './LinkedAccounts';
 import { PdfImport } from './PdfImport';
 import './profile.css';
+import { can } from '../auth'; // slice 2a
+import { MyResults } from '../assessment/AssessmentsPage'; // slice 2a
 import type { Profile } from './types';
 
 export function ProfilePage({
@@ -65,6 +67,7 @@ export function ProfilePage({
             onChanged={() => { setFresh(null); load.reload(); }}
           />
           <PdfImport csrf={me.csrf_token} onSaved={(p) => { setFresh(p); setVersion((v) => v + 1); }} />
+          {can(me, 'assessment.take') && <MyResults /> /* slice 2a */}
         </div>
       </div>
     </>
