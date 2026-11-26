@@ -87,7 +87,8 @@ jobs:
           test "$(code /profile)" = 200            # client-side route falls back to index.html
           test "$(code /assets/missing.js)" = 404  # a missing asset is never the page shell
           test "$(code /api/no-such-route)" = 404
-          test "$(code /index.php/../.env)" != 200
+          ! curl -s --path-as-is http://127.0.0.1:10000/../cpdc/.env.example | grep -q DB_PASSWORD  # app folder never served
+          ! curl -s http://127.0.0.1:10000/.env | grep -q DB_PASSWORD
           curl -sI http://127.0.0.1:10000/ | grep -qi '^content-security-policy:'
           curl -s http://127.0.0.1:10000/profile | grep -q '<div id="root">'
       - if: always()
