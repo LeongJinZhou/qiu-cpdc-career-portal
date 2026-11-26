@@ -109,7 +109,8 @@ final class JobService
         return Transaction::run($this->pdo, function () use ($user, $jobId, $today, $note, $cv): int {
             $stmt = $this->pdo->prepare(
                 'SELECT j.status, j.closing_date, e.active FROM job_posting j JOIN employer e ON e.id = j.employer_id'
-                . ' WHERE j.id = ? AND j.organisation_id = ? FOR SHARE'
+                // LOCK IN SHARE MODE, not FOR SHARE: MariaDB (Exabytes) knows only this spelling, MySQL 8 both.
+                . ' WHERE j.id = ? AND j.organisation_id = ? LOCK IN SHARE MODE'
             );
             $stmt->execute([$jobId, $user['organisation_id']]);
             $job = $stmt->fetch(PDO::FETCH_ASSOC);
