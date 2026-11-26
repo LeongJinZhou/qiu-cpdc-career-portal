@@ -24,29 +24,36 @@ GitHub, Settings, Developer settings, OAuth Apps: callback `https://<host>/api/a
 ## 2. Database (MySQL 8)
 - Render has no MySQL. Use an external MySQL with TLS, e.g. the Aiven free plan (as sld-orientation): create a
   database `qiu_cpdc` and a user; download the CA certificate.
-- Exabytes: cPanel, MySQL Databases: create database and user, give the user ALL on that database.
+- Exabytes: cPanel, MySQL Databases: create database and user, give the user ALL on that database. Exabytes
+  Malaysia runs MariaDB 10.11; CI runs every test on MariaDB 10.11 and MySQL 8.4, so both work.
 - Tables are created by `php api/bin/migrate.php` (Render runs it at every start).
 
-## 3. Render test copy
-1. Render, New, Blueprint, pick the GitHub repo `qiu-cpdc-portal`, branch `main` (uses `render.yaml`).
-2. Fill every value marked "sync: false":
-   - `APP_URL` = `https://<service>.onrender.com`
-   - `SUPERADMIN_EMAIL` = `ai@qiu.edu.my`
-   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-   - Secret Files: `db-ca.pem` = the database CA certificate.
+## 3. Render test copy, run like Exabytes
+Render runs the same upload as Exabytes (`npm run package:exabytes`), in the same layout: `/home/cpdc/cpdc` (the
+app, above public_html) and `/home/cpdc/public_html` (web app, `.htaccess`, `index.php`). Routing and security
+headers come from `public_html/.htaccess`, as on cPanel. CI starts this image on MariaDB 10.11 and checks it.
+
+The founder's existing Render web service `qiu-cpdc-career-portal` (free plan, no Blueprint) deploys branch
+`master` of repo `LeongJinZhou/qiu-cpdc-career-portal`. The lead deploys with
+`git switch render-deploy && git merge main && git push render-host render-deploy:master`.
+1. Render, the service, Settings: Language **Docker**, Dockerfile path `./Dockerfile`, no build or start command,
+   Health Check Path `/api/health`.
+2. Environment: the values in `render.yaml` (`APP_ENV`, `APP_URL` = `https://<service>.onrender.com`,
+   `SUPERADMIN_EMAIL`, Google, LinkedIn, `DB_*`, `DB_SSL_CA`, `MAIL_DRIVER`, `AI_*`, `LOG_MIRROR` and the bases).
+   Secret Files: `db-ca.pem` = the database CA certificate.
 3. Deploy. Check `https://<service>.onrender.com/api/health` says `{"status":"ok"}`.
 4. Sign in with `ai@qiu.edu.my`: you are super admin.
 
 ## 4. Exabytes (cPanel shared hosting, production)
-Needs PHP 8.3 (cPanel, Select PHP Version: 8.3 with `pdo_mysql`, `mbstring`, `openssl`, `json`, `fileinfo`).
-1. On a laptop: `npm ci && npm run build` and `composer install --no-dev --optimize-autoloader` in `api/`.
-2. Upload (File Manager or SFTP) to `/home/<user>/cpdc/` (NOT inside public_html):
-   `api/` (with `vendor/`), `shared/`, `web/dist/`, `.env`, and an empty `storage/` (mode 700).
-3. Point the domain's document root at `/home/<user>/cpdc/api/public` if cPanel allows it. If it does not:
-   copy `web/dist/*` into `public_html/`, and put `deploy/exabytes/.htaccess` and `deploy/exabytes/index.php`
-   into `public_html/` (they send `/api/*` to the app above public_html).
-4. `.env` (above public_html, chmod 600): copy `.env.example`, set `APP_ENV=production`, `APP_URL=https://<domain>`,
+Needs PHP 8.3 (cPanel, Select PHP Version: 8.3 with `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`,
+`zlib`, `json`, `ctype`; MultiPHP INI Editor: `upload_max_filesize` 6M, `post_max_size` 7M, `memory_limit` 256M).
+1. On a laptop: `npm ci && npm run build`, `composer install --no-dev --optimize-autoloader` in `api/`, then
+   `npm run package:exabytes`. It makes `dist/exabytes/` with two folders.
+2. Upload (File Manager zip upload, or SFTP): `dist/exabytes/cpdc/` to `/home/<user>/cpdc/` (NOT inside
+   public_html), and the contents of `dist/exabytes/public_html/` (with `.htaccess`) into `public_html/`.
+   `storage/` mode 700.
+3. Nothing else to point: `public_html/index.php` hands `/api/*` to `~/cpdc`, exactly as on Render.
+4. `.env` in `/home/<user>/cpdc/` (chmod 600): copy `.env.example`, set `APP_ENV=production`, `APP_URL=https://<domain>`,
    `STORAGE_DIR=/home/<user>/cpdc/storage`, the database, Google, LinkedIn values and the production bases
    (`https://accounts.google.com`, `https://people.googleapis.com`, `https://www.linkedin.com`,
    `https://api.linkedin.com`). Leave `DB_SSL_CA` empty for a database on the same server.
