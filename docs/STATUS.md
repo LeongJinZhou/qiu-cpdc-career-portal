@@ -1,6 +1,10 @@
 # STATUS
 
 ## Open
+- Render hosting reuses the founder's existing web service `qiu-cpdc-career-portal` (free, no Blueprint), which
+  deploys branch `master` of repo LeongJinZhou/qiu-cpdc-career-portal. Deploy: `git switch render-deploy && git merge
+  main && git push render-host render-deploy:master`. The old Next.js code is kept there on branch `legacy-nextjs` and
+  tag `legacy-nextjs-2d10712`. The service must use the Docker runtime (Dockerfile at the root, health /api/health).
 - Founder: create the MySQL database for Render (Aiven free plan or similar), fill the Render values, register the
   callback URLs at Google and LinkedIn (docs/RELEASE.md). Exabytes upload when ready.
 - Founder, when wanted: `ANTHROPIC_API_KEY` in Render for interview feedback (paid; `AI_MODEL` claude-sonnet-5-5 in
