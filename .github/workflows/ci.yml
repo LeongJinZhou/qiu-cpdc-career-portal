@@ -6,16 +6,25 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # Every check on both databases: MySQL 8.4 (Render's Aiven) and MariaDB 10.11 (Exabytes cPanel).
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: mysql:8.4
+            health: mysqladmin ping -h 127.0.0.1
+          - db: mariadb:10.11
+            health: healthcheck.sh --connect --innodb_initialized
     services:
       mysql:
-        image: mysql:8.4
+        image: ${{ matrix.db }}
         env:
           MYSQL_ROOT_PASSWORD: ci-root-only
           MYSQL_DATABASE: cpdc
           MYSQL_USER: cpdc
           MYSQL_PASSWORD: local-dev-only
         ports: ["3306:3306"]
-        options: --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=5s --health-timeout=5s --health-retries=20
+        options: --health-cmd="${{ matrix.health }}" --health-interval=5s --health-timeout=5s --health-retries=20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { fetch-depth: 0 }
@@ -36,4 +45,51 @@ jobs:
       - run: npx playwright install --with-deps chromium && npm run test:e2e
       - run: npm audit --audit-level=high
       - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        if: matrix.db == 'mysql:8.4'
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+
+  # The Render image, which runs the Exabytes upload in the cPanel layout, started against MariaDB 10.11.
+  hosting-image:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-only
+          MYSQL_DATABASE: cpdc
+          MYSQL_USER: cpdc
+          MYSQL_PASSWORD: local-dev-only
+        ports: ["3306:3306"]
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: docker build -t cpdc-host .
+      - name: Start like Render does (production settings, fake keys)
+        run: |
+          docker run -d --name cpdc --network host \
+            -e PORT=10000 -e APP_ENV=production -e APP_URL=https://portal.example.com -e DEFAULT_ORGANISATION_ID=1 \
+            -e DB_HOST=127.0.0.1 -e DB_PORT=3306 -e DB_NAME=cpdc -e DB_USER=cpdc -e DB_PASSWORD=local-dev-only \
+            -e SUPERADMIN_EMAIL=superadmin@example.test \
+            -e GOOGLE_CLIENT_ID=ci -e GOOGLE_CLIENT_SECRET=ci \
+            -e GOOGLE_OIDC_BASE=https://accounts.google.com -e GOOGLE_PEOPLE_BASE=https://people.googleapis.com \
+            -e LINKEDIN_CLIENT_ID=ci -e LINKEDIN_CLIENT_SECRET=ci \
+            -e LINKEDIN_OAUTH_BASE=https://www.linkedin.com -e LINKEDIN_API_BASE=https://api.linkedin.com \
+            -e GITHUB_OAUTH_BASE=https://github.com -e GITHUB_API_BASE=https://api.github.com \
+            -e MAIL_DRIVER=log -e AI_DRIVER=fake -e LOG_MIRROR=php://stderr \
+            cpdc-host
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:10000/api/health && break; sleep 2; done
+      - name: Routing and headers from public_html/.htaccess
+        run: |
+          set -e
+          code() { curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:10000$1"; }
+          curl -fs http://127.0.0.1:10000/api/health | grep -q '"status":"ok"'
+          test "$(code /)" = 200
+          test "$(code /profile)" = 200            # client-side route falls back to index.html
+          test "$(code /assets/missing.js)" = 404  # a missing asset is never the page shell
+          test "$(code /api/no-such-route)" = 404
+          ! curl -s --path-as-is http://127.0.0.1:10000/../cpdc/.env.example | grep -q DB_PASSWORD  # app folder never served
+          ! curl -s http://127.0.0.1:10000/.env | grep -q DB_PASSWORD
+          curl -sI http://127.0.0.1:10000/ | grep -qi '^content-security-policy:'
+          curl -s http://127.0.0.1:10000/profile | grep -q '<div id="root">'
+      - if: always()
+        run: docker logs cpdc 2>&1 | tail -50

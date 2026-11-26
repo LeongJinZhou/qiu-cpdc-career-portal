@@ -18,16 +18,31 @@ final class Connection
             Env::get('DB_NAME')
         );
         $ca = getenv('DB_SSL_CA');
+        $requireTls = self::requiresTls((string) getenv('APP_ENV'), Env::get('DB_HOST'));
 
-        $options = self::options($ca === false ? null : $ca, getenv('APP_ENV') === 'production');
+        $options = self::options($ca === false ? null : $ca, $requireTls);
 
         return new PDO($dsn, Env::get('DB_USER'), Env::get('DB_PASSWORD'), $options);
     }
 
     /**
+     * Production never reaches a database on another server without TLS. A database on the same server (Exabytes
+     * cPanel, host "localhost") never leaves the machine, so it needs no certificate.
+     */
+    public static function requiresTls(string $appEnv, string $dbHost): bool
+    {
+        return $appEnv === 'production' && !self::isSameServer($dbHost);
+    }
+
+    public static function isSameServer(string $dbHost): bool
+    {
+        return in_array(strtolower(trim($dbHost)), ['localhost', '127.0.0.1', '::1'], true);
+    }
+
+    /**
      * PDO options. With a CA file (DB_SSL_CA, a hosted database such as Aiven) the connection is TLS and the server
-     * certificate is verified against that CA; without one (local MySQL) no TLS options are set. Production never
-     * connects without TLS.
+     * certificate is verified against that CA; without one (local MySQL) no TLS options are set. $requireTls refuses
+     * to go on without a CA (production, database on another server).
      *
      * @return array<int, mixed>
      */

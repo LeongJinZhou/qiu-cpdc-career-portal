@@ -16,6 +16,6 @@ if [ -n "${DB_SSL_CA:-}" ] && [ -r "$DB_SSL_CA" ]; then
 fi
 
 # Applies only migration files not yet recorded in schema_migration, so every restart is safe.
-php /app/api/bin/migrate.php
+php /home/cpdc/cpdc/api/bin/migrate.php
 
 exec apache2-foreground

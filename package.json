@@ -9,6 +9,7 @@
     "dev:fakes": "node tools/php-dev-server.mjs 8091 api/tests/fakes/server.php",
     "dev:web": "vite --config web/vite.config.ts",
     "build": "vite build --config web/vite.config.ts",
+    "package:exabytes": "node tools/package-exabytes.mjs",
     "lint": "eslint . && php api/vendor/bin/phpcs -d memory_limit=512M --standard=api/phpcs.xml",
     "typecheck": "tsc --noEmit && php api/vendor/bin/phpstan analyse -c api/phpstan.neon --no-progress --memory-limit=512M",
     "test": "npm run test:api",

@@ -42,6 +42,33 @@ final class ConnectionOptionsTest extends TestCase
         Connection::options($ca, true);
     }
 
+    /** @return array<string, array{string, bool}> */
+    public static function hosts(): array
+    {
+        return [
+            'localhost' => ['localhost', true],
+            'loopback' => ['127.0.0.1', true],
+            'loopback v6' => ['::1', true],
+            'upper case' => [' LocalHost ', true],
+            'hosted' => ['mysql-1.aivencloud.com', false],
+            'private ip' => ['10.0.0.5', false],
+            'empty' => ['', false],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('hosts')]
+    public function testOnlyADatabaseOnTheSameServerCountsAsLocal(string $host, bool $local): void
+    {
+        self::assertSame($local, Connection::isSameServer($host));
+    }
+
+    public function testTlsIsRequiredInProductionOnlyForADatabaseOnAnotherServer(): void
+    {
+        self::assertTrue(Connection::requiresTls('production', 'mysql-1.aivencloud.com'));
+        self::assertFalse(Connection::requiresTls('production', 'localhost')); // Exabytes: database on the same server
+        self::assertFalse(Connection::requiresTls('local', 'mysql-1.aivencloud.com'));
+    }
+
     public function testProductionWithCaVerifiesTheServer(): void
     {
         self::assertTrue(Connection::options('/ca.pem', true)[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT]);
