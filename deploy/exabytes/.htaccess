@@ -1,6 +1,8 @@
 # Exabytes public_html: /api/* runs the PHP app (index.php here hands over to ~/cpdc); everything else is the built
 # web app, and unknown paths fall back to index.html (client-side routes).
 Options -Indexes
+# The home page is the web app. cPanel tries index.php first, which is only the /api hand-off.
+DirectoryIndex index.html
 RewriteEngine On
 
 RewriteRule ^api(/.*)?$ index.php [L,QSA]
